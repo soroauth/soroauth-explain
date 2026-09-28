@@ -1,0 +1,32 @@
+name: Feature request
+description: Something soroauth-explain should explain or do that it does not.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        To ask for a function or interface to be interpreted, say which published standard defines it.
+        A registry entry needs a cited standard, its committed text, and a checkable rule for every
+        element it would render as `decoded`. See
+        [CONTRIBUTING.md](https://github.com/soroauth/soroauth-explain/blob/main/CONTRIBUTING.md).
+
+        Out of scope: signing, simulating transactions or estimating fees, a hosted registry of contract
+        names, and anything that labels a contract by what it reports about itself.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you are trying to do
+      description: What entry, or what kind of entry, you want explained, and what the tool renders today.
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Where the meaning comes from
+      description: >
+        The standard, CAP or protocol source that defines the function and its arguments, with a link.
+        How could each element be derived from the bytes or checked offline?
+    validations:
+      required: true

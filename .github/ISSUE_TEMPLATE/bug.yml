@@ -1,0 +1,49 @@
+name: Bug report
+description: Something soroauth-explain renders or does that it should not.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before filing:** if a rendering marked `decoded` is wrong (a wrong asset label, amount, party,
+        function or ledger, or `decoded` where it should be `partial` or `opaque`), or a crafted entry
+        crashes or hangs the tool, report it privately instead, through
+        [Security Advisories](https://github.com/soroauth/soroauth-explain/security/advisories/new).
+        See [SECURITY.md](https://github.com/soroauth/soroauth-explain/blob/main/SECURITY.md).
+
+        An entry rendered `opaque` or `partial` is not a bug: it is the tool saying what it cannot
+        establish. To ask for more functions to be interpreted, use a feature request.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did soroauth-explain render or do, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: entry
+    attributes:
+      label: The entry
+      description: The authorization entry as base64 XDR, and the network it is from.
+      render: text
+    validations:
+      required: true
+
+  - type: input
+    id: command
+    attributes:
+      label: Command or options
+      description: The CLI command line, or the Explain options, you used.
+      placeholder: soroauth-explain --entry - --network public --asset USDC:G...
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: soroauth-explain version or commit
+      placeholder: v0.1.0, or a commit SHA
+    validations:
+      required: true
