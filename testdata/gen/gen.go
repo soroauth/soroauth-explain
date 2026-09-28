@@ -268,6 +268,12 @@ func builtEntries() ([]snapshot.Entry, error) {
 		{"built_hundred_arguments",
 			"a call with 100 u32 arguments",
 			addressEntry(call(contract(opaqueKey), "wide", hundred))},
+		{"built_source_account",
+			"a source-account entry over the unknown-function call; soroauth-go's vectors carry no source-account entry",
+			xdr.SorobanAuthorizationEntry{
+				Credentials:    xdr.SorobanCredentials{Type: xdr.SorobanCredentialsTypeSorobanCredentialsSourceAccount},
+				RootInvocation: call(contract(opaqueKey), "do_thing", nil),
+			}},
 		{"built_deep_tree",
 			fmt.Sprintf("a chain of %d nested invocations, exactly the default depth limit", explain.DefaultMaxDepth),
 			addressEntry(chain(explain.DefaultMaxDepth))},
