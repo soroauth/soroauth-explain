@@ -549,9 +549,17 @@ call match a known signature, and what does each argument mean"; the caller asse
 ### 6.8 CLI
 
 ```
-soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>] [--json] [--strict]
+soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>] \
+                 [--asset CODE:ISSUER] [--json] [--strict]
 soroauth-explain completions --shell bash|zsh|fish
 ```
+
+`--asset` is repeatable and supplies `WithAssets`. Without it the CLI can only ever
+identify the native asset, so a USDC transfer the library decodes renders `partial` from
+the command line — a gap between what the library can do and what the tool can do, which
+is confusing rather than safe. `native` is always a candidate and needs no flag. An
+argument that does not parse as `CODE:ISSUER` is a usage error, not a silently ignored
+candidate.
 
 - `--entry -` reads stdin, trimming surrounding whitespace, so it composes with
   `soroauth`'s output. (soroauth-go shipped this broken once: every subcommand prints a
@@ -673,6 +681,13 @@ release blocker, not a bug to file.
     front, before any feature list; a worked example of each level; the impostor guard and
     why it exists; differences from `soroauth-go`; status `v0.1.0`, **unaudited**;
     contributing; license.
+
+    **State the real hit rate, in the README, near the top.** The CP3 run decoded 1.5% of
+    480 real testnet entries by default and 7.3% with candidate assets supplied. Say so,
+    link `docs/EVIDENCE.md`, and say plainly that a high `opaque` share is the tool working
+    — those are calls outside the interfaces it knows, not bytes that failed to decode. A
+    reader who discovers that number themselves, after trusting a feature list, will
+    reasonably conclude the tool is broken.
 18. `docs: add contributing guide` — setup, how to regenerate snapshots, the never-edit-a-
     snapshot rule, how to add a registry entry and what evidence it needs, commit format.
 19. `docs: add security policy` — private reporting; state plainly that a wrong `decoded`
