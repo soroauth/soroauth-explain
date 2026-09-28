@@ -27,4 +27,4 @@ jobs:
       # about current traffic that the network contradicts, or an RPC was
       # unavailable. Measured locally: about 15s (testnet) and 31s (public).
       - name: explain live entries
-        run: go test -tags live -run 'TestLive(Testnet|Public)' -v -count=1 -timeout 30m .
+        run: go test -tags live -run 'TestLive' -v -count=1 -timeout 30m .
