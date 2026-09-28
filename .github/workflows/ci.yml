@@ -30,3 +30,32 @@ jobs:
         run: go vet ./...
       - name: test
         run: go test ./...
+
+  snapshot-drift:
+    name: snapshots are reproducible
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      # The generator refuses a dirty tree, and a fresh checkout is clean.
+      - name: regenerate the inputs and snapshots
+        run: go run ./cmd/gensnapshots
+
+      # Inputs and snapshots are generated, committed artefacts. If
+      # regenerating changes anything, then either one was edited by hand or
+      # the code changed without its snapshots, and in both cases the
+      # committed renderings no longer say what the code says.
+      - name: fail on drift
+        run: |
+          drift="$(git status --porcelain)"
+          if [ -n "$drift" ]; then
+            echo "regenerating changed committed files:"
+            echo "$drift"
+            git --no-pager diff
+            echo "run 'go run ./cmd/gensnapshots' on a clean tree, commit the result, and explain the change"
+            exit 1
+          fi
