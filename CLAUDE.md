@@ -34,29 +34,55 @@ it applies to you.
 
 ---
 
-## 0. Prerequisite — do this before `go mod tidy`
+## 0. Which `soroauth-go` version to depend on
 
-`soroauth-go` must be tagged with a release that contains the APIs this project imports.
-Verified on 2026-09-28 against `github.com/soroauth/soroauth-go`:
+**Pin `v0.1.0`. Do not ask for a new tag. Do not use a pseudo-version.**
+
+`soroauth-go` is mid-Drips-wave and is not to be modified, tagged or released until that
+wave closes. This project must not create work there. Verified on 2026-09-28:
 
 ```
-$ git tag
-v0.1.0
+$ git show v0.1.0:address.go | grep -n 'func FormatAddress'
+88:func FormatAddress(a xdr.ScAddress) (string, error) {
 
-$ for f in DescribeSignature InspectEnvelope EnvelopeEntries DecodeAuthorizationEntry; do
-    git grep -q "func $f" v0.1.0 -- '*.go' && echo "$f yes" || echo "$f NO"; done
-DescribeSignature            NO (post-v0.1.0)
-InspectEnvelope              NO (post-v0.1.0)
-EnvelopeEntries              NO (post-v0.1.0)
-DecodeAuthorizationEntry     NO (post-v0.1.0)
+$ git show v0.1.0:inspect.go | grep -n 'func Inspect'
+93:func Inspect(entry xdr.SorobanAuthorizationEntry) (EntryInfo, error) {
 ```
 
-All four landed after `v0.1.0`, and `v0.1.0` is the only tag. **Stop and ask for a
-`soroauth-go` release tag before starting.** Do not depend on a pseudo-version
-(`v0.1.1-0.2026...-abcdef`) to get around it: this library's whole claim is
+Both signatures are identical to `main`'s, and `v0.1.0`'s `EntryInfo` already carries every
+field §6.2 needs — `CredentialType`, `AddressBound`, `Address`, `Nonce`,
+`ValidUntilLedger`, `TopLevelSigned`, `Delegates` (nested, each with `Signed`),
+`RootContract`, `RootFunction`, `SubInvocations`. Phases 0 and 1 need nothing else.
+
+**`v0.1.0` is also the better dependency, not a concession.** Its direct requires are the
+SDK's transitive set and nothing more. `main` has since added `bubbletea` and `lipgloss` to
+the root module, and a HashiCorp Vault signer that puts `net/http` in the library's import
+graph. Depending on `v0.1.0` keeps a terminal UI framework and an HTTP client out of this
+project. Do not "upgrade" to a newer tag on the assumption that newer is better; re-pinning
+needs the check below to pass.
+
+### When to re-pin, and what must be true first
+
+Four APIs land only after `v0.1.0`: `DecodeAuthorizationEntry`, `InspectEnvelope`,
+`EnvelopeEntries`, `DescribeSignature`. None is needed before Phase 2.
+
+The first real need is Phase 2's CLI (§6.8), where `--entry` should decode through
+`DecodeAuthorizationEntry` rather than `xdr.SafeUnmarshalBase64`, because it applies the
+bounded decode limits §5 requires of this project too.
+
+**Stop at that point and ask.** Re-pinning requires, in this order:
+
+1. `soroauth-go`'s wave has closed.
+2. A real release tag exists containing those four APIs.
+3. That release does not drag `bubbletea`, `lipgloss` or a Vault HTTP client into this
+   project's dependency graph. Check with `go list -deps .` after upgrading; if it does,
+   say so and stop rather than accepting it silently.
+
+Until all three hold, `v0.1.0` stands. A pseudo-version
+(`v0.1.1-0.2026...-abcdef`) is never an acceptable substitute: this library's claim is
 reproducibility, and a floating dependency breaks that on day one.
 
-Record the tag you depended on, and the output of `go list -m github.com/soroauth/soroauth-go`,
+Record the resolved version and the output of `go list -m github.com/soroauth/soroauth-go`
 at Checkpoint 0.
 
 ---
@@ -282,7 +308,7 @@ into a file without re-running its command — this table will age.
 | Go toolchain | `go1.25.4 darwin/arm64` locally; write the exact local version as the `toolchain` line | `go version` |
 | Go floor | `go 1.25.0` | `grep '^go ' go.mod` in soroauth-go; its floor is forced by the SDK, whose own `go.mod` declares `go 1.25` |
 | `github.com/stellar/go-stellar-sdk` | `v0.7.3` | `grep go-stellar-sdk go.mod` in soroauth-go |
-| `github.com/soroauth/soroauth-go` | **unresolved — see §0** | `git tag` shows only `v0.1.0`, which lacks the needed APIs |
+| `github.com/soroauth/soroauth-go` | `v0.1.0` — see §0 | `git show v0.1.0:inspect.go \| grep 'func Inspect'`; its `EntryInfo` covers §6.2 and its dep graph is clean |
 | Node (snapshot tooling, if any) | local is `v26.9.0`, CI uses `22` | `node --version`; soroauth-go's `ci.yml` |
 
 Add no Go dependencies beyond `go-stellar-sdk`, `soroauth-go`, and their transitive
