@@ -1,0 +1,58 @@
+// Command soroauth-explain explains what a Soroban authorization entry
+// authorizes, and says what it could not determine.
+//
+//	soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>] [--json] [--strict]
+//
+// Results go to stdout and diagnostics to stderr, so stdout only ever carries
+// a result: a rendering, or nothing.
+//
+// Exit status: 0 success; 1 the entry could not be read, decoded or
+// explained; 2 usage error; 3 --strict was given and the explanation is not
+// decoded (the rendering is still printed).
+package main
+
+import (
+	"fmt"
+	"io"
+	"os"
+)
+
+const (
+	exitOK         = 0
+	exitError      = 1
+	exitUsage      = 2
+	exitNotDecoded = 3
+)
+
+const usageText = `usage:
+  soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>] [--json] [--strict]
+
+Explains what a Soroban authorization entry authorizes. Every node is marked
+decoded, partial or opaque; anything not decoded is listed under
+"Not determined".
+
+flags:
+  --entry     the entry as base64 XDR, or - to read it from stdin
+  --network   testnet, public, or a network passphrase; without it no
+              contract is labelled with an asset
+  --json      print the stable JSON rendering instead of text
+  --strict    exit 3 unless the explanation is decoded
+`
+
+func main() {
+	os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
+}
+
+// run dispatches a command line. Every subcommand is reached from here, and
+// the tests call run rather than a subcommand directly, so a subcommand that
+// is not dispatched cannot pass its tests.
+func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	if len(args) > 0 {
+		switch args[0] {
+		case "help", "-h", "--help":
+			fmt.Fprint(stdout, usageText)
+			return exitOK
+		}
+	}
+	return runExplain(args, stdin, stdout, stderr)
+}
