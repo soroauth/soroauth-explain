@@ -2,6 +2,7 @@
 // authorizes, and says what it could not determine.
 //
 //	soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>] [--json] [--strict]
+//	soroauth-explain completions --shell bash|zsh|fish
 //
 // Results go to stdout and diagnostics to stderr, so stdout only ever carries
 // a result: a rendering, or nothing.
@@ -26,6 +27,7 @@ const (
 
 const usageText = `usage:
   soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>] [--json] [--strict]
+  soroauth-explain completions --shell bash|zsh|fish
 
 Explains what a Soroban authorization entry authorizes. Every node is marked
 decoded, partial or opaque; anything not decoded is listed under
@@ -37,6 +39,10 @@ flags:
               contract is labelled with an asset
   --json      print the stable JSON rendering instead of text
   --strict    exit 3 unless the explanation is decoded
+
+commands:
+  completions print a shell completion script (--shell bash|zsh|fish)
+  help        print this usage
 `
 
 func main() {
@@ -49,6 +55,8 @@ func main() {
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) > 0 {
 		switch args[0] {
+		case "completions":
+			return runCompletions(args[1:], stdout, stderr)
 		case "help", "-h", "--help":
 			fmt.Fprint(stdout, usageText)
 			return exitOK

@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -321,30 +322,146 @@ func TestDecodeLengthLimitComesFirst(t *testing.T) {
 	}
 }
 
-// TestCompletionSpecMatchesFlags: every registered flag is in the completion
-// spec, and the spec has nothing that is not registered.
+// TestCompletionSpecMatchesFlags: for each command, every registered flag is
+// in the completion spec, and the spec has nothing that is not registered.
 func TestCompletionSpecMatchesFlags(t *testing.T) {
-	fs, _ := newExplainFlagSet(&bytes.Buffer{})
-	var registered []string
-	fs.VisitAll(func(f *flag.Flag) { registered = append(registered, f.Name) })
-	var spec []string
-	for _, f := range completionFlags {
-		spec = append(spec, f.name)
-		fl := fs.Lookup(f.name)
-		if fl == nil {
-			continue
-		}
-		_, isBool := fl.Value.(interface{ IsBoolFlag() bool })
-		if isBool != f.isBool {
-			t.Errorf("--%s: spec isBool %v, flag isBool %v", f.name, f.isBool, isBool)
-		}
-		if fl.Usage != f.desc {
-			t.Errorf("--%s: spec description %q differs from flag usage %q", f.name, f.desc, fl.Usage)
-		}
+	explainFS, _ := newExplainFlagSet(&bytes.Buffer{})
+	completionsFS, _ := newCompletionsFlagSet(&bytes.Buffer{})
+	for name, tc := range map[string]struct {
+		fs   *flag.FlagSet
+		spec []flagSpec
+	}{
+		"explain":     {explainFS, completionFlags},
+		"completions": {completionsFS, completionsFlags},
+	} {
+		t.Run(name, func(t *testing.T) {
+			var registered, spec []string
+			tc.fs.VisitAll(func(f *flag.Flag) { registered = append(registered, f.Name) })
+			for _, f := range tc.spec {
+				spec = append(spec, f.name)
+				fl := tc.fs.Lookup(f.name)
+				if fl == nil {
+					continue
+				}
+				_, isBool := fl.Value.(interface{ IsBoolFlag() bool })
+				if isBool != f.isBool {
+					t.Errorf("--%s: spec isBool %v, flag isBool %v", f.name, f.isBool, isBool)
+				}
+				if fl.Usage != f.desc {
+					t.Errorf("--%s: spec description %q differs from flag usage %q", f.name, f.desc, fl.Usage)
+				}
+			}
+			sort.Strings(registered)
+			sort.Strings(spec)
+			if strings.Join(registered, ",") != strings.Join(spec, ",") {
+				t.Fatalf("registered flags %v, completion spec %v", registered, spec)
+			}
+		})
 	}
-	sort.Strings(registered)
-	sort.Strings(spec)
-	if strings.Join(registered, ",") != strings.Join(spec, ",") {
-		t.Fatalf("registered flags %v, completion spec %v", registered, spec)
+}
+
+// TestCompletionsDispatch runs the subcommand through the real dispatcher.
+func TestCompletionsDispatch(t *testing.T) {
+	for _, sh := range shells {
+		t.Run(sh, func(t *testing.T) {
+			out, errOut, code := runCLI(t, "", "completions", "--shell", sh)
+			if code != exitOK || errOut != "" {
+				t.Fatalf("code %d, stderr %q", code, errOut)
+			}
+			for _, f := range append(append([]flagSpec{}, completionFlags...), completionsFlags...) {
+				if !strings.Contains(out, f.name) {
+					t.Errorf("script omits --%s", f.name)
+				}
+			}
+			for _, sc := range subcommands {
+				if !strings.Contains(out, sc.name) {
+					t.Errorf("script omits subcommand %s", sc.name)
+				}
+			}
+			again, _, _ := runCLI(t, "", "completions", "--shell", sh)
+			if again != out {
+				t.Error("script differs between runs")
+			}
+		})
+	}
+	for name, args := range map[string][]string{
+		"no_shell":      {"completions"},
+		"unknown_shell": {"completions", "--shell", "tcsh"},
+		"stray":         {"completions", "--shell", "bash", "extra"},
+		"unknown_flag":  {"completions", "--entry", "x"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			out, errOut, code := runCLI(t, "", args...)
+			if code != exitUsage || out != "" || errOut == "" {
+				t.Fatalf("code %d, stdout %q, stderr %q", code, out, errOut)
+			}
+		})
+	}
+	if out, _, _ := runCLI(t, "", "help"); !strings.Contains(out, "completions --shell bash|zsh|fish") {
+		t.Error("usage does not mention completions")
+	}
+}
+
+func script(t *testing.T, sh string) string {
+	t.Helper()
+	out, _, code := runCLI(t, "", "completions", "--shell", sh)
+	if code != exitOK {
+		t.Fatalf("completions --shell %s: code %d", sh, code)
+	}
+	path := filepath.Join(t.TempDir(), "completion."+sh)
+	if err := os.WriteFile(path, []byte(out), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+// TestCompletionsSyntax parses each script with its own shell. A shell that
+// is not installed is reported as skipped, not passed.
+func TestCompletionsSyntax(t *testing.T) {
+	for _, sh := range shells {
+		t.Run(sh, func(t *testing.T) {
+			bin, err := exec.LookPath(sh)
+			if err != nil {
+				t.Skipf("%s is not installed; its script is not syntax-checked here", sh)
+			}
+			if out, err := exec.Command(bin, "-n", script(t, sh)).CombinedOutput(); err != nil {
+				t.Fatalf("%s -n: %v\n%s", sh, err, out)
+			}
+		})
+	}
+}
+
+// TestBashCompletionBehaviour sources the bash script and asks it for
+// completions at several positions.
+func TestBashCompletionBehaviour(t *testing.T) {
+	bash, err := exec.LookPath("bash")
+	if err != nil {
+		t.Skip("bash is not installed")
+	}
+	path := script(t, "bash")
+	tests := []struct {
+		words string
+		cword int
+		want  string
+	}{
+		{`soroauth-explain ""`, 1, "--entry --network --json --strict completions help"},
+		{`soroauth-explain --network ""`, 2, "testnet public"},
+		{`soroauth-explain --network t`, 2, "testnet"},
+		{`soroauth-explain --entry ""`, 2, ""},
+		{`soroauth-explain --json ""`, 2, "--entry --network --json --strict"},
+		{`soroauth-explain completions ""`, 2, "--shell"},
+		{`soroauth-explain completions --shell ""`, 3, "bash zsh fish"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.words, func(t *testing.T) {
+			src := `source "$1"; COMP_WORDS=(` + tt.words + `); COMP_CWORD=` + strconv.Itoa(tt.cword) + `; _soroauth_explain; echo "${COMPREPLY[*]}"`
+			out, err := exec.Command(bash, "-c", src, "bash", path).CombinedOutput()
+			if err != nil {
+				t.Fatalf("%v\n%s", err, out)
+			}
+			if got := strings.TrimSpace(string(out)); got != tt.want {
+				t.Fatalf("COMPREPLY = %q, want %q", got, tt.want)
+			}
+		})
 	}
 }
