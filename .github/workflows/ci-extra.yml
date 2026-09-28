@@ -1,0 +1,30 @@
+name: ci-extra
+
+# Advisory checks. They never run on pull requests, so they never gate one
+# (brief section 11.9); they run on push to main and on demand.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live:
+    name: live entries (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          check-latest: true
+
+      # Explains a fresh sample of real testnet and public-network entries and
+      # checks every decoded action against the host's events or ledger
+      # state. It records nothing; a failure means the tool said something
+      # about current traffic that the network contradicts, or an RPC was
+      # unavailable. Measured locally: about 15s (testnet) and 31s (public).
+      - name: explain live entries
+        run: go test -tags live -run 'TestLive(Testnet|Public)' -v -count=1 -timeout 30m .
