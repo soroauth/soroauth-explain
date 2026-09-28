@@ -22,8 +22,8 @@ import (
 // Override with WithMaxDepth.
 const DefaultMaxDepth = 32
 
-// DefaultMaxNodes is the most invocations plus argument values Explain will
-// visit in one entry, including every delegate's walk.
+// DefaultMaxNodes is the most invocations, argument values and delegate nodes
+// Explain will visit in one entry.
 //
 // It bounds work and output size for an entry that is shallow but very wide.
 // Measured on 2026-09-28: the largest entry in soroauth-go v0.1.0's golden
