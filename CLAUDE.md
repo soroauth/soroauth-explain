@@ -66,11 +66,31 @@ needs the check below to pass.
 Four APIs land only after `v0.1.0`: `DecodeAuthorizationEntry`, `InspectEnvelope`,
 `EnvelopeEntries`, `DescribeSignature`. None is needed before Phase 2.
 
-The first real need is Phase 2's CLI (§6.8), where `--entry` should decode through
-`DecodeAuthorizationEntry` rather than `xdr.SafeUnmarshalBase64`, because it applies the
-bounded decode limits §5 requires of this project too.
+**This project owns its decode limits.** An earlier version of this section said Phase 2's
+CLI should decode through `DecodeAuthorizationEntry`. That was wrong about where the
+responsibility sits. This tool's whole purpose is "someone sent me this entry, tell me what
+it does" — it consumes hostile input by design, and its own guarantee cannot depend on a
+constant in a sibling library that can change without producing a compile error here.
 
-**Stop at that point and ask.** Re-pinning requires, in this order:
+So the CLI decodes locally, through `xdr.SafeUnmarshalBase64WithOptions`, with:
+
+- `MaxDepth: 64`
+- an input-length check **before** any base64 or XDR work, capped at 1 MiB decoded
+
+The ordering is not a style choice. `SafeUnmarshalBase64WithOptions` overwrites
+`MaxInputLen` with the decoded length of whatever it is handed, so it can never refuse long
+input on its own; the length must be checked first. Both limits match soroauth-go
+(`decode.go:35` and `:39`, with the ordering explained in `DecodeAuthorizationEntry`'s own
+comment) — cite that file, and test both limits here.
+
+When a re-pin eventually happens, do **not** replace this with a call to
+`DecodeAuthorizationEntry`. Add a test asserting the two agree, so a divergence is caught
+rather than inherited.
+
+With that settled, no post-`v0.1.0` API is needed for Phases 0 to 2. `InspectEnvelope` and
+`EnvelopeEntries` matter only if envelope input is added, which §6.8 does not ask for, and
+`DescribeSignature` is not required by §6.2. **There is currently no trigger to re-pin.**
+If one appears, stop and ask; re-pinning requires, in this order:
 
 1. `soroauth-go`'s wave has closed.
 2. A real release tag exists containing those four APIs.
