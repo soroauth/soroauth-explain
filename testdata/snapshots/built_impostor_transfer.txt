@@ -1,17 +1,17 @@
-Authorization entry: address credentials for GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M [opaque]
+Authorization entry: address credentials for GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M [partial]
   nonce:              7
   valid until ledger: 1000
   address-bound:      no
   signed:             no
 
 Authorizes:
-  [opaque] Call transfer on CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY with 3 arguments
-      contract  = CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY [decoded]
-      function  = transfer [decoded]
-      arguments = 3 [decoded]
-      arg[0]    = GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX [decoded]
-      arg[1]    = GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6 [decoded]
-      arg[2]    = i128(1000000000) [decoded]
+  [partial] Transfer 1000000000 units of the token at CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY from GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX to GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6
+      contract = CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY [decoded]
+      function = transfer [decoded]
+      from     = GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX [decoded]
+      to       = GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6 [decoded]
+      amount   = 1000000000 [partial]
 
 Not determined:
-  - The function transfer on CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY is not interpreted by this library; its 3 arguments are shown as raw values.
+  - The token at CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY is not identified on this network, so its asset and decimal places are unknown; amounts are shown as raw integers in its smallest unit.
+  - The call matches the SEP-41 transfer signature, but a matching signature does not show that the contract at CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY behaves as SEP-41 describes.

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -162,6 +163,9 @@ func transferEntry(t testing.TB, contract string) xdr.SorobanAuthorizationEntry 
 	}
 }
 
+// assetFieldLine matches the text renderer's line for a field named asset.
+var assetFieldLine = regexp.MustCompile(`(?m)^\s+asset\s+= `)
+
 func renderAll(t testing.TB, entry xdr.SorobanAuthorizationEntry) map[string]string {
 	t.Helper()
 	exp, err := explain.Explain(entry, explain.WithNetwork(testnet))
@@ -200,10 +204,15 @@ func TestImpostorNeverLabelled(t *testing.T) {
 			if !strings.Contains(out, impostor) {
 				t.Errorf("impostor contract %s not shown as its address", impostor)
 			}
-			for _, label := range []string{"native", "XLM", "Stellar Asset Contract", `"asset"`, "asset "} {
+			// No label, no asset field, and no scaled amount: scaling would
+			// claim a decimal count the impostor has not earned.
+			for _, label := range []string{"native", "XLM", "Stellar Asset Contract", `"name": "asset"`, "100.0000000"} {
 				if strings.Contains(out, label) {
 					t.Errorf("impostor rendering contains %q:\n%s", label, out)
 				}
+			}
+			if assetFieldLine.MatchString(out) {
+				t.Errorf("impostor text rendering has an asset field:\n%s", out)
 			}
 		})
 	}
@@ -222,7 +231,7 @@ func TestImpostorNeverLabelled(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		for _, label := range []string{"native", "XLM", "Stellar Asset Contract"} {
+		for _, label := range []string{"native", "XLM", "Stellar Asset Contract", `"name": "asset"`, "100.0000000"} {
 			if bytes.Contains(b, []byte(label)) {
 				t.Errorf("committed impostor snapshot .%s contains %q", format, label)
 			}

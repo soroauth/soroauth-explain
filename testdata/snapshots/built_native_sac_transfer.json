@@ -1,7 +1,7 @@
 {
   "actions": [
     {
-      "confidence": "opaque",
+      "confidence": "decoded",
       "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
       "fields": [
         {
@@ -16,43 +16,36 @@
         },
         {
           "confidence": "decoded",
-          "name": "arguments",
-          "value": "3"
-        },
-        {
-          "confidence": "decoded",
           "name": "asset",
           "value": "native"
         },
         {
           "confidence": "decoded",
-          "name": "arg[0]",
+          "name": "from",
           "value": "GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX"
         },
         {
           "confidence": "decoded",
-          "name": "arg[1]",
+          "name": "to",
           "value": "GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6"
         },
         {
           "confidence": "decoded",
-          "name": "arg[2]",
-          "value": "i128(1000000000)"
+          "name": "amount",
+          "raw": "1000000000",
+          "value": "100.0000000"
         }
       ],
       "function": "transfer",
-      "kind": "invoke_contract",
-      "summary": "Call transfer on CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC, the Stellar Asset Contract for native, with 3 arguments"
+      "kind": "token_transfer",
+      "summary": "Transfer 100.0000000 native from GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX to GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6"
     }
   ],
   "address_bound": false,
-  "confidence": "opaque",
+  "confidence": "decoded",
   "credential_type": "address",
   "nonce": 7,
   "signed": false,
   "subject": "GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M",
-  "unexplained": [
-    "The function transfer on CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC is not interpreted by this library; its 3 arguments are shown as raw values."
-  ],
   "valid_until_ledger": 1000
 }

@@ -1,7 +1,7 @@
 {
   "actions": [
     {
-      "confidence": "opaque",
+      "confidence": "partial",
       "contract": "CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY",
       "fields": [
         {
@@ -16,38 +16,34 @@
         },
         {
           "confidence": "decoded",
-          "name": "arguments",
-          "value": "3"
-        },
-        {
-          "confidence": "decoded",
-          "name": "arg[0]",
+          "name": "from",
           "value": "GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX"
         },
         {
           "confidence": "decoded",
-          "name": "arg[1]",
+          "name": "to",
           "value": "GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6"
         },
         {
-          "confidence": "decoded",
-          "name": "arg[2]",
-          "value": "i128(1000000000)"
+          "confidence": "partial",
+          "name": "amount",
+          "value": "1000000000"
         }
       ],
       "function": "transfer",
-      "kind": "invoke_contract",
-      "summary": "Call transfer on CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY with 3 arguments"
+      "kind": "token_transfer",
+      "summary": "Transfer 1000000000 units of the token at CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY from GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX to GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6"
     }
   ],
   "address_bound": false,
-  "confidence": "opaque",
+  "confidence": "partial",
   "credential_type": "address",
   "nonce": 7,
   "signed": false,
   "subject": "GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M",
   "unexplained": [
-    "The function transfer on CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY is not interpreted by this library; its 3 arguments are shown as raw values."
+    "The token at CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY is not identified on this network, so its asset and decimal places are unknown; amounts are shown as raw integers in its smallest unit.",
+    "The call matches the SEP-41 transfer signature, but a matching signature does not show that the contract at CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY behaves as SEP-41 describes."
   ],
   "valid_until_ledger": 1000
 }

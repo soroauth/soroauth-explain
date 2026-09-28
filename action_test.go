@@ -16,6 +16,11 @@ var summaryVocabulary = map[string]bool{
 	"Create": true, "a": true, "contract": true, "running": true, "deployed": true,
 	"by": true, "salt": true, "Deploy": true, "from": true, "asset": true,
 	"constructor": true,
+	// SEP-41 templates (interfaces/sep41.go).
+	"Allow": true, "spend": true, "up": true, "to": true, "units": true, "of": true,
+	"token": true, "at": true, "until": true, "ledger": true, "replacing": true,
+	"any": true, "current": true, "allowance": true, "Transfer": true,
+	"spending": true, "Burn": true,
 }
 
 // checkSummaryAgrees asserts that every value in a.Summary appears in some

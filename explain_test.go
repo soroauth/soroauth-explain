@@ -326,39 +326,165 @@ func TestExplainFloorsAcrossDelegates(t *testing.T) {
 	}
 }
 
-func TestExplainAssetLabelNeedsNetwork(t *testing.T) {
-	nativeTestnet := mustSAC(t, xdr.MustNewNativeAsset(), testnetPassphrase)
-	sacAddr, err := soroauth.ParseAddress(nativeTestnet)
+func fieldByName(a Action, name string) (Field, bool) {
+	for _, f := range a.Fields {
+		if f.Name == name {
+			return f, true
+		}
+	}
+	return Field{}, false
+}
+
+func sacAddress(t testing.TB, a xdr.Asset, passphrase string) xdr.ScAddress {
+	t.Helper()
+	addr, err := soroauth.ParseAddress(mustSAC(t, a, passphrase))
 	if err != nil {
 		t.Fatal(err)
 	}
-	entry := addressEntry(callInvocation(sacAddr, "transfer",
-		[]xdr.ScVal{addrVal(accountAddress(testAccountKey)), addrVal(accountAddress(otherKey)), i128Val(1000000000)}))
+	return addr
+}
 
-	labelled := explainChecked(t, entry, WithNetwork(testnetPassphrase))
-	if !strings.Contains(labelled.Actions[0].Summary, "the Stellar Asset Contract for native") {
-		t.Fatalf("real native SAC not labelled on its own network: %q", labelled.Actions[0].Summary)
+func transferArgs() []xdr.ScVal {
+	return []xdr.ScVal{addrVal(accountAddress(testAccountKey)), addrVal(accountAddress(otherKey)), i128Val(1000000000)}
+}
+
+// TestExplainTokenTransfer: a SEP-41 transfer is decoded only on the native
+// SAC derived on the caller's network. Everywhere else the call shape is
+// known but the asset and decimals are not: partial, with the raw amount.
+func TestExplainTokenTransfer(t *testing.T) {
+	nativeSAC := sacAddress(t, xdr.MustNewNativeAsset(), testnetPassphrase)
+	entry := addressEntry(callInvocation(nativeSAC, "transfer", transferArgs()))
+
+	exp := explainChecked(t, entry, WithNetwork(testnetPassphrase))
+	a := exp.Actions[0]
+	if exp.Confidence != ConfidenceDecoded || a.Kind != "token_transfer" || len(exp.Unexplained) != 0 {
+		t.Fatalf("got %+v", exp)
 	}
-	// Labelling the contract does not interpret the call.
-	if labelled.Confidence != ConfidenceOpaque {
-		t.Fatalf("confidence = %s, want opaque until the token interface is registered", labelled.Confidence)
+	if !strings.HasPrefix(a.Summary, "Transfer 100.0000000 native from G") {
+		t.Fatalf("summary = %q", a.Summary)
+	}
+	amount, _ := fieldByName(a, "amount")
+	if amount.Value != "100.0000000" || amount.Raw != "1000000000" || amount.Confidence != ConfidenceDecoded {
+		t.Fatalf("amount = %+v; Raw must carry the integer from the bytes", amount)
 	}
 
-	for name, opts := range map[string][]Option{
-		"no_network":    nil,
-		"other_network": {WithNetwork(publicPassphrase)},
+	fakeXLM := xdr.MustNewCreditAsset("XLM", usdcIssuerGAHK)
+	for name, tc := range map[string]struct {
+		entry xdr.SorobanAuthorizationEntry
+		opts  []Option
+		note  string
+	}{
+		"no_network":    {entry, nil, "No network passphrase was given"},
+		"other_network": {entry, []Option{WithNetwork(publicPassphrase)}, "is not identified on this network"},
+		"impostor":      {addressEntry(callInvocation(sacAddress(t, fakeXLM, testnetPassphrase), "transfer", transferArgs())), []Option{WithNetwork(testnetPassphrase)}, "is not identified on this network"},
+		"arbitrary":     {addressEntry(callInvocation(contractAddress(testContractKey), "transfer", transferArgs())), []Option{WithNetwork(testnetPassphrase)}, "is not identified on this network"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			exp := explainChecked(t, entry, opts...)
-			for _, f := range exp.Actions[0].Fields {
-				if f.Name == "asset" {
-					t.Fatalf("labelled %q without a derivation on this network", f.Value)
-				}
+			exp := explainChecked(t, tc.entry, tc.opts...)
+			a := exp.Actions[0]
+			if exp.Confidence != ConfidencePartial || a.Confidence != ConfidencePartial {
+				t.Fatalf("confidence = %s, want partial", exp.Confidence)
 			}
-			if strings.Contains(exp.Actions[0].Summary, "native") {
-				t.Fatalf("summary = %q", exp.Actions[0].Summary)
+			if _, ok := fieldByName(a, "asset"); ok {
+				t.Fatal("labelled without a derivation on this network")
+			}
+			amount, _ := fieldByName(a, "amount")
+			if amount.Value != "1000000000" || amount.Raw != "" || amount.Confidence != ConfidencePartial {
+				t.Fatalf("amount = %+v; want the raw integer, unscaled", amount)
+			}
+			if !strings.Contains(a.Summary, "units of the token at C") {
+				t.Fatalf("summary = %q", a.Summary)
+			}
+			joined := strings.Join(exp.Unexplained, "\n")
+			if !strings.Contains(joined, tc.note) || !strings.Contains(joined, "a matching signature does not show") {
+				t.Fatalf("unexplained = %q", exp.Unexplained)
 			}
 		})
+	}
+}
+
+func TestExplainTokenFunctions(t *testing.T) {
+	sac := sacAddress(t, xdr.MustNewNativeAsset(), testnetPassphrase)
+	a, b, c := addrVal(accountAddress(testAccountKey)), addrVal(accountAddress(otherKey)), addrVal(contractAddress(testContractKey))
+	tests := []struct {
+		fn   string
+		args []xdr.ScVal
+		want string
+	}{
+		{"approve", []xdr.ScVal{a, b, i128Val(5), u32Val(900)}, "Allow " + b.Address.AccountId.Address() + " to spend up to 0.0000005 native from " + a.Address.AccountId.Address() + " until ledger 900, replacing any current allowance"},
+		{"transfer_from", []xdr.ScVal{c, a, b, i128Val(10000000)}, "Transfer 1.0000000 native from " + a.Address.AccountId.Address() + " to " + b.Address.AccountId.Address() + ", spending the allowance of CABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAFNSZ"},
+		{"burn", []xdr.ScVal{a, i128Val(0)}, "Burn 0.0000000 native from " + a.Address.AccountId.Address()},
+		{"burn_from", []xdr.ScVal{c, a, i128Val(1)}, "Burn 0.0000001 native from " + a.Address.AccountId.Address() + ", spending the allowance of CABAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAEAQCAIBAFNSZ"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.fn, func(t *testing.T) {
+			exp := explainChecked(t, addressEntry(callInvocation(sac, tt.fn, tt.args)), WithNetwork(testnetPassphrase))
+			if exp.Confidence != ConfidenceDecoded || exp.Actions[0].Summary != tt.want {
+				t.Fatalf("got %s %q\nwant %q", exp.Confidence, exp.Actions[0].Summary, tt.want)
+			}
+		})
+	}
+}
+
+// TestExplainTokenNotMatched: a name alone never earns an interpretation,
+// even on the real native SAC.
+func TestExplainTokenNotMatched(t *testing.T) {
+	sac := sacAddress(t, xdr.MustNewNativeAsset(), testnetPassphrase)
+	for name, args := range map[string][]xdr.ScVal{
+		"wrong_arity":       append(transferArgs(), u32Val(1)),
+		"amount_not_i128":   {transferArgs()[0], transferArgs()[1], u32Val(1)},
+		"address_not_value": {symVal("x"), transferArgs()[1], i128Val(1)},
+	} {
+		t.Run(name, func(t *testing.T) {
+			exp := explainChecked(t, addressEntry(callInvocation(sac, "transfer", args)), WithNetwork(testnetPassphrase))
+			a := exp.Actions[0]
+			if a.Kind != ActionInvokeContract || exp.Confidence != ConfidenceOpaque {
+				t.Fatalf("got %s %s", a.Kind, exp.Confidence)
+			}
+			if !strings.Contains(a.Summary, "the Stellar Asset Contract for native") {
+				t.Fatalf("the contract's derived label should still show: %q", a.Summary)
+			}
+		})
+	}
+}
+
+// TestExplainTokenMuxedRecipient: SEP-41's transfer accepts a MuxedAddress
+// recipient, which this library does not render. The call matches, but the
+// recipient is opaque, so the action is too.
+func TestExplainTokenMuxedRecipient(t *testing.T) {
+	sac := sacAddress(t, xdr.MustNewNativeAsset(), testnetPassphrase)
+	muxed := xdr.ScAddress{Type: xdr.ScAddressTypeScAddressTypeMuxedAccount, MuxedAccount: &xdr.MuxedEd25519Account{Id: 5}}
+	args := []xdr.ScVal{transferArgs()[0], addrVal(muxed), i128Val(1)}
+	exp := explainChecked(t, addressEntry(callInvocation(sac, "transfer", args)), WithNetwork(testnetPassphrase))
+	to, _ := fieldByName(exp.Actions[0], "to")
+	if exp.Confidence != ConfidenceOpaque || to.Confidence != ConfidenceOpaque || to.Value != "address(muxed_account)" {
+		t.Fatalf("got %s, to = %+v", exp.Confidence, to)
+	}
+}
+
+func TestExplainTokenUnderOpaqueRoot(t *testing.T) {
+	sac := sacAddress(t, xdr.MustNewNativeAsset(), testnetPassphrase)
+	root := callInvocation(contractAddress(testContractKey), "swap", nil, callInvocation(sac, "transfer", transferArgs()))
+	exp := explainChecked(t, addressEntry(root), WithNetwork(testnetPassphrase))
+	if exp.Confidence != ConfidenceOpaque || exp.Actions[0].Sub[0].Confidence != ConfidenceDecoded {
+		t.Fatalf("root %s, sub %s", exp.Confidence, exp.Actions[0].Sub[0].Confidence)
+	}
+}
+
+func TestScaleDecimal(t *testing.T) {
+	for in, want := range map[string]string{
+		"0":          "0.0000000",
+		"1":          "0.0000001",
+		"-1":         "-0.0000001",
+		"10000000":   "1.0000000",
+		"1000000000": "100.0000000",
+		"-123456789": "-12.3456789",
+		"170141183460469231731687303715884105727":  "17014118346046923173168730371588.4105727",
+		"-170141183460469231731687303715884105728": "-17014118346046923173168730371588.4105728",
+	} {
+		if got := scaleDecimal(in, 7); got != want {
+			t.Errorf("scaleDecimal(%s) = %s, want %s", in, got, want)
+		}
 	}
 }
 

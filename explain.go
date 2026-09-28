@@ -4,11 +4,25 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/big"
 	"strconv"
+	"strings"
 
+	"github.com/soroauth/soroauth-explain/interfaces"
 	soroauth "github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
+
+// registry is the set of known functions Explain interprets.
+var registry = interfaces.Default()
+
+// sacDecimals is the number of decimal places every Stellar Asset Contract
+// uses. It is a host constant, not something the contract reports:
+// rs-soroban-env soroban-env-host/src/builtin_contracts/stellar_asset_contract/
+// metadata.rs:22 `pub const DECIMAL: u32 = 7;`, returned by decimals() at
+// contract.rs:376-379 (read at 169890d50e27ef948bef66401147aba814d9b04e on
+// 2026-09-28). A contract earns it only by its ID deriving as a SAC.
+const sacDecimals = 7
 
 // CredentialTypeDelegate is the CredentialType of an Explanation that
 // describes a delegate node rather than an entry's own credentials.
@@ -233,8 +247,9 @@ func pluralArguments(n int) string {
 	return "arguments"
 }
 
-// explainContractFn explains a contract call. No function is interpreted
-// yet, so every call is opaque and its arguments are shown as raw values.
+// explainContractFn explains a contract call. A call matching a registered
+// signature is interpreted by explainKnown; anything else is opaque, with its
+// arguments shown as raw values.
 func (w *walker) explainContractFn(fn xdr.InvokeContractArgs, depth int, o options) (Action, []string, error) {
 	contract, err := soroauth.FormatAddress(fn.ContractAddress)
 	if err != nil {
@@ -250,6 +265,15 @@ func (w *walker) explainContractFn(fn xdr.InvokeContractArgs, depth int, o optio
 		notes = append(notes, fmt.Sprintf("The function name on %s contains characters outside A-Z, a-z, 0-9 and underscore, and is shown quoted.", contract))
 	}
 
+	// The only label a contract can earn is the asset whose Stellar Asset
+	// Contract ID it is, on the caller's network. Without WithNetwork there
+	// is nothing to derive, and so no label.
+	label, isSAC := AssetLabel(contract, o.network, []xdr.Asset{xdr.MustNewNativeAsset()})
+
+	if sig, ok := registry.Lookup(name, fn.Args); ok && fnField.Confidence == ConfidenceDecoded {
+		return w.explainKnown(sig, contract, label, isSAC, fn.Args, depth, o)
+	}
+
 	fields := []Field{
 		{Name: "contract", Value: contract, Confidence: ConfidenceDecoded},
 		fnField,
@@ -257,10 +281,7 @@ func (w *walker) explainContractFn(fn xdr.InvokeContractArgs, depth int, o optio
 	}
 	template := "Call {function} on {contract} with {arguments} " + pluralArguments(len(fn.Args))
 
-	// The only label a contract can earn is the asset whose Stellar Asset
-	// Contract ID it is, on the caller's network. Without WithNetwork there
-	// is nothing to derive, and so no label.
-	if label, ok := AssetLabel(contract, o.network, []xdr.Asset{xdr.MustNewNativeAsset()}); ok {
+	if isSAC {
 		fields = append(fields, Field{Name: "asset", Value: label, Confidence: ConfidenceDecoded})
 		template = "Call {function} on {contract}, the Stellar Asset Contract for {asset}, with {arguments} " + pluralArguments(len(fn.Args))
 	}
@@ -380,4 +401,100 @@ func (w *walker) explainCreateContract(pre xdr.ContractIdPreimage, exe xdr.Contr
 		Summary:    summarize(template, fields),
 		Fields:     fields,
 	}, notes, nil
+}
+
+// explainKnown interprets a call that matches a registered signature.
+//
+// The match says what the arguments are; the contract's identity decides how
+// much of that may be stated. On a Stellar Asset Contract derived on the
+// caller's network, the asset is named and amounts are scaled by the host's
+// fixed decimal count, so every element is derived: decoded. On any other
+// contract the asset and decimals are unknown and a matching signature does
+// not show the contract behaves as the interface describes, so amounts stay
+// raw integers and the action is at most partial.
+func (w *walker) explainKnown(sig interfaces.Signature, contract, label string, isSAC bool, args []xdr.ScVal, depth int, o options) (Action, []string, error) {
+	fields := []Field{
+		{Name: "contract", Value: contract, Confidence: ConfidenceDecoded},
+		{Name: "function", Value: sig.Function, Confidence: ConfidenceDecoded},
+	}
+	template := sig.Summary
+	conf := ConfidencePartial
+	if isSAC {
+		fields = append(fields, Field{Name: "asset", Value: label, Confidence: ConfidenceDecoded})
+		template = sig.AssetSummary
+		conf = ConfidenceDecoded
+	}
+
+	var notes []string
+	for i, p := range sig.Params {
+		var f Field
+		switch p.Type {
+		case interfaces.ArgAmount:
+			raw := i128String(*args[i].I128)
+			if isSAC {
+				f = Field{Name: p.Name, Value: scaleDecimal(raw, sacDecimals), Raw: raw, Confidence: ConfidenceDecoded}
+			} else {
+				f = Field{Name: p.Name, Value: raw, Confidence: ConfidencePartial}
+			}
+		case interfaces.ArgLedger:
+			f = Field{Name: p.Name, Value: strconv.FormatUint(uint64(*args[i].U32), 10), Confidence: ConfidenceDecoded}
+		default:
+			v, err := w.renderScVal(args[i], depth+1)
+			if err != nil {
+				return Action{}, nil, err
+			}
+			f = Field{Name: p.Name, Value: v.text, Confidence: v.conf}
+			for _, n := range v.notes {
+				notes = append(notes, fmt.Sprintf("The %s of %s on %s: %s", p.Name, sig.Function, contract, n))
+			}
+		}
+		// Amounts and ledgers are scalars; charge them to the budget like
+		// any other rendered value.
+		if p.Type == interfaces.ArgAmount || p.Type == interfaces.ArgLedger {
+			if err := w.visit(depth + 1); err != nil {
+				return Action{}, nil, err
+			}
+		}
+		conf = Floor(conf, f.Confidence)
+		fields = append(fields, f)
+	}
+
+	if !isSAC {
+		if o.network == "" {
+			notes = append(notes, fmt.Sprintf("No network passphrase was given, so the token at %s is not identified; its asset and decimal places are unknown, and amounts are shown as raw integers in its smallest unit.", contract))
+		} else {
+			notes = append(notes, fmt.Sprintf("The token at %s is not identified on this network, so its asset and decimal places are unknown; amounts are shown as raw integers in its smallest unit.", contract))
+		}
+		notes = append(notes, fmt.Sprintf("The call matches the %s %s signature, but a matching signature does not show that the contract at %s behaves as %s describes.",
+			sig.Interface, sig.Function, contract, sig.Interface))
+	}
+
+	return Action{
+		Kind:       ActionKind(sig.Kind),
+		Contract:   contract,
+		Function:   sig.Function,
+		Confidence: conf,
+		Summary:    summarize(template, fields),
+		Fields:     fields,
+	}, notes, nil
+}
+
+// scaleDecimal places a decimal point in an integer string so that it has
+// exactly places digits after the point: scaleDecimal("1000000000", 7) is
+// "100.0000000". It works on the digits, never on a float.
+func scaleDecimal(integer string, places int) string {
+	n, ok := new(big.Int).SetString(integer, 10)
+	if !ok {
+		return integer
+	}
+	sign := ""
+	if n.Sign() < 0 {
+		sign = "-"
+		n.Neg(n)
+	}
+	digits := n.String()
+	if len(digits) <= places {
+		digits = strings.Repeat("0", places-len(digits)+1) + digits
+	}
+	return sign + digits[:len(digits)-places] + "." + digits[len(digits)-places:]
 }
