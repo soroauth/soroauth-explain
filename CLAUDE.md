@@ -276,8 +276,8 @@ soroauth-explain/
 ├── testdata/
 │   ├── entries/                # input entries, copied from soroauth-go's golden vectors
 │   ├── snapshots/              # committed expected output, one file per case
-│   └── gen/
-│       └── gen.go              # regenerates snapshots; refuses to run with a dirty tree
+├── cmd/gensnapshots/
+│   └── main.go                 # regenerates snapshots; refuses to run with a dirty tree
 ├── cmd/soroauth-explain/
 │   ├── main.go                 # subcommand dispatch (standard library `flag` only)
 │   ├── explain.go
@@ -391,9 +391,18 @@ func Explain(entry xdr.SorobanAuthorizationEntry, opts ...Option) (Explanation, 
 - Structure comes from `soroauth.Inspect`; do not re-derive it. If `Inspect` errors, return
   that error wrapped. Reimplementing arm handling here would let the two libraries disagree
   about the same entry, which is worse than either being wrong alone.
-- The source-account arm has no address and nothing to authorize on its own behalf: return
-  an `Explanation` saying exactly that, with `Confidence: ConfidenceDecoded`, because that
-  *is* fully understood.
+- **The source-account arm still authorizes a call tree.** The credential arm says *who*
+  authorizes; `rootInvocation` says *what*, and the source-account arm changes only the
+  former. So render its invocation exactly as any other entry's, note in the credentials
+  line that authentication comes from the transaction's envelope signature, and floor the
+  confidence across the actions like anywhere else.
+
+  An earlier version of this section said the arm had "nothing to authorize on its own
+  behalf" and should always report `ConfidenceDecoded`. Both were wrong, and together they
+  produced the exact output §2 forbids: a `[decoded]` rendering of an entry authorizing a
+  `do_thing` call, which never mentioned the call. A reader would have approved something
+  they were never shown. If a rule in this document would make the tool hide what an entry
+  authorizes, the rule is wrong — say so.
 - Delegates recurse, at every depth, each with its own confidence. The top-level confidence
   floors across itself and every delegate.
 - `Unexplained` is a list of plain sentences about what could not be determined, in
@@ -452,8 +461,15 @@ Renders any `ScVal` to a string, and reports whether it was fully understood.
 // SACContractID returns the Stellar Asset Contract ID for an asset on a network.
 func SACContractID(asset xdr.Asset, networkPassphrase string) (string, error)
 
-// AssetLabel returns the asset code for a contract address, and true, only when the
-// address is the derived SAC ID for that asset on that network.
+// AssetLabel returns a canonical, unambiguous label for a contract address, and true,
+// only when the address is the derived SAC ID for that asset on that network.
+//
+// The label is never a bare asset code. Two different issuers can both issue "USDC", each
+// with a real Stellar Asset Contract, so a bare code would be ambiguous in exactly the way
+// the impostor guard exists to prevent. Issued assets label as CODE:ISSUER. The native
+// asset labels as "native" — the SDK's own canonical name (Asset.StringCanonical) — and
+// the text renderer may show it as "XLM", which is derived rather than guessed since there
+// is exactly one native asset and it is the same on every network.
 func AssetLabel(contract string, networkPassphrase string, candidates []xdr.Asset) (string, bool)
 ```
 
@@ -485,9 +501,9 @@ A registry mapping a function name and argument shape to an `Action` builder.
 
 ### 6.7 `render/`
 
-- `text.Render(Explanation) string` — the default human output. Confidence is visible for
+- `render.Text(Explanation) string` — the default human output. Confidence is visible for
   every node; an `opaque` node is never quietly omitted.
-- `json.Render(Explanation) ([]byte, error)` — stable field names, sorted keys,
+- `render.JSON(Explanation) ([]byte, error)` — stable field names, sorted keys,
   deterministic. This is a wire format for wallets: once released, changing a field name is
   a breaking change and needs a CHANGELOG entry that says so.
 
@@ -516,9 +532,18 @@ soroauth-explain completions --shell bash|zsh|fish
 This project's equivalent of soroauth-go's golden vectors. It is the thing that makes the
 repo safe to accept contributions into at volume.
 
-**Inputs** come from soroauth-go's `testdata/vectors/`: copy the entries into
-`testdata/entries/`, recording which soroauth-go tag they came from. They already cover
-every credential arm, a sub-invocation tree, a create-contract invocation, the int64 nonce
+**Inputs** come from soroauth-go's `testdata/vectors/` at the pinned tag. Note that
+`v0.1.0` carries nine vectors and **no source-account entry** — those were added to its
+`main` later — so that arm must be covered by a built case. Verify what the pinned tag
+actually contains rather than trusting this paragraph:
+
+```
+$ git ls-tree --name-only v0.1.0 testdata/vectors/ | grep -c source_account
+0
+```
+
+Copy the entries into `testdata/entries/`, recording which soroauth-go tag they came from.
+They already cover a sub-invocation tree, a create-contract invocation, the int64 nonce
 edges, and three delegate shapes including one address at two nesting depths. Do not invent
 a parallel corpus; reuse the proven one and add cases it lacks (an impostor token, a
 deeply nested tree, an unknown function, a 100-argument call).
@@ -531,7 +556,7 @@ diff fails the test and prints both sides.
 **Rules, and these are the ones contributors will try to break:**
 
 - A snapshot is **never** edited by hand. If output changes, the code changed: regenerate
-  with `go run ./testdata/gen` and explain in the commit body why the new output is better.
+  with `go run ./cmd/gensnapshots` and explain in the commit body why the new output is better.
 - The generator refuses to run with a dirty working tree, so a regeneration cannot smuggle
   unrelated changes into a snapshot diff.
 - CI regenerates and fails on drift, exactly as soroauth-go's `golden-drift` job does.
