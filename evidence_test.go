@@ -9,22 +9,27 @@ import (
 	"testing"
 
 	explain "github.com/soroauth/soroauth-explain"
+	"github.com/soroauth/soroauth-explain/internal/snapshot"
+	"github.com/soroauth/soroauth-explain/render"
+	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
-const (
-	liveRecordPath = "testdata/live/testnet.json"
-	evidencePath   = "docs/EVIDENCE.md"
-)
+// liveRecordPaths are the committed live runs, in the order the evidence
+// document presents them.
+var liveRecordPaths = []string{"testdata/live/testnet.json", "testdata/live/public.json"}
 
-// LiveRendering is one explanation of a live entry.
+const evidencePath = "docs/EVIDENCE.md"
+
+// LiveRendering is one explanation of a live entry, as recorded. Only the
+// text rendering is kept; the JSON rendering carries the same information
+// and is covered by the snapshot gate.
 type LiveRendering struct {
 	Confidence explain.Confidence `json:"confidence"`
 	Error      string             `json:"error,omitempty"`
 	Text       string             `json:"text,omitempty"`
-	JSON       json.RawMessage    `json:"json,omitempty"`
 }
 
-// LiveCheck is the independent check of one decoded token action.
+// LiveCheck is the independent check of one decoded action.
 type LiveCheck struct {
 	Path   string `json:"path"`
 	Kind   string `json:"kind"`
@@ -46,8 +51,9 @@ type LiveRecord struct {
 	Checks     []LiveCheck    `json:"checks,omitempty"`
 }
 
-// LiveRun is the whole recorded run.
+// LiveRun is one recorded run against one network.
 type LiveRun struct {
+	Name                string       `json:"name"`
 	Network             string       `json:"network"`
 	RPC                 string       `json:"rpc"`
 	Fetched             string       `json:"fetched"`
@@ -58,20 +64,83 @@ type LiveRun struct {
 	Records             []LiveRecord `json:"records"`
 }
 
+// liveEntry is a recorded entry re-explained by the current code.
+type liveEntry struct {
+	rec        LiveRecord
+	defaultExp *explain.Explanation
+	assetsExp  *explain.Explanation // nil when the record has no event assets
+}
+
+// final is the explanation the independent checks ran against: with event
+// assets when there were any, otherwise the default.
+func (e liveEntry) final() *explain.Explanation {
+	if e.assetsExp != nil {
+		return e.assetsExp
+	}
+	return e.defaultExp
+}
+
+// reexplain explains a recorded entry again with the options the run used
+// and requires the text to be exactly what was recorded. A change to the
+// code that changes what the tool says about real entries therefore fails
+// here until the live runs are recorded again.
+func reexplain(t *testing.T, run LiveRun, rec LiveRecord) liveEntry {
+	t.Helper()
+	where := fmt.Sprintf("%s: %s op %d auth %d", run.Name, rec.TxHash, rec.Operation, rec.AuthIndex)
+	var entry xdr.SorobanAuthorizationEntry
+	if err := xdr.SafeUnmarshalBase64(rec.EntryXDR, &entry); err != nil {
+		t.Fatalf("%s: %v", where, err)
+	}
+	one := func(recorded LiveRendering, opts ...explain.Option) *explain.Explanation {
+		exp, err := explain.Explain(entry, opts...)
+		if err != nil {
+			if recorded.Error != err.Error() {
+				t.Fatalf("%s: now refused with %q, recorded %q", where, err, recorded.Error)
+			}
+			return nil
+		}
+		if recorded.Error != "" || render.Text(exp) != recorded.Text || exp.Confidence != recorded.Confidence {
+			t.Fatalf("%s: the current code no longer says what was recorded; record the live runs again\n--- now ---\n%s\n--- recorded ---\n%s",
+				where, render.Text(exp), recorded.Text)
+		}
+		return &exp
+	}
+	le := liveEntry{rec: rec, defaultExp: one(rec.Default, explain.WithNetwork(run.Network))}
+	if rec.WithAssets != nil {
+		assets, err := snapshot.ParseAssets(rec.EventAsset)
+		if err != nil {
+			t.Fatalf("%s: %v", where, err)
+		}
+		le.assetsExp = one(*rec.WithAssets, explain.WithNetwork(run.Network), explain.WithAssets(assets...))
+	}
+	return le
+}
+
 // TestEvidenceUpToDate regenerates docs/EVIDENCE.md from the committed live
-// record and requires the committed file to match, so the evidence document
-// can only say what the recorded run shows. Set SOROAUTH_WRITE_EVIDENCE=1 to
-// rewrite it after recording a new run.
+// records and requires the committed file to match, so the evidence document
+// can only say what the recorded runs show. Set SOROAUTH_WRITE_EVIDENCE=1 to
+// rewrite it after recording new runs.
 func TestEvidenceUpToDate(t *testing.T) {
-	raw, err := os.ReadFile(liveRecordPath)
-	if err != nil {
-		t.Fatal(err)
+	var runs []LiveRun
+	entries := map[string][]liveEntry{}
+	for _, path := range liveRecordPaths {
+		raw, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var run LiveRun
+		if err := json.Unmarshal(raw, &run); err != nil {
+			t.Fatalf("%s: %v", path, err)
+		}
+		if run.Name == "" || len(run.Records) == 0 {
+			t.Fatalf("%s: empty run", path)
+		}
+		for _, rec := range run.Records {
+			entries[run.Name] = append(entries[run.Name], reexplain(t, run, rec))
+		}
+		runs = append(runs, run)
 	}
-	var run LiveRun
-	if err := json.Unmarshal(raw, &run); err != nil {
-		t.Fatal(err)
-	}
-	want := renderEvidence(run)
+	want := renderEvidence(runs, entries)
 	if os.Getenv("SOROAUTH_WRITE_EVIDENCE") == "1" {
 		if err := os.WriteFile(evidencePath, []byte(want), 0o644); err != nil {
 			t.Fatal(err)
@@ -82,7 +151,7 @@ func TestEvidenceUpToDate(t *testing.T) {
 		t.Fatalf("%v (generate with SOROAUTH_WRITE_EVIDENCE=1 go test -run TestEvidenceUpToDate .)", err)
 	}
 	if string(got) != want {
-		t.Fatalf("%s is not what %s produces; regenerate with SOROAUTH_WRITE_EVIDENCE=1 go test -run TestEvidenceUpToDate .", evidencePath, liveRecordPath)
+		t.Fatalf("%s is not what the live records produce; regenerate with SOROAUTH_WRITE_EVIDENCE=1 go test -run TestEvidenceUpToDate .", evidencePath)
 	}
 }
 
@@ -95,32 +164,95 @@ func percent(n, total int) string {
 	return fmt.Sprintf("%d.%d%%", tenths/10, tenths%10)
 }
 
-func confidenceOf(r LiveRendering) string {
-	if r.Error != "" {
+func confidenceOf(exp *explain.Explanation) string {
+	if exp == nil {
 		return "refused"
 	}
-	return string(r.Confidence)
+	return string(exp.Confidence)
 }
 
-func withAssetsOf(r LiveRecord) LiveRendering {
-	if r.WithAssets != nil {
-		return *r.WithAssets
+type distribution struct {
+	def, assets map[string]int
+	total       int
+}
+
+func distributionOf(es []liveEntry) distribution {
+	d := distribution{def: map[string]int{}, assets: map[string]int{}, total: len(es)}
+	for _, e := range es {
+		d.def[confidenceOf(e.defaultExp)]++
+		d.assets[confidenceOf(e.final())]++
 	}
-	return r.Default
+	return d
 }
 
-func renderEvidence(run LiveRun) string {
+func renderEvidence(runs []LiveRun, entries map[string][]liveEntry) string {
 	var b strings.Builder
-	total := len(run.Records)
 	w := func(format string, args ...any) { fmt.Fprintf(&b, format, args...) }
 
 	w("# Evidence: what soroauth-explain says about real entries\n\n")
-	w("Generated from `%s` by `TestEvidenceUpToDate` in `evidence_test.go`. Do not edit by hand.\n\n", liveRecordPath)
-	w("This is one recorded run of `TestLiveTestnet` (`live_test.go`, build tag `live`) against real testnet\n")
-	w("transactions. It shows how often the tool can explain real authorization entries, and it lists every\n")
-	w("rendering the tool marked `decoded`, because each of those is a claim made to a user.\n\n")
+	w("Generated by `TestEvidenceUpToDate` in `evidence_test.go` from the recorded live runs in `testdata/live/`.\n")
+	w("Do not edit by hand. The test explains every recorded entry again and fails if the current code does\n")
+	w("not say exactly what was recorded, so this document always describes the code it ships with.\n\n")
+	w("Each run is one recording of `TestLiveTestnet` or `TestLivePublic` (`live_test.go`, build tag `live`)\n")
+	w("against real transactions. The document shows how often the tool can explain real authorization entries,\n")
+	w("and lists every rendering the tool marked `decoded`, because each of those is a claim made to a user.\n\n")
 
-	w("## The run\n\n")
+	w("## Summary\n\n")
+	w("*Default* is `Explain` with `WithNetwork` only: what a caller gets with no other input. *With event\n")
+	w("assets* adds, through `WithAssets`, the `CODE:ISSUER` strings found in the transaction's own Stellar Asset\n")
+	w("Contract event topics. Those are candidates only: each is derived to a contract ID and compared, and one\n")
+	w("that does not derive to the contract under inspection is ignored.\n\n")
+	w("| Run | Entries | Decoded, default | Decoded, with event assets | Opaque | Decoded actions checked | Checks passed |\n")
+	w("|---|---:|---:|---:|---:|---:|---:|\n")
+	for _, run := range runs {
+		d := distributionOf(entries[run.Name])
+		checked, passed := 0, 0
+		for _, r := range run.Records {
+			for _, c := range r.Checks {
+				checked++
+				if c.Result == "event-match" || c.Result == "ledger-match" {
+					passed++
+				}
+			}
+		}
+		w("| %s | %d | %d (%s) | %d (%s) | %d (%s) | %d | %d |\n", run.Name, d.total,
+			d.def["decoded"], percent(d.def["decoded"], d.total),
+			d.assets["decoded"], percent(d.assets["decoded"], d.total),
+			d.def["opaque"], percent(d.def["opaque"], d.total), checked, passed)
+	}
+	w("\nMost opaque entries are calls to application contracts whose functions are not in the registry, which\n")
+	w("holds the SEP-41 token interface only. That is the tool saying what it does not know, not a failure to\n")
+	w("decode bytes.\n\n")
+
+	w("## How decoded actions are checked\n\n")
+	w("Every action marked `decoded`, in either pass and at any depth of the call tree, is checked against data\n")
+	w("that does not pass through this library's explanation code:\n\n")
+	w("- **Token actions**: in a successful transaction, the host must have emitted the matching SEP-41 event from\n")
+	w("  the same contract, with the same parties and the same raw amount, and an asset topic equal to the label;\n")
+	w("  for an approval, the event's live_until_ledger must also equal the rendered ledger.\n")
+	w("- **Contract creation**: the contract ID is derived in the test from the rendered deployer and salt, and the\n")
+	w("  instance fetched from the ledger must run the rendered wasm hash.\n\n")
+	w("A result of `no-events` means the transaction failed, so the host emitted no events to compare against.\n")
+	w("Those renderings are not confirmed by this check; they are listed like every other decoded action, and are\n")
+	w("counted as checked but not passed in the summary.\n\n")
+	w("Reproduce with new samples (the networks move, so the numbers will differ):\n\n")
+	w("```sh\nSOROAUTH_LIVE_RECORD=1 go test -tags live -run 'TestLive(Testnet|Public)' -v -count=1 -timeout 30m .\n")
+	w("SOROAUTH_WRITE_EVIDENCE=1 go test -run TestEvidenceUpToDate .\n```\n\n")
+
+	for _, run := range runs {
+		renderRun(w, run, entries[run.Name])
+	}
+
+	w("## Limits of this evidence\n\n")
+	w("- Each run is one sample of eight windows across one RPC retention range. Traffic changes.\n")
+	w("- The checks show that each decoded rendering matches what the host did or stored for that transaction.\n")
+	w("  They do not show the tool is correct on entries outside these samples.\n")
+	w("- The library is unaudited.\n")
+	return b.String()
+}
+
+func renderRun(w func(string, ...any), run LiveRun, es []liveEntry) {
+	w("## Run: %s\n\n", run.Name)
 	w("| | |\n|---|---|\n")
 	w("| Network | `%s` |\n", run.Network)
 	w("| RPC | %s |\n", run.RPC)
@@ -132,37 +264,25 @@ func renderEvidence(run LiveRun) string {
 	}
 	w("| Sample windows (start ledgers) | %s |\n", strings.Join(starts, ", "))
 	w("| Transactions scanned | %d |\n", run.TransactionsScanned)
-	w("| Authorization entries explained | %d |\n\n", total)
-	w("Reproduce with a new sample (the network moves, so the numbers will differ):\n\n")
-	w("```sh\nSOROAUTH_LIVE_RECORD=%s go test -tags live -run TestLiveTestnet -v -count=1 -timeout 20m .\nSOROAUTH_WRITE_EVIDENCE=1 go test -run TestEvidenceUpToDate .\n```\n\n", liveRecordPath)
+	w("| Authorization entries explained | %d |\n\n", len(es))
 
-	w("## Confidence distribution\n\n")
-	w("*Default* is `Explain` with `WithNetwork` only: what a caller gets with no other input. *With event\n")
-	w("assets* adds, through `WithAssets`, the `CODE:ISSUER` strings found in the transaction's own Stellar Asset\n")
-	w("Contract event topics. Those are candidates only: each is derived to a contract ID and compared, and one that\n")
-	w("does not derive to the contract under inspection is ignored.\n\n")
+	d := distributionOf(es)
+	w("### Confidence distribution\n\n")
 	w("| Confidence | Default | %% | With event assets | %% |\n|---|---:|---:|---:|---:|\n")
-	def, wa := map[string]int{}, map[string]int{}
-	for _, r := range run.Records {
-		def[confidenceOf(r.Default)]++
-		wa[confidenceOf(withAssetsOf(r))]++
-	}
 	for _, c := range []string{"decoded", "partial", "opaque", "refused"} {
-		w("| %s | %d | %s | %d | %s |\n", c, def[c], percent(def[c], total), wa[c], percent(wa[c], total))
+		w("| %s | %d | %s | %d | %s |\n", c, d.def[c], percent(d.def[c], d.total), d.assets[c], percent(d.assets[c], d.total))
 	}
 	w("\n")
 
-	w("## What the sample is made of\n\n")
-	creds := map[string]int{}
-	roots := map[string]int{}
-	for _, r := range run.Records {
-		var exp explain.Explanation
-		if len(r.Default.JSON) == 0 || json.Unmarshal(r.Default.JSON, &exp) != nil {
+	w("### What the sample is made of\n\n")
+	creds, roots := map[string]int{}, map[string]int{}
+	for _, e := range es {
+		if e.defaultExp == nil {
 			continue
 		}
-		creds[exp.CredentialType]++
-		if len(exp.Actions) > 0 {
-			a := exp.Actions[0]
+		creds[e.defaultExp.CredentialType]++
+		if len(e.defaultExp.Actions) > 0 {
+			a := e.defaultExp.Actions[0]
 			name := a.Function
 			if name == "" {
 				name = string(a.Kind)
@@ -193,48 +313,39 @@ func renderEvidence(run LiveRun) string {
 	for i := 0; i < len(rs) && i < 10; i++ {
 		w("| `%s` | %d |\n", rs[i].k, rs[i].v)
 	}
-	w("\nMost opaque entries are calls to application contracts (price oracles dominate testnet in this sample)\n")
-	w("whose functions are not in the registry, which holds the SEP-41 token interface only. That is the expected\n")
-	w("output for an unknown function, not a failure to decode bytes.\n\n")
+	w("\n")
 
-	w("## Independent checks of every decoded action\n\n")
-	w("Every action marked `decoded`, in either pass and at any depth of the call tree, was checked against data\n")
-	w("that does not pass through this library:\n\n")
-	w("- **Token actions**: in a successful transaction, the host must have emitted the matching SEP-41 event from\n")
-	w("  the same contract, with the same parties and the same raw amount, and an asset topic equal to the label;\n")
-	w("  for an approval, the event's live_until_ledger must also equal the rendered ledger.\n")
-	w("- **Contract creation**: the contract ID is derived in the test from the rendered deployer and salt, and the\n")
-	w("  instance fetched from the ledger must run the rendered wasm hash.\n\n")
 	checks := map[string]int{}
 	for _, r := range run.Records {
 		for _, c := range r.Checks {
 			checks[c.Kind+" / "+c.Result]++
 		}
 	}
+	w("### Independent checks\n\n")
 	w("| Action kind / result | Count |\n|---|---:|\n")
 	for _, k := range sortedKeys(checks) {
 		w("| %s | %d |\n", k, checks[k])
 	}
+	if len(checks) == 0 {
+		w("| (no decoded actions) | 0 |\n")
+	}
 	w("\n")
 
-	w("## Every entry rendered decoded\n\n")
-	w("Entries whose whole explanation was `decoded` in the pass shown. Each summary line is the recorded\n")
-	w("action `Summary`, which the text and JSON renderings share.\n\n")
+	w("### Every entry rendered decoded\n\n")
+	w("Entries whose whole explanation was `decoded`. Each summary line is the action `Summary`, which the text\n")
+	w("and JSON renderings share.\n\n")
 	n := 0
-	for _, r := range run.Records {
-		rend := withAssetsOf(r)
-		if rend.Confidence != explain.ConfidenceDecoded || rend.Error != "" {
+	for _, e := range es {
+		exp := e.final()
+		if exp == nil || exp.Confidence != explain.ConfidenceDecoded {
 			continue
 		}
 		n++
 		pass := "with event assets"
-		if r.Default.Confidence == explain.ConfidenceDecoded {
+		if e.defaultExp != nil && e.defaultExp.Confidence == explain.ConfidenceDecoded {
 			pass = "default and with event assets"
 		}
-		var exp explain.Explanation
-		if err := json.Unmarshal(rend.JSON, &exp); err != nil {
-			continue
-		}
+		r := e.rec
 		w("%d. tx `%s`, ledger %d, %s, operation %d, entry %d (%s), decoded in: %s\n", n, r.TxHash, r.Ledger, r.TxStatus, r.Operation, r.AuthIndex, exp.CredentialType, pass)
 		var walk func([]explain.Action, string)
 		walk = func(as []explain.Action, indent string) {
@@ -252,18 +363,14 @@ func renderEvidence(run LiveRun) string {
 		w("None.\n")
 	}
 
-	w("\n## Every decoded action inside an entry that is not decoded\n\n")
+	w("\n### Every decoded action inside an entry that is not decoded\n\n")
 	w("An entry can be opaque or partial as a whole while some of its actions are decoded, typically a token\n")
 	w("transfer or approval beneath an application call this library does not interpret. Each of these is shown\n")
 	w("to a user as decoded, so each is listed with its check. Path is the action's position in the call tree.\n\n")
 	m := 0
-	for _, r := range run.Records {
-		rend := withAssetsOf(r)
-		if rend.Error != "" || rend.Confidence == explain.ConfidenceDecoded {
-			continue
-		}
-		var exp explain.Explanation
-		if err := json.Unmarshal(rend.JSON, &exp); err != nil {
+	for _, e := range es {
+		exp := e.final()
+		if exp == nil || exp.Confidence == explain.ConfidenceDecoded {
 			continue
 		}
 		byPath := map[string]explain.Action{}
@@ -276,6 +383,7 @@ func renderEvidence(run LiveRun) string {
 			}
 		}
 		index(exp.Actions, "")
+		r := e.rec
 		for _, c := range r.Checks {
 			m++
 			w("%d. tx `%s`, ledger %d, %s, operation %d, entry %d (%s, entry is %s), path %s\n", m, r.TxHash, r.Ledger, r.TxStatus, r.Operation, r.AuthIndex, exp.CredentialType, exp.Confidence, c.Path)
@@ -286,12 +394,7 @@ func renderEvidence(run LiveRun) string {
 	if m == 0 {
 		w("None.\n")
 	}
-	w("\n## Limits of this evidence\n\n")
-	w("- It is testnet, sampled over eight windows of one retention range; public-network traffic may differ.\n")
-	w("- The checks show that each decoded rendering matches what the host did or stored for that transaction.\n")
-	w("  They do not show the tool is correct on entries outside this sample.\n")
-	w("- The library is unaudited.\n")
-	return b.String()
+	w("\n")
 }
 
 func sortedKeys(m map[string]int) []string {

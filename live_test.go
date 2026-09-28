@@ -1,13 +1,18 @@
 //go:build live
 
-// The live test explains authorization entries from real testnet
-// transactions and records what it said. It reaches the network, so it only
-// builds with -tags live:
+// The live tests explain authorization entries from real transactions and
+// record what the tool said. They reach the network, so they only build with
+// -tags live:
 //
-//	SOROAUTH_LIVE_RECORD=testdata/live/testnet.json go test -tags live -run TestLiveTestnet -v -count=1 -timeout 20m .
+//	SOROAUTH_LIVE_RECORD=1 go test -tags live -run 'TestLive(Testnet|Public)' -v -count=1 -timeout 30m .
 //
-// Every decoded token action is checked against the host's own contract
-// events for the same operation, which do not pass through this library.
+// With SOROAUTH_LIVE_RECORD=1 each run is written to testdata/live/<name>.json;
+// then regenerate docs/EVIDENCE.md with
+// SOROAUTH_WRITE_EVIDENCE=1 go test -run TestEvidenceUpToDate .
+//
+// Every decoded action is checked against the host's own contract events,
+// or for a contract creation against ledger state, neither of which passes
+// through this library.
 
 package explain_test
 
@@ -34,8 +39,23 @@ import (
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
+// liveNetwork is one network the live tests sample.
+type liveNetwork struct {
+	name       string
+	rpc        string
+	passphrase string
+	// txsPerWindow bounds the transactions scanned per window. Public
+	// traffic is mostly classic operations, so a window may need more
+	// transactions to reach its entry quota.
+	txsPerWindow int
+}
+
+var (
+	liveTestnet = liveNetwork{"testnet", "https://soroban-testnet.stellar.org", network.TestNetworkPassphrase, 3000}
+	livePublic  = liveNetwork{"public", "https://mainnet.sorobanrpc.com", network.PublicNetworkPassphrase, 20000}
+)
+
 const (
-	liveRPC = "https://soroban-testnet.stellar.org"
 
 	// Sampling. A single stretch of ledgers is dominated by whichever bots
 	// were busy then (a first probe on 2026-09-28 was 420 of 437 entries from
@@ -44,7 +64,6 @@ const (
 	// entries or liveTxsPerWindow transactions.
 	liveWindows          = 8
 	liveEntriesPerWindow = 60
-	liveTxsPerWindow     = 3000
 )
 
 type rpcTx struct {
@@ -57,12 +76,12 @@ type rpcTx struct {
 	} `json:"events"`
 }
 
-func rpcCall(ctx context.Context, method string, params any, out any) error {
+func rpcCall(ctx context.Context, rpc, method string, params any, out any) error {
 	body, err := json.Marshal(map[string]any{"jsonrpc": "2.0", "id": 1, "method": method, "params": params})
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, liveRPC, bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, rpc, bytes.NewReader(body))
 	if err != nil {
 		return err
 	}
@@ -87,8 +106,12 @@ func rpcCall(ctx context.Context, method string, params any, out any) error {
 	return json.Unmarshal(env.Result, out)
 }
 
-func TestLiveTestnet(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
+func TestLiveTestnet(t *testing.T) { runLive(t, liveTestnet) }
+
+func TestLivePublic(t *testing.T) { runLive(t, livePublic) }
+
+func runLive(t *testing.T, net liveNetwork) {
+	ctx, cancel := context.WithTimeout(context.Background(), 25*time.Minute)
 	defer cancel()
 
 	// getTransactions reports the retention range alongside any page.
@@ -99,15 +122,16 @@ func TestLiveTestnet(t *testing.T) {
 	var latest struct {
 		Sequence uint32 `json:"sequence"`
 	}
-	if err := rpcCall(ctx, "getLatestLedger", map[string]any{}, &latest); err != nil {
+	if err := rpcCall(ctx, net.rpc, "getLatestLedger", map[string]any{}, &latest); err != nil {
 		t.Fatalf("getLatestLedger: %v", err)
 	}
-	if err := rpcCall(ctx, "getTransactions", map[string]any{"startLedger": latest.Sequence - 10, "pagination": map[string]any{"limit": 1}}, &probe); err != nil {
+	if err := rpcCall(ctx, net.rpc, "getTransactions", map[string]any{"startLedger": latest.Sequence - 10, "pagination": map[string]any{"limit": 1}}, &probe); err != nil {
 		t.Fatalf("getTransactions: %v", err)
 	}
 	run := LiveRun{
-		Network:     network.TestNetworkPassphrase,
-		RPC:         liveRPC,
+		Name:        net.name,
+		Network:     net.passphrase,
+		RPC:         net.rpc,
 		Fetched:     time.Now().UTC().Format(time.RFC3339),
 		FirstLedger: probe.OldestLedger,
 		LastLedger:  probe.LatestLedger,
@@ -118,12 +142,12 @@ func TestLiveTestnet(t *testing.T) {
 		run.Windows = append(run.Windows, start)
 		entries, txs := 0, 0
 		params := map[string]any{"startLedger": start, "pagination": map[string]any{"limit": 200}}
-		for entries < liveEntriesPerWindow && txs < liveTxsPerWindow {
+		for entries < liveEntriesPerWindow && txs < net.txsPerWindow {
 			var page struct {
 				Transactions []rpcTx `json:"transactions"`
 				Cursor       string  `json:"cursor"`
 			}
-			if err := rpcCall(ctx, "getTransactions", params, &page); err != nil {
+			if err := rpcCall(ctx, net.rpc, "getTransactions", params, &page); err != nil {
 				t.Fatalf("getTransactions from %d: %v", start, err)
 			}
 			if len(page.Transactions) == 0 {
@@ -135,7 +159,7 @@ func TestLiveTestnet(t *testing.T) {
 				}
 				txs++
 				run.TransactionsScanned++
-				recs := liveRecords(ctx, t, tx)
+				recs := liveRecords(ctx, t, net, tx)
 				entries += len(recs)
 				run.Records = append(run.Records, recs...)
 			}
@@ -148,7 +172,8 @@ func TestLiveTestnet(t *testing.T) {
 
 	summarizeLive(t, run)
 
-	if path := os.Getenv("SOROAUTH_LIVE_RECORD"); path != "" {
+	if os.Getenv("SOROAUTH_LIVE_RECORD") == "1" {
+		path := "testdata/live/" + net.name + ".json"
 		out, err := json.MarshalIndent(run, "", "  ")
 		if err != nil {
 			t.Fatal(err)
@@ -160,7 +185,7 @@ func TestLiveTestnet(t *testing.T) {
 	}
 }
 
-func liveRecords(ctx context.Context, t *testing.T, tx rpcTx) []LiveRecord {
+func liveRecords(ctx context.Context, t *testing.T, net liveNetwork, tx rpcTx) []LiveRecord {
 	var env xdr.TransactionEnvelope
 	if err := xdr.SafeUnmarshalBase64(tx.EnvelopeXdr, &env); err != nil {
 		t.Fatalf("%s: envelope: %v", tx.TxHash, err)
@@ -192,16 +217,16 @@ func liveRecords(ctx context.Context, t *testing.T, tx rpcTx) []LiveRecord {
 				TxHash: tx.TxHash, Ledger: tx.Ledger, TxStatus: tx.Status,
 				Operation: opIndex, AuthIndex: authIndex, EntryXDR: b64, EventAsset: assetLabels,
 			}
-			exp, r := liveExplain(t, rec, entry, explain.WithNetwork(network.TestNetworkPassphrase))
+			exp, r := liveExplain(t, rec, entry, explain.WithNetwork(net.passphrase))
 			rec.Default = r
 			finalExp := exp
 			if len(assets) > 0 {
-				exp2, r2 := liveExplain(t, rec, entry, explain.WithNetwork(network.TestNetworkPassphrase), explain.WithAssets(assets...))
+				exp2, r2 := liveExplain(t, rec, entry, explain.WithNetwork(net.passphrase), explain.WithAssets(assets...))
 				rec.WithAssets = &r2
 				finalExp = exp2
 			}
 			if finalExp != nil {
-				rec.Checks = checkDecoded(ctx, finalExp.Actions, "", tx.Status, events)
+				rec.Checks = checkDecoded(ctx, net, finalExp.Actions, "", tx.Status, events)
 			}
 			out = append(out, rec)
 		}
@@ -254,11 +279,7 @@ func liveExplain(t *testing.T, rec LiveRecord, entry xdr.SorobanAuthorizationEnt
 		return nil, LiveRendering{Error: err.Error()}
 	}
 	liveInvariants(t, rec, exp)
-	js, err := render.JSON(exp)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return &exp, LiveRendering{Confidence: exp.Confidence, Text: render.Text(exp), JSON: js}
+	return &exp, LiveRendering{Confidence: exp.Confidence, Text: render.Text(exp)}
 }
 
 func liveInvariants(t *testing.T, rec LiveRecord, exp explain.Explanation) {
@@ -307,22 +328,22 @@ func fieldRaw(a explain.Action, name string) string {
 // events the host emitted for the same operation. The events come from the
 // network, not from this library, so a match is independent evidence that
 // the rendering names the right contract, parties and raw amount.
-func checkDecoded(ctx context.Context, actions []explain.Action, prefix, status string, events []xdr.ContractEvent) []LiveCheck {
+func checkDecoded(ctx context.Context, net liveNetwork, actions []explain.Action, prefix, status string, events []xdr.ContractEvent) []LiveCheck {
 	var out []LiveCheck
 	for i, a := range actions {
 		path := fmt.Sprintf("%s%d", prefix, i)
 		if a.Confidence == explain.ConfidenceDecoded {
-			out = append(out, checkOne(ctx, a, path, status, events))
+			out = append(out, checkOne(ctx, net, a, path, status, events))
 		}
-		out = append(out, checkDecoded(ctx, a.Sub, path+".", status, events)...)
+		out = append(out, checkDecoded(ctx, net, a.Sub, path+".", status, events)...)
 	}
 	return out
 }
 
-func checkOne(ctx context.Context, a explain.Action, path, status string, events []xdr.ContractEvent) LiveCheck {
+func checkOne(ctx context.Context, net liveNetwork, a explain.Action, path, status string, events []xdr.ContractEvent) LiveCheck {
 	c := LiveCheck{Path: path, Kind: string(a.Kind)}
 	if a.Kind == explain.ActionCreateContract {
-		return checkCreate(ctx, a, c, status)
+		return checkCreate(ctx, net, a, c, status)
 	}
 	var topic string
 	var parties []string
@@ -500,7 +521,7 @@ func bigFromParts(hi int64, lo uint64) string {
 // by the library) and fetches that contract's instance. The executable the
 // network stores must be the one the rendering names. A wrong deployer, salt
 // or hash finds no contract, or a different executable.
-func checkCreate(ctx context.Context, a explain.Action, c LiveCheck, status string) LiveCheck {
+func checkCreate(ctx context.Context, net liveNetwork, a explain.Action, c LiveCheck, status string) LiveCheck {
 	if status != "SUCCESS" {
 		c.Result, c.Detail = "no-ledger-state", "transaction status "+status+"; no contract was created"
 		return c
@@ -526,7 +547,7 @@ func checkCreate(ctx context.Context, a explain.Action, c LiveCheck, status stri
 	pre := xdr.HashIdPreimage{
 		Type: xdr.EnvelopeTypeEnvelopeTypeContractId,
 		ContractId: &xdr.HashIdPreimageContractId{
-			NetworkId: xdr.Hash(sha256.Sum256([]byte(network.TestNetworkPassphrase))),
+			NetworkId: xdr.Hash(sha256.Sum256([]byte(net.passphrase))),
 			ContractIdPreimage: xdr.ContractIdPreimage{
 				Type:        xdr.ContractIdPreimageTypeContractIdPreimageFromAddress,
 				FromAddress: &xdr.ContractIdPreimageFromAddress{Address: addr, Salt: u},
@@ -553,7 +574,7 @@ func checkCreate(ctx context.Context, a explain.Action, c LiveCheck, status stri
 			XDR string `json:"xdr"`
 		} `json:"entries"`
 	}
-	if err := rpcCall(ctx, "getLedgerEntries", map[string]any{"keys": []string{key}}, &resp); err != nil {
+	if err := rpcCall(ctx, net.rpc, "getLedgerEntries", map[string]any{"keys": []string{key}}, &resp); err != nil {
 		c.Result, c.Detail = "check-error", err.Error()
 		return c
 	}
