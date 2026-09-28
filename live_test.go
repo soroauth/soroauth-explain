@@ -87,48 +87,6 @@ func rpcCall(ctx context.Context, method string, params any, out any) error {
 	return json.Unmarshal(env.Result, out)
 }
 
-// LiveRendering is one explanation of a live entry.
-type LiveRendering struct {
-	Confidence explain.Confidence `json:"confidence"`
-	Error      string             `json:"error,omitempty"`
-	Text       string             `json:"text,omitempty"`
-	JSON       json.RawMessage    `json:"json,omitempty"`
-}
-
-// LiveCheck is the independent check of one decoded token action.
-type LiveCheck struct {
-	Path   string `json:"path"`
-	Kind   string `json:"kind"`
-	Result string `json:"result"`
-	Detail string `json:"detail"`
-}
-
-// LiveRecord is one authorization entry from a real transaction.
-type LiveRecord struct {
-	TxHash     string         `json:"tx_hash"`
-	Ledger     uint32         `json:"ledger"`
-	TxStatus   string         `json:"tx_status"`
-	Operation  int            `json:"operation"`
-	AuthIndex  int            `json:"auth_index"`
-	EntryXDR   string         `json:"entry_xdr"`
-	EventAsset []string       `json:"event_assets,omitempty"`
-	Default    LiveRendering  `json:"default"`
-	WithAssets *LiveRendering `json:"with_event_assets,omitempty"`
-	Checks     []LiveCheck    `json:"checks,omitempty"`
-}
-
-// LiveRun is the whole recorded run.
-type LiveRun struct {
-	Network             string       `json:"network"`
-	RPC                 string       `json:"rpc"`
-	Fetched             string       `json:"fetched"`
-	FirstLedger         uint32       `json:"first_ledger"`
-	LastLedger          uint32       `json:"last_ledger"`
-	Windows             []uint32     `json:"window_start_ledgers"`
-	TransactionsScanned int          `json:"transactions_scanned"`
-	Records             []LiveRecord `json:"records"`
-}
-
 func TestLiveTestnet(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Minute)
 	defer cancel()
@@ -417,6 +375,15 @@ func checkOne(ctx context.Context, a explain.Action, path, status string, events
 		if !match || eventAmount(body.Data) != amount {
 			continue
 		}
+		// approve's event data also carries live_until_ledger, which the
+		// rendering states; it must agree too.
+		if topic == "approve" {
+			if want := field(a, "live_until_ledger").Value; eventLiveUntil(body.Data) != want {
+				c.Result = "no-matching-event"
+				c.Detail = fmt.Sprintf("approve event on %s has live_until_ledger %q, rendering says %q", contract, eventLiveUntil(body.Data), want)
+				return c
+			}
+		}
 		last, _ := body.Topics[len(body.Topics)-1].GetStr()
 		c.Result = "event-match"
 		c.Detail = fmt.Sprintf("host event %q on %s with parties %v, amount %s, asset topic %q (rendered asset %q)", topic, contract, parties, amount, string(last), asset)
@@ -427,6 +394,30 @@ func checkOne(ctx context.Context, a explain.Action, path, status string, events
 	}
 	c.Result, c.Detail = "no-matching-event", fmt.Sprintf("no %q event on %s with parties %v and amount %s", topic, a.Contract, parties, amount)
 	return c
+}
+
+// eventLiveUntil reads live_until_ledger from SEP-41 approve event data:
+// the second element of [amount, live_until_ledger], or the map key.
+func eventLiveUntil(v xdr.ScVal) string {
+	var u *xdr.ScVal
+	switch v.Type {
+	case xdr.ScValTypeScvVec:
+		if v.Vec != nil && *v.Vec != nil && len(**v.Vec) > 1 {
+			u = &(**v.Vec)[1]
+		}
+	case xdr.ScValTypeScvMap:
+		if v.Map != nil && *v.Map != nil {
+			for i, e := range **v.Map {
+				if s, ok := e.Key.GetSym(); ok && string(s) == "live_until_ledger" {
+					u = &(**v.Map)[i].Val
+				}
+			}
+		}
+	}
+	if u == nil || u.Type != xdr.ScValTypeScvU32 || u.U32 == nil {
+		return ""
+	}
+	return fmt.Sprint(uint32(*u.U32))
 }
 
 // eventAmount reads the amount from SEP-41 event data: an i128, a vector
