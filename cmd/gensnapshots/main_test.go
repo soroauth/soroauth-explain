@@ -60,8 +60,8 @@ func TestBuiltEntriesDeterministic(t *testing.T) {
 	if !reflect.DeepEqual(a, b) {
 		t.Fatal("builtEntries differs between runs")
 	}
-	if len(a) != 7 {
-		t.Fatalf("%d built entries, want 7", len(a))
+	if len(a) != 10 {
+		t.Fatalf("%d built entries, want 10", len(a))
 	}
 }
 

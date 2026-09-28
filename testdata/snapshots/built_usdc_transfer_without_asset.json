@@ -1,0 +1,49 @@
+{
+  "actions": [
+    {
+      "confidence": "partial",
+      "contract": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "transfer"
+        },
+        {
+          "confidence": "decoded",
+          "name": "from",
+          "value": "GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX"
+        },
+        {
+          "confidence": "decoded",
+          "name": "to",
+          "value": "GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6"
+        },
+        {
+          "confidence": "partial",
+          "name": "amount",
+          "value": "1000000000"
+        }
+      ],
+      "function": "transfer",
+      "kind": "token_transfer",
+      "summary": "Transfer 1000000000 units of the token at CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75 from GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX to GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6"
+    }
+  ],
+  "address_bound": false,
+  "confidence": "partial",
+  "credential_type": "address",
+  "nonce": 7,
+  "signed": false,
+  "subject": "GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M",
+  "unexplained": [
+    "The token at CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75 is not identified on this network, so its asset and decimal places are unknown; amounts are shown as raw integers in its smallest unit.",
+    "The call matches the SEP-41 transfer signature, but a matching signature does not show that the contract at CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75 behaves as SEP-41 describes."
+  ],
+  "valid_until_ledger": 1000
+}

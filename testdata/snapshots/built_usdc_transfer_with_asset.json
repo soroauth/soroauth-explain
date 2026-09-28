@@ -1,0 +1,51 @@
+{
+  "actions": [
+    {
+      "confidence": "decoded",
+      "contract": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "transfer"
+        },
+        {
+          "confidence": "decoded",
+          "name": "asset",
+          "value": "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+        },
+        {
+          "confidence": "decoded",
+          "name": "from",
+          "value": "GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX"
+        },
+        {
+          "confidence": "decoded",
+          "name": "to",
+          "value": "GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6"
+        },
+        {
+          "confidence": "decoded",
+          "name": "amount",
+          "raw": "1000000000",
+          "value": "100.0000000"
+        }
+      ],
+      "function": "transfer",
+      "kind": "token_transfer",
+      "summary": "Transfer 100.0000000 USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN from GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX to GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6"
+    }
+  ],
+  "address_bound": false,
+  "confidence": "decoded",
+  "credential_type": "address",
+  "nonce": 7,
+  "signed": false,
+  "subject": "GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M",
+  "valid_until_ledger": 1000
+}

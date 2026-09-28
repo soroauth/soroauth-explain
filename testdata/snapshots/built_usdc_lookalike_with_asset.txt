@@ -1,0 +1,17 @@
+Authorization entry: address credentials for GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M [partial]
+  nonce:              7
+  valid until ledger: 1000
+  address-bound:      no
+  signed:             no
+
+Authorizes:
+  [partial] Transfer 1000000000 units of the token at CB3PFGUNKK7DQN45SWUIN6LNVD7A4ZKDATALYG6KUOEYVK34S7AICN6U from GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX to GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6
+      contract = CB3PFGUNKK7DQN45SWUIN6LNVD7A4ZKDATALYG6KUOEYVK34S7AICN6U [decoded]
+      function = transfer [decoded]
+      from     = GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX [decoded]
+      to       = GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6 [decoded]
+      amount   = 1000000000 [partial]
+
+Not determined:
+  - The token at CB3PFGUNKK7DQN45SWUIN6LNVD7A4ZKDATALYG6KUOEYVK34S7AICN6U is not identified on this network, so its asset and decimal places are unknown; amounts are shown as raw integers in its smallest unit.
+  - The call matches the SEP-41 transfer signature, but a matching signature does not show that the contract at CB3PFGUNKK7DQN45SWUIN6LNVD7A4ZKDATALYG6KUOEYVK34S7AICN6U behaves as SEP-41 describes.

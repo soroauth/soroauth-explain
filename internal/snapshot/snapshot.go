@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	explain "github.com/soroauth/soroauth-explain"
 	"github.com/soroauth/soroauth-explain/render"
@@ -25,10 +26,28 @@ var Formats = []string{"txt", "json"}
 
 // Entry is one input case in testdata/entries.
 type Entry struct {
-	Name              string `json:"name"`
-	Source            string `json:"source"`
-	NetworkPassphrase string `json:"network_passphrase"`
-	EntryXDR          string `json:"entry_xdr"`
+	Name              string   `json:"name"`
+	Source            string   `json:"source"`
+	NetworkPassphrase string   `json:"network_passphrase"`
+	Assets            []string `json:"assets,omitempty"` // candidates for explain.WithAssets, as CODE:ISSUER
+	EntryXDR          string   `json:"entry_xdr"`
+}
+
+// ParseAssets turns CODE:ISSUER strings into assets.
+func ParseAssets(labels []string) ([]xdr.Asset, error) {
+	out := make([]xdr.Asset, 0, len(labels))
+	for _, l := range labels {
+		code, issuer, ok := strings.Cut(l, ":")
+		if !ok {
+			return nil, fmt.Errorf("asset %q is not CODE:ISSUER", l)
+		}
+		a, err := xdr.NewCreditAsset(code, issuer)
+		if err != nil {
+			return nil, fmt.Errorf("asset %q: %w", l, err)
+		}
+		out = append(out, a)
+	}
+	return out, nil
 }
 
 // LoadEntries reads every *.json in dir, sorted by case name.
@@ -67,7 +86,11 @@ func Render(e Entry) (map[string][]byte, error) {
 	if err := xdr.SafeUnmarshalBase64(e.EntryXDR, &entry); err != nil {
 		return nil, fmt.Errorf("%s: decode entry: %w", e.Name, err)
 	}
-	exp, err := explain.Explain(entry, explain.WithNetwork(e.NetworkPassphrase))
+	assets, err := ParseAssets(e.Assets)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", e.Name, err)
+	}
+	exp, err := explain.Explain(entry, explain.WithNetwork(e.NetworkPassphrase), explain.WithAssets(assets...))
 	if err != nil {
 		refusal, jerr := json.MarshalIndent(map[string]string{"error": err.Error()}, "", "  ")
 		if jerr != nil {

@@ -22,6 +22,11 @@ var registry = interfaces.Default()
 // metadata.rs:22 `pub const DECIMAL: u32 = 7;`, returned by decimals() at
 // contract.rs:376-379 (read at 169890d50e27ef948bef66401147aba814d9b04e on
 // 2026-09-28). A contract earns it only by its ID deriving as a SAC.
+//
+// It is a fact about Stellar Asset Contracts and nothing else. Any other
+// token contract may use any scale, and applying 7 to one is exactly the
+// wrong-amount bug the honesty boundary exists to prevent, so amounts on
+// every other contract are shown as raw integers, never scaled.
 const sacDecimals = 7
 
 // CredentialTypeDelegate is the CredentialType of an Explanation that
@@ -53,6 +58,7 @@ type Option func(*options)
 
 type options struct {
 	network  string
+	assets   []xdr.Asset
 	maxDepth int
 	maxNodes int
 }
@@ -62,6 +68,20 @@ type options struct {
 // passphrase, so without it no contract is ever labelled.
 func WithNetwork(passphrase string) Option {
 	return func(o *options) { o.network = passphrase }
+}
+
+// WithAssets adds candidate assets for labelling, beyond the native asset,
+// which is always a candidate.
+//
+// It changes nothing about the impostor guard. Each candidate is derived to
+// its Stellar Asset Contract ID on the WithNetwork passphrase and compared
+// with the contract being explained; a candidate that does not derive to it
+// is ignored, as is one that cannot be derived at all. Passing an asset says
+// "these are the assets I care about", not "trust this label". Without it,
+// only the native asset can ever be identified, and every issued-asset
+// transfer is partial. Repeated calls accumulate.
+func WithAssets(assets ...xdr.Asset) Option {
+	return func(o *options) { o.assets = append(o.assets, assets...) }
 }
 
 // WithMaxDepth overrides DefaultMaxDepth. A value below 1 is an error.
@@ -268,7 +288,8 @@ func (w *walker) explainContractFn(fn xdr.InvokeContractArgs, depth int, o optio
 	// The only label a contract can earn is the asset whose Stellar Asset
 	// Contract ID it is, on the caller's network. Without WithNetwork there
 	// is nothing to derive, and so no label.
-	label, isSAC := AssetLabel(contract, o.network, []xdr.Asset{xdr.MustNewNativeAsset()})
+	candidates := append([]xdr.Asset{xdr.MustNewNativeAsset()}, o.assets...)
+	label, isSAC := AssetLabel(contract, o.network, candidates)
 
 	if sig, ok := registry.Lookup(name, fn.Args); ok && fnField.Confidence == ConfidenceDecoded {
 		return w.explainKnown(sig, contract, label, isSAC, fn.Args, depth, o)
@@ -407,8 +428,9 @@ func (w *walker) explainCreateContract(pre xdr.ContractIdPreimage, exe xdr.Contr
 //
 // The match says what the arguments are; the contract's identity decides how
 // much of that may be stated. On a Stellar Asset Contract derived on the
-// caller's network, the asset is named and amounts are scaled by the host's
-// fixed decimal count, so every element is derived: decoded. On any other
+// caller's network from a candidate asset (native, or one given with
+// WithAssets), the asset is named and amounts are scaled by the host's fixed
+// SAC decimal count, so every element is derived: decoded. On any other
 // contract the asset and decimals are unknown and a matching signature does
 // not show the contract behaves as the interface describes, so amounts stay
 // raw integers and the action is at most partial.

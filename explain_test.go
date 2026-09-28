@@ -471,6 +471,81 @@ func TestExplainTokenUnderOpaqueRoot(t *testing.T) {
 	}
 }
 
+// TestExplainWithAssets: WithAssets supplies candidates; the guard still
+// derives and compares each one.
+func TestExplainWithAssets(t *testing.T) {
+	usdcA := xdr.MustNewCreditAsset("USDC", usdcIssuerGA5Z)
+	usdcB := xdr.MustNewCreditAsset("USDC", usdcIssuerGAHK)
+	realUSDC := addressEntry(callInvocation(sacAddress(t, usdcA, publicPassphrase), "transfer", transferArgs()))
+	lookalike := addressEntry(callInvocation(sacAddress(t, usdcB, publicPassphrase), "transfer", transferArgs()))
+	malformed := xdr.Asset{Type: xdr.AssetTypeAssetTypeCreditAlphanum4}
+
+	tests := []struct {
+		name      string
+		entry     xdr.SorobanAuthorizationEntry
+		opts      []Option
+		want      Confidence
+		wantAsset string
+	}{
+		{"candidate_derives", realUSDC, []Option{WithNetwork(publicPassphrase), WithAssets(usdcA)}, ConfidenceDecoded, "USDC:" + usdcIssuerGA5Z},
+		{"no_candidates", realUSDC, []Option{WithNetwork(publicPassphrase)}, ConfidencePartial, ""},
+		{"candidate_without_network", realUSDC, []Option{WithAssets(usdcA)}, ConfidencePartial, ""},
+		{"candidate_on_other_network", realUSDC, []Option{WithNetwork(testnetPassphrase), WithAssets(usdcA)}, ConfidencePartial, ""},
+		{"lookalike_issuer_not_labelled", lookalike, []Option{WithNetwork(publicPassphrase), WithAssets(usdcA)}, ConfidencePartial, ""},
+		// The look-alike is a real SAC of its own asset; named, it is labelled
+		// with its own issuer, which keeps it distinct from USDC:GA5Z.
+		{"lookalike_own_asset", lookalike, []Option{WithNetwork(publicPassphrase), WithAssets(usdcB)}, ConfidenceDecoded, "USDC:" + usdcIssuerGAHK},
+		{"malformed_candidate_ignored", realUSDC, []Option{WithNetwork(publicPassphrase), WithAssets(malformed, usdcA)}, ConfidenceDecoded, "USDC:" + usdcIssuerGA5Z},
+		{"accumulates", realUSDC, []Option{WithNetwork(publicPassphrase), WithAssets(usdcB), WithAssets(usdcA)}, ConfidenceDecoded, "USDC:" + usdcIssuerGA5Z},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			exp := explainChecked(t, tt.entry, tt.opts...)
+			a := exp.Actions[0]
+			asset, hasAsset := fieldByName(a, "asset")
+			if exp.Confidence != tt.want || asset.Value != tt.wantAsset || hasAsset != (tt.wantAsset != "") {
+				t.Fatalf("got %s, asset %q; want %s, %q", exp.Confidence, asset.Value, tt.want, tt.wantAsset)
+			}
+			if tt.want == ConfidenceDecoded && !strings.HasPrefix(a.Summary, "Transfer 100.0000000 "+tt.wantAsset+" from ") {
+				t.Fatalf("summary = %q", a.Summary)
+			}
+		})
+	}
+}
+
+// TestSACDecimalsOnlyOnSACs: the host's 7 decimal places are a fact about
+// Stellar Asset Contracts only. No matching call on any other contract is
+// scaled, under any combination of options.
+func TestSACDecimalsOnlyOnSACs(t *testing.T) {
+	usdcA := xdr.MustNewCreditAsset("USDC", usdcIssuerGA5Z)
+	contracts := map[string]xdr.ScAddress{
+		"arbitrary":           contractAddress(testContractKey),
+		"issued_XLM_impostor": sacAddress(t, xdr.MustNewCreditAsset("XLM", usdcIssuerGAHK), testnetPassphrase),
+		"public_native_sac":   sacAddress(t, xdr.MustNewNativeAsset(), publicPassphrase),
+		"usdc_lookalike":      sacAddress(t, xdr.MustNewCreditAsset("USDC", usdcIssuerGAHK), publicPassphrase),
+	}
+	optionSets := map[string][]Option{
+		"none":           nil,
+		"testnet":        {WithNetwork(testnetPassphrase)},
+		"testnet_assets": {WithNetwork(testnetPassphrase), WithAssets(usdcA)},
+		"public_assets":  {WithNetwork(publicPassphrase), WithAssets(usdcA)},
+	}
+	for cname, c := range contracts {
+		for oname, opts := range optionSets {
+			if cname == "public_native_sac" && strings.HasPrefix(oname, "public") {
+				continue // it is the real native SAC on public; scaling is right there
+			}
+			t.Run(cname+"/"+oname, func(t *testing.T) {
+				exp := explainChecked(t, addressEntry(callInvocation(c, "transfer", transferArgs())), opts...)
+				amount, _ := fieldByName(exp.Actions[0], "amount")
+				if amount.Value != "1000000000" || amount.Raw != "" || strings.Contains(exp.Actions[0].Summary, ".") {
+					t.Fatalf("scaled on a contract that is not a derived SAC: amount %+v, summary %q", amount, exp.Actions[0].Summary)
+				}
+			})
+		}
+	}
+}
+
 func TestScaleDecimal(t *testing.T) {
 	for in, want := range map[string]string{
 		"0":          "0.0000000",

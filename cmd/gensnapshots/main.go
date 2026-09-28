@@ -31,6 +31,7 @@ const (
 	soroauthMod  = "github.com/soroauth/soroauth-go"
 
 	testnet = "Test SDF Network ; September 2015"
+	public  = "Public Global Stellar Network ; September 2015"
 )
 
 func main() {
@@ -171,6 +172,10 @@ var (
 // is the impostor. Any account works; this is a fixed arbitrary one.
 const impostorIssuer = "GAHKEAKBDDC467S3PFXPROVU6SBPQXDEWLUUTCPIIGD5MIO3KRRWS5HV"
 
+// usdcIssuer issues the public-network USDC whose SAC is recorded in
+// testdata/sac/usdc_ga5z_public.json.
+const usdcIssuer = "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+
 func key(b byte) [32]byte {
 	var k [32]byte
 	for i := range k {
@@ -260,34 +265,63 @@ func builtEntries() ([]snapshot.Entry, error) {
 		hundred[i] = u32(uint32(i))
 	}
 
+	usdc := xdr.MustNewCreditAsset("USDC", usdcIssuer)
+	usdcSAC, err := sacAddress(usdc, public)
+	if err != nil {
+		return nil, err
+	}
+	lookalikeSAC, err := sacAddress(xdr.MustNewCreditAsset("USDC", impostorIssuer), public)
+	if err != nil {
+		return nil, err
+	}
+	usdcLabel := "USDC:" + usdcIssuer
+
 	cases := []struct {
 		name, how string
+		network   string
+		assets    []string
 		entry     xdr.SorobanAuthorizationEntry
 	}{
+		{"built_usdc_transfer_with_asset",
+			"transfer on the public-network SAC of " + usdcLabel + ", with that asset given as a candidate",
+			public, []string{usdcLabel}, addressEntry(call(usdcSAC, "transfer", transferArgs))},
+		{"built_usdc_transfer_without_asset",
+			"the same transfer with no candidate assets: the token cannot be identified",
+			public, nil, addressEntry(call(usdcSAC, "transfer", transferArgs))},
+		{"built_usdc_lookalike_with_asset",
+			"transfer on the public-network SAC of USDC:" + impostorIssuer + " (a different issuer), with " + usdcLabel + " as the only candidate",
+			public, []string{usdcLabel}, addressEntry(call(lookalikeSAC, "transfer", transferArgs))},
 		{"built_impostor_transfer",
 			"transfer(from, to, i128 1000000000) on the testnet Stellar Asset Contract of XLM:" + impostorIssuer + ", an issued asset coded XLM, not the native asset",
+			testnet, nil,
 			addressEntry(call(impostor, "transfer", transferArgs))},
 		{"built_native_sac_transfer",
 			"the same transfer on the testnet native Stellar Asset Contract: the positive control for the impostor case",
+			testnet, nil,
 			addressEntry(call(native, "transfer", transferArgs))},
 		{"built_unknown_function",
 			"do_thing(address, i128, bytes) on an arbitrary contract",
+			testnet, nil,
 			addressEntry(call(contract(opaqueKey), "do_thing", []xdr.ScVal{
 				addr(account(toKey)), i128(42), {Type: xdr.ScValTypeScvBytes, Bytes: &xdr.ScBytes{0xca, 0xfe}}}))},
 		{"built_hundred_arguments",
 			"a call with 100 u32 arguments",
+			testnet, nil,
 			addressEntry(call(contract(opaqueKey), "wide", hundred))},
 		{"built_source_account",
 			"a source-account entry over the unknown-function call; soroauth-go's vectors carry no source-account entry",
+			testnet, nil,
 			xdr.SorobanAuthorizationEntry{
 				Credentials:    xdr.SorobanCredentials{Type: xdr.SorobanCredentialsTypeSorobanCredentialsSourceAccount},
 				RootInvocation: call(contract(opaqueKey), "do_thing", nil),
 			}},
 		{"built_deep_tree",
 			fmt.Sprintf("a chain of %d nested invocations, exactly the default depth limit", explain.DefaultMaxDepth),
+			testnet, nil,
 			addressEntry(chain(explain.DefaultMaxDepth))},
 		{"built_deep_tree_over_limit",
 			fmt.Sprintf("a chain of %d nested invocations, one past the default depth limit", explain.DefaultMaxDepth+1),
+			testnet, nil,
 			addressEntry(chain(explain.DefaultMaxDepth + 1))},
 	}
 
@@ -300,7 +334,8 @@ func builtEntries() ([]snapshot.Entry, error) {
 		entries = append(entries, snapshot.Entry{
 			Name:              c.name,
 			Source:            "built by cmd/gensnapshots: " + c.how,
-			NetworkPassphrase: testnet,
+			NetworkPassphrase: c.network,
+			Assets:            c.assets,
 			EntryXDR:          b64,
 		})
 	}

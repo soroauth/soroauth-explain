@@ -1,0 +1,6 @@
+{
+  "name": "built_usdc_transfer_without_asset",
+  "source": "built by cmd/gensnapshots: the same transfer with no candidate assets: the token cannot be identified",
+  "network_passphrase": "Public Global Stellar Network ; September 2015",
+  "entry_xdr": "AAAAAQAAAAAAAAAAEREREREREREREREREREREREREREREREREREREREREREAAAAAAAAABwAAA+gAAAABAAAAAAAAAAGt785ZruUpaPdgYdSUwlJbdWWfpClqZfSZ7ynlZHfklgAAAAh0cmFuc2ZlcgAAAAMAAAASAAAAAAAAAAAiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIgAAABIAAAAAAAAAADMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAAAACgAAAAAAAAAAAAAAADuaygAAAAAA"
+}

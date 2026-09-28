@@ -66,6 +66,18 @@ func TestCLIMatchesSnapshots(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			// The CLI has no flag for candidate assets (section 6.8 defines
+			// none), so an entry that carries some is compared with its
+			// rendering without them.
+			if len(e.Assets) > 0 {
+				bare := e
+				bare.Assets = nil
+				out, err := snapshot.Render(bare)
+				if err != nil {
+					t.Fatal(err)
+				}
+				txt, js = out["txt"], out["json"]
+			}
 			refused := bytes.HasPrefix(txt, []byte("error: "))
 			for _, tc := range []struct {
 				args []string
