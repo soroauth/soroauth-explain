@@ -1,0 +1,875 @@
+{
+  "actions": [
+    {
+      "confidence": "opaque",
+      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "level_1"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arguments",
+          "value": "0"
+        }
+      ],
+      "function": "level_1",
+      "kind": "invoke_contract",
+      "sub": [
+        {
+          "confidence": "opaque",
+          "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+          "fields": [
+            {
+              "confidence": "decoded",
+              "name": "contract",
+              "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+            },
+            {
+              "confidence": "decoded",
+              "name": "function",
+              "value": "level_2"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arguments",
+              "value": "0"
+            }
+          ],
+          "function": "level_2",
+          "kind": "invoke_contract",
+          "sub": [
+            {
+              "confidence": "opaque",
+              "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "level_3"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arguments",
+                  "value": "0"
+                }
+              ],
+              "function": "level_3",
+              "kind": "invoke_contract",
+              "sub": [
+                {
+                  "confidence": "opaque",
+                  "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                  "fields": [
+                    {
+                      "confidence": "decoded",
+                      "name": "contract",
+                      "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "function",
+                      "value": "level_4"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "arguments",
+                      "value": "0"
+                    }
+                  ],
+                  "function": "level_4",
+                  "kind": "invoke_contract",
+                  "sub": [
+                    {
+                      "confidence": "opaque",
+                      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                      "fields": [
+                        {
+                          "confidence": "decoded",
+                          "name": "contract",
+                          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                        },
+                        {
+                          "confidence": "decoded",
+                          "name": "function",
+                          "value": "level_5"
+                        },
+                        {
+                          "confidence": "decoded",
+                          "name": "arguments",
+                          "value": "0"
+                        }
+                      ],
+                      "function": "level_5",
+                      "kind": "invoke_contract",
+                      "sub": [
+                        {
+                          "confidence": "opaque",
+                          "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                          "fields": [
+                            {
+                              "confidence": "decoded",
+                              "name": "contract",
+                              "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                            },
+                            {
+                              "confidence": "decoded",
+                              "name": "function",
+                              "value": "level_6"
+                            },
+                            {
+                              "confidence": "decoded",
+                              "name": "arguments",
+                              "value": "0"
+                            }
+                          ],
+                          "function": "level_6",
+                          "kind": "invoke_contract",
+                          "sub": [
+                            {
+                              "confidence": "opaque",
+                              "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                              "fields": [
+                                {
+                                  "confidence": "decoded",
+                                  "name": "contract",
+                                  "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                },
+                                {
+                                  "confidence": "decoded",
+                                  "name": "function",
+                                  "value": "level_7"
+                                },
+                                {
+                                  "confidence": "decoded",
+                                  "name": "arguments",
+                                  "value": "0"
+                                }
+                              ],
+                              "function": "level_7",
+                              "kind": "invoke_contract",
+                              "sub": [
+                                {
+                                  "confidence": "opaque",
+                                  "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                  "fields": [
+                                    {
+                                      "confidence": "decoded",
+                                      "name": "contract",
+                                      "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                    },
+                                    {
+                                      "confidence": "decoded",
+                                      "name": "function",
+                                      "value": "level_8"
+                                    },
+                                    {
+                                      "confidence": "decoded",
+                                      "name": "arguments",
+                                      "value": "0"
+                                    }
+                                  ],
+                                  "function": "level_8",
+                                  "kind": "invoke_contract",
+                                  "sub": [
+                                    {
+                                      "confidence": "opaque",
+                                      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                      "fields": [
+                                        {
+                                          "confidence": "decoded",
+                                          "name": "contract",
+                                          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                        },
+                                        {
+                                          "confidence": "decoded",
+                                          "name": "function",
+                                          "value": "level_9"
+                                        },
+                                        {
+                                          "confidence": "decoded",
+                                          "name": "arguments",
+                                          "value": "0"
+                                        }
+                                      ],
+                                      "function": "level_9",
+                                      "kind": "invoke_contract",
+                                      "sub": [
+                                        {
+                                          "confidence": "opaque",
+                                          "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                          "fields": [
+                                            {
+                                              "confidence": "decoded",
+                                              "name": "contract",
+                                              "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                            },
+                                            {
+                                              "confidence": "decoded",
+                                              "name": "function",
+                                              "value": "level_10"
+                                            },
+                                            {
+                                              "confidence": "decoded",
+                                              "name": "arguments",
+                                              "value": "0"
+                                            }
+                                          ],
+                                          "function": "level_10",
+                                          "kind": "invoke_contract",
+                                          "sub": [
+                                            {
+                                              "confidence": "opaque",
+                                              "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                              "fields": [
+                                                {
+                                                  "confidence": "decoded",
+                                                  "name": "contract",
+                                                  "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                },
+                                                {
+                                                  "confidence": "decoded",
+                                                  "name": "function",
+                                                  "value": "level_11"
+                                                },
+                                                {
+                                                  "confidence": "decoded",
+                                                  "name": "arguments",
+                                                  "value": "0"
+                                                }
+                                              ],
+                                              "function": "level_11",
+                                              "kind": "invoke_contract",
+                                              "sub": [
+                                                {
+                                                  "confidence": "opaque",
+                                                  "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                  "fields": [
+                                                    {
+                                                      "confidence": "decoded",
+                                                      "name": "contract",
+                                                      "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                    },
+                                                    {
+                                                      "confidence": "decoded",
+                                                      "name": "function",
+                                                      "value": "level_12"
+                                                    },
+                                                    {
+                                                      "confidence": "decoded",
+                                                      "name": "arguments",
+                                                      "value": "0"
+                                                    }
+                                                  ],
+                                                  "function": "level_12",
+                                                  "kind": "invoke_contract",
+                                                  "sub": [
+                                                    {
+                                                      "confidence": "opaque",
+                                                      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                      "fields": [
+                                                        {
+                                                          "confidence": "decoded",
+                                                          "name": "contract",
+                                                          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                        },
+                                                        {
+                                                          "confidence": "decoded",
+                                                          "name": "function",
+                                                          "value": "level_13"
+                                                        },
+                                                        {
+                                                          "confidence": "decoded",
+                                                          "name": "arguments",
+                                                          "value": "0"
+                                                        }
+                                                      ],
+                                                      "function": "level_13",
+                                                      "kind": "invoke_contract",
+                                                      "sub": [
+                                                        {
+                                                          "confidence": "opaque",
+                                                          "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                          "fields": [
+                                                            {
+                                                              "confidence": "decoded",
+                                                              "name": "contract",
+                                                              "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                            },
+                                                            {
+                                                              "confidence": "decoded",
+                                                              "name": "function",
+                                                              "value": "level_14"
+                                                            },
+                                                            {
+                                                              "confidence": "decoded",
+                                                              "name": "arguments",
+                                                              "value": "0"
+                                                            }
+                                                          ],
+                                                          "function": "level_14",
+                                                          "kind": "invoke_contract",
+                                                          "sub": [
+                                                            {
+                                                              "confidence": "opaque",
+                                                              "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                              "fields": [
+                                                                {
+                                                                  "confidence": "decoded",
+                                                                  "name": "contract",
+                                                                  "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                },
+                                                                {
+                                                                  "confidence": "decoded",
+                                                                  "name": "function",
+                                                                  "value": "level_15"
+                                                                },
+                                                                {
+                                                                  "confidence": "decoded",
+                                                                  "name": "arguments",
+                                                                  "value": "0"
+                                                                }
+                                                              ],
+                                                              "function": "level_15",
+                                                              "kind": "invoke_contract",
+                                                              "sub": [
+                                                                {
+                                                                  "confidence": "opaque",
+                                                                  "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                  "fields": [
+                                                                    {
+                                                                      "confidence": "decoded",
+                                                                      "name": "contract",
+                                                                      "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                    },
+                                                                    {
+                                                                      "confidence": "decoded",
+                                                                      "name": "function",
+                                                                      "value": "level_16"
+                                                                    },
+                                                                    {
+                                                                      "confidence": "decoded",
+                                                                      "name": "arguments",
+                                                                      "value": "0"
+                                                                    }
+                                                                  ],
+                                                                  "function": "level_16",
+                                                                  "kind": "invoke_contract",
+                                                                  "sub": [
+                                                                    {
+                                                                      "confidence": "opaque",
+                                                                      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                      "fields": [
+                                                                        {
+                                                                          "confidence": "decoded",
+                                                                          "name": "contract",
+                                                                          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                        },
+                                                                        {
+                                                                          "confidence": "decoded",
+                                                                          "name": "function",
+                                                                          "value": "level_17"
+                                                                        },
+                                                                        {
+                                                                          "confidence": "decoded",
+                                                                          "name": "arguments",
+                                                                          "value": "0"
+                                                                        }
+                                                                      ],
+                                                                      "function": "level_17",
+                                                                      "kind": "invoke_contract",
+                                                                      "sub": [
+                                                                        {
+                                                                          "confidence": "opaque",
+                                                                          "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                          "fields": [
+                                                                            {
+                                                                              "confidence": "decoded",
+                                                                              "name": "contract",
+                                                                              "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                            },
+                                                                            {
+                                                                              "confidence": "decoded",
+                                                                              "name": "function",
+                                                                              "value": "level_18"
+                                                                            },
+                                                                            {
+                                                                              "confidence": "decoded",
+                                                                              "name": "arguments",
+                                                                              "value": "0"
+                                                                            }
+                                                                          ],
+                                                                          "function": "level_18",
+                                                                          "kind": "invoke_contract",
+                                                                          "sub": [
+                                                                            {
+                                                                              "confidence": "opaque",
+                                                                              "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                              "fields": [
+                                                                                {
+                                                                                  "confidence": "decoded",
+                                                                                  "name": "contract",
+                                                                                  "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                },
+                                                                                {
+                                                                                  "confidence": "decoded",
+                                                                                  "name": "function",
+                                                                                  "value": "level_19"
+                                                                                },
+                                                                                {
+                                                                                  "confidence": "decoded",
+                                                                                  "name": "arguments",
+                                                                                  "value": "0"
+                                                                                }
+                                                                              ],
+                                                                              "function": "level_19",
+                                                                              "kind": "invoke_contract",
+                                                                              "sub": [
+                                                                                {
+                                                                                  "confidence": "opaque",
+                                                                                  "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                  "fields": [
+                                                                                    {
+                                                                                      "confidence": "decoded",
+                                                                                      "name": "contract",
+                                                                                      "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                    },
+                                                                                    {
+                                                                                      "confidence": "decoded",
+                                                                                      "name": "function",
+                                                                                      "value": "level_20"
+                                                                                    },
+                                                                                    {
+                                                                                      "confidence": "decoded",
+                                                                                      "name": "arguments",
+                                                                                      "value": "0"
+                                                                                    }
+                                                                                  ],
+                                                                                  "function": "level_20",
+                                                                                  "kind": "invoke_contract",
+                                                                                  "sub": [
+                                                                                    {
+                                                                                      "confidence": "opaque",
+                                                                                      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                      "fields": [
+                                                                                        {
+                                                                                          "confidence": "decoded",
+                                                                                          "name": "contract",
+                                                                                          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                        },
+                                                                                        {
+                                                                                          "confidence": "decoded",
+                                                                                          "name": "function",
+                                                                                          "value": "level_21"
+                                                                                        },
+                                                                                        {
+                                                                                          "confidence": "decoded",
+                                                                                          "name": "arguments",
+                                                                                          "value": "0"
+                                                                                        }
+                                                                                      ],
+                                                                                      "function": "level_21",
+                                                                                      "kind": "invoke_contract",
+                                                                                      "sub": [
+                                                                                        {
+                                                                                          "confidence": "opaque",
+                                                                                          "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                          "fields": [
+                                                                                            {
+                                                                                              "confidence": "decoded",
+                                                                                              "name": "contract",
+                                                                                              "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                            },
+                                                                                            {
+                                                                                              "confidence": "decoded",
+                                                                                              "name": "function",
+                                                                                              "value": "level_22"
+                                                                                            },
+                                                                                            {
+                                                                                              "confidence": "decoded",
+                                                                                              "name": "arguments",
+                                                                                              "value": "0"
+                                                                                            }
+                                                                                          ],
+                                                                                          "function": "level_22",
+                                                                                          "kind": "invoke_contract",
+                                                                                          "sub": [
+                                                                                            {
+                                                                                              "confidence": "opaque",
+                                                                                              "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                              "fields": [
+                                                                                                {
+                                                                                                  "confidence": "decoded",
+                                                                                                  "name": "contract",
+                                                                                                  "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                                },
+                                                                                                {
+                                                                                                  "confidence": "decoded",
+                                                                                                  "name": "function",
+                                                                                                  "value": "level_23"
+                                                                                                },
+                                                                                                {
+                                                                                                  "confidence": "decoded",
+                                                                                                  "name": "arguments",
+                                                                                                  "value": "0"
+                                                                                                }
+                                                                                              ],
+                                                                                              "function": "level_23",
+                                                                                              "kind": "invoke_contract",
+                                                                                              "sub": [
+                                                                                                {
+                                                                                                  "confidence": "opaque",
+                                                                                                  "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                                  "fields": [
+                                                                                                    {
+                                                                                                      "confidence": "decoded",
+                                                                                                      "name": "contract",
+                                                                                                      "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                                    },
+                                                                                                    {
+                                                                                                      "confidence": "decoded",
+                                                                                                      "name": "function",
+                                                                                                      "value": "level_24"
+                                                                                                    },
+                                                                                                    {
+                                                                                                      "confidence": "decoded",
+                                                                                                      "name": "arguments",
+                                                                                                      "value": "0"
+                                                                                                    }
+                                                                                                  ],
+                                                                                                  "function": "level_24",
+                                                                                                  "kind": "invoke_contract",
+                                                                                                  "sub": [
+                                                                                                    {
+                                                                                                      "confidence": "opaque",
+                                                                                                      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                                      "fields": [
+                                                                                                        {
+                                                                                                          "confidence": "decoded",
+                                                                                                          "name": "contract",
+                                                                                                          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                                        },
+                                                                                                        {
+                                                                                                          "confidence": "decoded",
+                                                                                                          "name": "function",
+                                                                                                          "value": "level_25"
+                                                                                                        },
+                                                                                                        {
+                                                                                                          "confidence": "decoded",
+                                                                                                          "name": "arguments",
+                                                                                                          "value": "0"
+                                                                                                        }
+                                                                                                      ],
+                                                                                                      "function": "level_25",
+                                                                                                      "kind": "invoke_contract",
+                                                                                                      "sub": [
+                                                                                                        {
+                                                                                                          "confidence": "opaque",
+                                                                                                          "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                                          "fields": [
+                                                                                                            {
+                                                                                                              "confidence": "decoded",
+                                                                                                              "name": "contract",
+                                                                                                              "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                                            },
+                                                                                                            {
+                                                                                                              "confidence": "decoded",
+                                                                                                              "name": "function",
+                                                                                                              "value": "level_26"
+                                                                                                            },
+                                                                                                            {
+                                                                                                              "confidence": "decoded",
+                                                                                                              "name": "arguments",
+                                                                                                              "value": "0"
+                                                                                                            }
+                                                                                                          ],
+                                                                                                          "function": "level_26",
+                                                                                                          "kind": "invoke_contract",
+                                                                                                          "sub": [
+                                                                                                            {
+                                                                                                              "confidence": "opaque",
+                                                                                                              "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                                              "fields": [
+                                                                                                                {
+                                                                                                                  "confidence": "decoded",
+                                                                                                                  "name": "contract",
+                                                                                                                  "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                                                },
+                                                                                                                {
+                                                                                                                  "confidence": "decoded",
+                                                                                                                  "name": "function",
+                                                                                                                  "value": "level_27"
+                                                                                                                },
+                                                                                                                {
+                                                                                                                  "confidence": "decoded",
+                                                                                                                  "name": "arguments",
+                                                                                                                  "value": "0"
+                                                                                                                }
+                                                                                                              ],
+                                                                                                              "function": "level_27",
+                                                                                                              "kind": "invoke_contract",
+                                                                                                              "sub": [
+                                                                                                                {
+                                                                                                                  "confidence": "opaque",
+                                                                                                                  "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                                                  "fields": [
+                                                                                                                    {
+                                                                                                                      "confidence": "decoded",
+                                                                                                                      "name": "contract",
+                                                                                                                      "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                                                    },
+                                                                                                                    {
+                                                                                                                      "confidence": "decoded",
+                                                                                                                      "name": "function",
+                                                                                                                      "value": "level_28"
+                                                                                                                    },
+                                                                                                                    {
+                                                                                                                      "confidence": "decoded",
+                                                                                                                      "name": "arguments",
+                                                                                                                      "value": "0"
+                                                                                                                    }
+                                                                                                                  ],
+                                                                                                                  "function": "level_28",
+                                                                                                                  "kind": "invoke_contract",
+                                                                                                                  "sub": [
+                                                                                                                    {
+                                                                                                                      "confidence": "opaque",
+                                                                                                                      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                                                      "fields": [
+                                                                                                                        {
+                                                                                                                          "confidence": "decoded",
+                                                                                                                          "name": "contract",
+                                                                                                                          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                                                        },
+                                                                                                                        {
+                                                                                                                          "confidence": "decoded",
+                                                                                                                          "name": "function",
+                                                                                                                          "value": "level_29"
+                                                                                                                        },
+                                                                                                                        {
+                                                                                                                          "confidence": "decoded",
+                                                                                                                          "name": "arguments",
+                                                                                                                          "value": "0"
+                                                                                                                        }
+                                                                                                                      ],
+                                                                                                                      "function": "level_29",
+                                                                                                                      "kind": "invoke_contract",
+                                                                                                                      "sub": [
+                                                                                                                        {
+                                                                                                                          "confidence": "opaque",
+                                                                                                                          "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                                                          "fields": [
+                                                                                                                            {
+                                                                                                                              "confidence": "decoded",
+                                                                                                                              "name": "contract",
+                                                                                                                              "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                                                            },
+                                                                                                                            {
+                                                                                                                              "confidence": "decoded",
+                                                                                                                              "name": "function",
+                                                                                                                              "value": "level_30"
+                                                                                                                            },
+                                                                                                                            {
+                                                                                                                              "confidence": "decoded",
+                                                                                                                              "name": "arguments",
+                                                                                                                              "value": "0"
+                                                                                                                            }
+                                                                                                                          ],
+                                                                                                                          "function": "level_30",
+                                                                                                                          "kind": "invoke_contract",
+                                                                                                                          "sub": [
+                                                                                                                            {
+                                                                                                                              "confidence": "opaque",
+                                                                                                                              "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                                                              "fields": [
+                                                                                                                                {
+                                                                                                                                  "confidence": "decoded",
+                                                                                                                                  "name": "contract",
+                                                                                                                                  "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                                                                },
+                                                                                                                                {
+                                                                                                                                  "confidence": "decoded",
+                                                                                                                                  "name": "function",
+                                                                                                                                  "value": "level_31"
+                                                                                                                                },
+                                                                                                                                {
+                                                                                                                                  "confidence": "decoded",
+                                                                                                                                  "name": "arguments",
+                                                                                                                                  "value": "0"
+                                                                                                                                }
+                                                                                                                              ],
+                                                                                                                              "function": "level_31",
+                                                                                                                              "kind": "invoke_contract",
+                                                                                                                              "sub": [
+                                                                                                                                {
+                                                                                                                                  "confidence": "opaque",
+                                                                                                                                  "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+                                                                                                                                  "fields": [
+                                                                                                                                    {
+                                                                                                                                      "confidence": "decoded",
+                                                                                                                                      "name": "contract",
+                                                                                                                                      "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+                                                                                                                                    },
+                                                                                                                                    {
+                                                                                                                                      "confidence": "decoded",
+                                                                                                                                      "name": "function",
+                                                                                                                                      "value": "level_32"
+                                                                                                                                    },
+                                                                                                                                    {
+                                                                                                                                      "confidence": "decoded",
+                                                                                                                                      "name": "arguments",
+                                                                                                                                      "value": "0"
+                                                                                                                                    }
+                                                                                                                                  ],
+                                                                                                                                  "function": "level_32",
+                                                                                                                                  "kind": "invoke_contract",
+                                                                                                                                  "summary": "Call level_32 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                                                                }
+                                                                                                                              ],
+                                                                                                                              "summary": "Call level_31 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                                                            }
+                                                                                                                          ],
+                                                                                                                          "summary": "Call level_30 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                                                        }
+                                                                                                                      ],
+                                                                                                                      "summary": "Call level_29 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                                                    }
+                                                                                                                  ],
+                                                                                                                  "summary": "Call level_28 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                                                }
+                                                                                                              ],
+                                                                                                              "summary": "Call level_27 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                                            }
+                                                                                                          ],
+                                                                                                          "summary": "Call level_26 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                                        }
+                                                                                                      ],
+                                                                                                      "summary": "Call level_25 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                                    }
+                                                                                                  ],
+                                                                                                  "summary": "Call level_24 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                                }
+                                                                                              ],
+                                                                                              "summary": "Call level_23 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                            }
+                                                                                          ],
+                                                                                          "summary": "Call level_22 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                        }
+                                                                                      ],
+                                                                                      "summary": "Call level_21 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                    }
+                                                                                  ],
+                                                                                  "summary": "Call level_20 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                                }
+                                                                              ],
+                                                                              "summary": "Call level_19 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                            }
+                                                                          ],
+                                                                          "summary": "Call level_18 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                        }
+                                                                      ],
+                                                                      "summary": "Call level_17 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                    }
+                                                                  ],
+                                                                  "summary": "Call level_16 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                                }
+                                                              ],
+                                                              "summary": "Call level_15 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                            }
+                                                          ],
+                                                          "summary": "Call level_14 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                        }
+                                                      ],
+                                                      "summary": "Call level_13 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                    }
+                                                  ],
+                                                  "summary": "Call level_12 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                                }
+                                              ],
+                                              "summary": "Call level_11 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                            }
+                                          ],
+                                          "summary": "Call level_10 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                        }
+                                      ],
+                                      "summary": "Call level_9 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                    }
+                                  ],
+                                  "summary": "Call level_8 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                                }
+                              ],
+                              "summary": "Call level_7 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                            }
+                          ],
+                          "summary": "Call level_6 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                        }
+                      ],
+                      "summary": "Call level_5 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                    }
+                  ],
+                  "summary": "Call level_4 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+                }
+              ],
+              "summary": "Call level_3 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+            }
+          ],
+          "summary": "Call level_2 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+        }
+      ],
+      "summary": "Call level_1 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+    }
+  ],
+  "address_bound": false,
+  "confidence": "opaque",
+  "credential_type": "address",
+  "nonce": 7,
+  "signed": false,
+  "subject": "GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M",
+  "unexplained": [
+    "The function level_1 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_2 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_3 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_4 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_5 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_6 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_7 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_8 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_9 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_10 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_11 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_12 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_13 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_14 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_15 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_16 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_17 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_18 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_19 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_20 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_21 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_22 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_23 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_24 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_25 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_26 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_27 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_28 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_29 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_30 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_31 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.",
+    "The function level_32 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments."
+  ],
+  "valid_until_ledger": 1000
+}

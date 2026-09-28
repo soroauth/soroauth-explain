@@ -1,0 +1,546 @@
+{
+  "actions": [
+    {
+      "confidence": "opaque",
+      "contract": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "swap"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arguments",
+          "value": "1"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[0]",
+          "value": "GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5"
+        }
+      ],
+      "function": "swap",
+      "kind": "invoke_contract",
+      "sub": [
+        {
+          "confidence": "opaque",
+          "contract": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6",
+          "fields": [
+            {
+              "confidence": "decoded",
+              "name": "contract",
+              "value": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6"
+            },
+            {
+              "confidence": "decoded",
+              "name": "function",
+              "value": "approve"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arguments",
+              "value": "1"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[0]",
+              "value": "sym(inner)"
+            }
+          ],
+          "function": "approve",
+          "kind": "invoke_contract",
+          "sub": [
+            {
+              "confidence": "opaque",
+              "contract": "CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "deep_one"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arguments",
+                  "value": "1"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[0]",
+                  "value": "u32(1)"
+                }
+              ],
+              "function": "deep_one",
+              "kind": "invoke_contract",
+              "summary": "Call deep_one on CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB with 1 argument"
+            },
+            {
+              "confidence": "opaque",
+              "contract": "CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "deep_two"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arguments",
+                  "value": "1"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[0]",
+                  "value": "u32(1)"
+                }
+              ],
+              "function": "deep_two",
+              "kind": "invoke_contract",
+              "summary": "Call deep_two on CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ with 1 argument"
+            }
+          ],
+          "summary": "Call approve on CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 with 1 argument"
+        }
+      ],
+      "summary": "Call swap on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV with 1 argument"
+    }
+  ],
+  "address_bound": true,
+  "confidence": "opaque",
+  "credential_type": "address_with_delegates",
+  "delegates": [
+    {
+      "actions": [
+        {
+          "confidence": "opaque",
+          "contract": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV",
+          "fields": [
+            {
+              "confidence": "decoded",
+              "name": "contract",
+              "value": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV"
+            },
+            {
+              "confidence": "decoded",
+              "name": "function",
+              "value": "swap"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arguments",
+              "value": "1"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[0]",
+              "value": "GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5"
+            }
+          ],
+          "function": "swap",
+          "kind": "invoke_contract",
+          "sub": [
+            {
+              "confidence": "opaque",
+              "contract": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "approve"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arguments",
+                  "value": "1"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[0]",
+                  "value": "sym(inner)"
+                }
+              ],
+              "function": "approve",
+              "kind": "invoke_contract",
+              "sub": [
+                {
+                  "confidence": "opaque",
+                  "contract": "CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB",
+                  "fields": [
+                    {
+                      "confidence": "decoded",
+                      "name": "contract",
+                      "value": "CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "function",
+                      "value": "deep_one"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "arguments",
+                      "value": "1"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "arg[0]",
+                      "value": "u32(1)"
+                    }
+                  ],
+                  "function": "deep_one",
+                  "kind": "invoke_contract",
+                  "summary": "Call deep_one on CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB with 1 argument"
+                },
+                {
+                  "confidence": "opaque",
+                  "contract": "CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ",
+                  "fields": [
+                    {
+                      "confidence": "decoded",
+                      "name": "contract",
+                      "value": "CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "function",
+                      "value": "deep_two"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "arguments",
+                      "value": "1"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "arg[0]",
+                      "value": "u32(1)"
+                    }
+                  ],
+                  "function": "deep_two",
+                  "kind": "invoke_contract",
+                  "summary": "Call deep_two on CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ with 1 argument"
+                }
+              ],
+              "summary": "Call approve on CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 with 1 argument"
+            }
+          ],
+          "summary": "Call swap on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV with 1 argument"
+        }
+      ],
+      "address_bound": true,
+      "confidence": "opaque",
+      "credential_type": "delegate",
+      "delegates": [
+        {
+          "actions": [
+            {
+              "confidence": "opaque",
+              "contract": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "swap"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arguments",
+                  "value": "1"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[0]",
+                  "value": "GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5"
+                }
+              ],
+              "function": "swap",
+              "kind": "invoke_contract",
+              "sub": [
+                {
+                  "confidence": "opaque",
+                  "contract": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6",
+                  "fields": [
+                    {
+                      "confidence": "decoded",
+                      "name": "contract",
+                      "value": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "function",
+                      "value": "approve"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "arguments",
+                      "value": "1"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "arg[0]",
+                      "value": "sym(inner)"
+                    }
+                  ],
+                  "function": "approve",
+                  "kind": "invoke_contract",
+                  "sub": [
+                    {
+                      "confidence": "opaque",
+                      "contract": "CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB",
+                      "fields": [
+                        {
+                          "confidence": "decoded",
+                          "name": "contract",
+                          "value": "CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB"
+                        },
+                        {
+                          "confidence": "decoded",
+                          "name": "function",
+                          "value": "deep_one"
+                        },
+                        {
+                          "confidence": "decoded",
+                          "name": "arguments",
+                          "value": "1"
+                        },
+                        {
+                          "confidence": "decoded",
+                          "name": "arg[0]",
+                          "value": "u32(1)"
+                        }
+                      ],
+                      "function": "deep_one",
+                      "kind": "invoke_contract",
+                      "summary": "Call deep_one on CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB with 1 argument"
+                    },
+                    {
+                      "confidence": "opaque",
+                      "contract": "CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ",
+                      "fields": [
+                        {
+                          "confidence": "decoded",
+                          "name": "contract",
+                          "value": "CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ"
+                        },
+                        {
+                          "confidence": "decoded",
+                          "name": "function",
+                          "value": "deep_two"
+                        },
+                        {
+                          "confidence": "decoded",
+                          "name": "arguments",
+                          "value": "1"
+                        },
+                        {
+                          "confidence": "decoded",
+                          "name": "arg[0]",
+                          "value": "u32(1)"
+                        }
+                      ],
+                      "function": "deep_two",
+                      "kind": "invoke_contract",
+                      "summary": "Call deep_two on CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ with 1 argument"
+                    }
+                  ],
+                  "summary": "Call approve on CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 with 1 argument"
+                }
+              ],
+              "summary": "Call swap on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV with 1 argument"
+            }
+          ],
+          "address_bound": true,
+          "confidence": "opaque",
+          "credential_type": "delegate",
+          "signed": false,
+          "subject": "GCZCHOZ7YRWJSP7HKKHF3UBPDQTRDTSNSX2VSLNXIQYTBRDIPW52TOBG",
+          "unexplained": [
+            "The function swap on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV is not interpreted by this library; its 1 argument is shown as a raw value.",
+            "The function approve on CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 is not interpreted by this library; its 1 argument is shown as a raw value.",
+            "The function deep_one on CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB is not interpreted by this library; its 1 argument is shown as a raw value.",
+            "The function deep_two on CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ is not interpreted by this library; its 1 argument is shown as a raw value."
+          ]
+        }
+      ],
+      "signed": false,
+      "subject": "GCHGHL74LCLIBNIAR5RFQ5NLEQSKRJJ645G3VJBULAW3W4F6I3EKOKMA",
+      "unexplained": [
+        "The function swap on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV is not interpreted by this library; its 1 argument is shown as a raw value.",
+        "The function approve on CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 is not interpreted by this library; its 1 argument is shown as a raw value.",
+        "The function deep_one on CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB is not interpreted by this library; its 1 argument is shown as a raw value.",
+        "The function deep_two on CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ is not interpreted by this library; its 1 argument is shown as a raw value."
+      ]
+    },
+    {
+      "actions": [
+        {
+          "confidence": "opaque",
+          "contract": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV",
+          "fields": [
+            {
+              "confidence": "decoded",
+              "name": "contract",
+              "value": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV"
+            },
+            {
+              "confidence": "decoded",
+              "name": "function",
+              "value": "swap"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arguments",
+              "value": "1"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[0]",
+              "value": "GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5"
+            }
+          ],
+          "function": "swap",
+          "kind": "invoke_contract",
+          "sub": [
+            {
+              "confidence": "opaque",
+              "contract": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "approve"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arguments",
+                  "value": "1"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[0]",
+                  "value": "sym(inner)"
+                }
+              ],
+              "function": "approve",
+              "kind": "invoke_contract",
+              "sub": [
+                {
+                  "confidence": "opaque",
+                  "contract": "CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB",
+                  "fields": [
+                    {
+                      "confidence": "decoded",
+                      "name": "contract",
+                      "value": "CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "function",
+                      "value": "deep_one"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "arguments",
+                      "value": "1"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "arg[0]",
+                      "value": "u32(1)"
+                    }
+                  ],
+                  "function": "deep_one",
+                  "kind": "invoke_contract",
+                  "summary": "Call deep_one on CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB with 1 argument"
+                },
+                {
+                  "confidence": "opaque",
+                  "contract": "CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ",
+                  "fields": [
+                    {
+                      "confidence": "decoded",
+                      "name": "contract",
+                      "value": "CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "function",
+                      "value": "deep_two"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "arguments",
+                      "value": "1"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "arg[0]",
+                      "value": "u32(1)"
+                    }
+                  ],
+                  "function": "deep_two",
+                  "kind": "invoke_contract",
+                  "summary": "Call deep_two on CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ with 1 argument"
+                }
+              ],
+              "summary": "Call approve on CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 with 1 argument"
+            }
+          ],
+          "summary": "Call swap on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV with 1 argument"
+        }
+      ],
+      "address_bound": true,
+      "confidence": "opaque",
+      "credential_type": "delegate",
+      "signed": false,
+      "subject": "GCZCHOZ7YRWJSP7HKKHF3UBPDQTRDTSNSX2VSLNXIQYTBRDIPW52TOBG",
+      "unexplained": [
+        "The function swap on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV is not interpreted by this library; its 1 argument is shown as a raw value.",
+        "The function approve on CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 is not interpreted by this library; its 1 argument is shown as a raw value.",
+        "The function deep_one on CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB is not interpreted by this library; its 1 argument is shown as a raw value.",
+        "The function deep_two on CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ is not interpreted by this library; its 1 argument is shown as a raw value."
+      ]
+    }
+  ],
+  "nonce": 42,
+  "signed": false,
+  "subject": "GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5",
+  "unexplained": [
+    "The function swap on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV is not interpreted by this library; its 1 argument is shown as a raw value.",
+    "The function approve on CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 is not interpreted by this library; its 1 argument is shown as a raw value.",
+    "The function deep_one on CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB is not interpreted by this library; its 1 argument is shown as a raw value.",
+    "The function deep_two on CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ is not interpreted by this library; its 1 argument is shown as a raw value."
+  ],
+  "valid_until_ledger": 1234567
+}

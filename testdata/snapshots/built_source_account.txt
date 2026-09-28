@@ -1,0 +1,3 @@
+Authorization entry: source-account credentials [decoded]
+The transaction's source account authorizes this entry through the envelope signature.
+The entry carries no address, nonce, expiration or signature of its own.

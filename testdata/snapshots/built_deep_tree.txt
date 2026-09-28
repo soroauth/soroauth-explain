@@ -1,0 +1,169 @@
+Authorization entry: address credentials for GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M [opaque]
+  nonce:              7
+  valid until ledger: 1000
+  address-bound:      no
+  signed:             no
+
+Authorizes:
+  [opaque] Call level_1 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+      contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+      function  = level_1 [decoded]
+      arguments = 0 [decoded]
+    [opaque] Call level_2 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+        contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+        function  = level_2 [decoded]
+        arguments = 0 [decoded]
+      [opaque] Call level_3 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+          contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+          function  = level_3 [decoded]
+          arguments = 0 [decoded]
+        [opaque] Call level_4 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+            contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+            function  = level_4 [decoded]
+            arguments = 0 [decoded]
+          [opaque] Call level_5 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+              contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+              function  = level_5 [decoded]
+              arguments = 0 [decoded]
+            [opaque] Call level_6 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                function  = level_6 [decoded]
+                arguments = 0 [decoded]
+              [opaque] Call level_7 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                  contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                  function  = level_7 [decoded]
+                  arguments = 0 [decoded]
+                [opaque] Call level_8 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                    contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                    function  = level_8 [decoded]
+                    arguments = 0 [decoded]
+                  [opaque] Call level_9 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                      contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                      function  = level_9 [decoded]
+                      arguments = 0 [decoded]
+                    [opaque] Call level_10 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                        contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                        function  = level_10 [decoded]
+                        arguments = 0 [decoded]
+                      [opaque] Call level_11 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                          contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                          function  = level_11 [decoded]
+                          arguments = 0 [decoded]
+                        [opaque] Call level_12 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                            contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                            function  = level_12 [decoded]
+                            arguments = 0 [decoded]
+                          [opaque] Call level_13 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                              contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                              function  = level_13 [decoded]
+                              arguments = 0 [decoded]
+                            [opaque] Call level_14 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                function  = level_14 [decoded]
+                                arguments = 0 [decoded]
+                              [opaque] Call level_15 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                  contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                  function  = level_15 [decoded]
+                                  arguments = 0 [decoded]
+                                [opaque] Call level_16 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                    contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                    function  = level_16 [decoded]
+                                    arguments = 0 [decoded]
+                                  [opaque] Call level_17 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                      contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                      function  = level_17 [decoded]
+                                      arguments = 0 [decoded]
+                                    [opaque] Call level_18 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                        contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                        function  = level_18 [decoded]
+                                        arguments = 0 [decoded]
+                                      [opaque] Call level_19 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                          contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                          function  = level_19 [decoded]
+                                          arguments = 0 [decoded]
+                                        [opaque] Call level_20 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                            contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                            function  = level_20 [decoded]
+                                            arguments = 0 [decoded]
+                                          [opaque] Call level_21 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                              contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                              function  = level_21 [decoded]
+                                              arguments = 0 [decoded]
+                                            [opaque] Call level_22 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                                contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                                function  = level_22 [decoded]
+                                                arguments = 0 [decoded]
+                                              [opaque] Call level_23 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                                  contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                                  function  = level_23 [decoded]
+                                                  arguments = 0 [decoded]
+                                                [opaque] Call level_24 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                                    contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                                    function  = level_24 [decoded]
+                                                    arguments = 0 [decoded]
+                                                  [opaque] Call level_25 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                                      contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                                      function  = level_25 [decoded]
+                                                      arguments = 0 [decoded]
+                                                    [opaque] Call level_26 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                                        contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                                        function  = level_26 [decoded]
+                                                        arguments = 0 [decoded]
+                                                      [opaque] Call level_27 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                                          contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                                          function  = level_27 [decoded]
+                                                          arguments = 0 [decoded]
+                                                        [opaque] Call level_28 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                                            contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                                            function  = level_28 [decoded]
+                                                            arguments = 0 [decoded]
+                                                          [opaque] Call level_29 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                                              contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                                              function  = level_29 [decoded]
+                                                              arguments = 0 [decoded]
+                                                            [opaque] Call level_30 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                                                contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                                                function  = level_30 [decoded]
+                                                                arguments = 0 [decoded]
+                                                              [opaque] Call level_31 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                                                  contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                                                  function  = level_31 [decoded]
+                                                                  arguments = 0 [decoded]
+                                                                [opaque] Call level_32 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+                                                                    contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+                                                                    function  = level_32 [decoded]
+                                                                    arguments = 0 [decoded]
+
+Not determined:
+  - The function level_1 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_2 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_3 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_4 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_5 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_6 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_7 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_8 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_9 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_10 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_11 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_12 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_13 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_14 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_15 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_16 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_17 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_18 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_19 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_20 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_21 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_22 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_23 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_24 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_25 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_26 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_27 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_28 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_29 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_30 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_31 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.
+  - The function level_32 on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.

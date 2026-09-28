@@ -1,0 +1,33 @@
+Authorization entry: address_v2 credentials for GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5 [opaque]
+  nonce:              42
+  valid until ledger: 0
+  address-bound:      yes
+  signed:             no
+
+Authorizes:
+  [opaque] Call swap on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV with 1 argument
+      contract  = CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV [decoded]
+      function  = swap [decoded]
+      arguments = 1 [decoded]
+      arg[0]    = GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5 [decoded]
+    [opaque] Call approve on CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 with 1 argument
+        contract  = CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 [decoded]
+        function  = approve [decoded]
+        arguments = 1 [decoded]
+        arg[0]    = sym(inner) [decoded]
+      [opaque] Call deep_one on CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB with 1 argument
+          contract  = CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB [decoded]
+          function  = deep_one [decoded]
+          arguments = 1 [decoded]
+          arg[0]    = u32(1) [decoded]
+      [opaque] Call deep_two on CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ with 1 argument
+          contract  = CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ [decoded]
+          function  = deep_two [decoded]
+          arguments = 1 [decoded]
+          arg[0]    = u32(1) [decoded]
+
+Not determined:
+  - The function swap on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV is not interpreted by this library; its 1 argument is shown as a raw value.
+  - The function approve on CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 is not interpreted by this library; its 1 argument is shown as a raw value.
+  - The function deep_one on CBLQ7W22YCRRNHLWWZCUQRSXBCB22EB7KRRPCZLXXKF5GDUMXN2HQKHB is not interpreted by this library; its 1 argument is shown as a raw value.
+  - The function deep_two on CCXRZDNSDRBJCVPIBYAYODZJBV4GC6WYXQRZJYPNPXFPYVG5UZTKRTRZ is not interpreted by this library; its 1 argument is shown as a raw value.

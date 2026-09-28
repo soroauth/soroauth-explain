@@ -1,0 +1,17 @@
+Authorization entry: address credentials for GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M [opaque]
+  nonce:              7
+  valid until ledger: 1000
+  address-bound:      no
+  signed:             no
+
+Authorizes:
+  [opaque] Call transfer on CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY with 3 arguments
+      contract  = CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY [decoded]
+      function  = transfer [decoded]
+      arguments = 3 [decoded]
+      arg[0]    = GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX [decoded]
+      arg[1]    = GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6 [decoded]
+      arg[2]    = i128(1000000000) [decoded]
+
+Not determined:
+  - The function transfer on CCQQMNELP664QCF26DMH555EPD7IRGIO6J6Z77ZDLVFE5PY2IDY3XOIY is not interpreted by this library; its 3 arguments are shown as raw values.

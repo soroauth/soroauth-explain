@@ -1,0 +1,11 @@
+Authorization entry: address_v2 credentials for GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5 [decoded]
+  nonce:              9223372036854775807
+  valid until ledger: 0
+  address-bound:      yes
+  signed:             no
+
+Authorizes:
+  [decoded] Create a contract running wasm 2ed88d3587339366188bee91495d31565bdb7b7c0a446f475cd80137d32d3dbe, deployed by GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5 with salt 56be809d1a29c00973c057d78c17e5914201d154ba5bd142a807b3f39774efba
+      executable = wasm 2ed88d3587339366188bee91495d31565bdb7b7c0a446f475cd80137d32d3dbe [decoded]
+      deployer   = GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5 [decoded]
+      salt       = 56be809d1a29c00973c057d78c17e5914201d154ba5bd142a807b3f39774efba [decoded]

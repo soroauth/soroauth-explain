@@ -1,0 +1,538 @@
+{
+  "actions": [
+    {
+      "confidence": "opaque",
+      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "wide"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arguments",
+          "value": "100"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[0]",
+          "value": "u32(0)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[1]",
+          "value": "u32(1)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[2]",
+          "value": "u32(2)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[3]",
+          "value": "u32(3)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[4]",
+          "value": "u32(4)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[5]",
+          "value": "u32(5)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[6]",
+          "value": "u32(6)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[7]",
+          "value": "u32(7)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[8]",
+          "value": "u32(8)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[9]",
+          "value": "u32(9)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[10]",
+          "value": "u32(10)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[11]",
+          "value": "u32(11)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[12]",
+          "value": "u32(12)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[13]",
+          "value": "u32(13)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[14]",
+          "value": "u32(14)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[15]",
+          "value": "u32(15)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[16]",
+          "value": "u32(16)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[17]",
+          "value": "u32(17)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[18]",
+          "value": "u32(18)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[19]",
+          "value": "u32(19)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[20]",
+          "value": "u32(20)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[21]",
+          "value": "u32(21)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[22]",
+          "value": "u32(22)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[23]",
+          "value": "u32(23)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[24]",
+          "value": "u32(24)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[25]",
+          "value": "u32(25)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[26]",
+          "value": "u32(26)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[27]",
+          "value": "u32(27)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[28]",
+          "value": "u32(28)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[29]",
+          "value": "u32(29)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[30]",
+          "value": "u32(30)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[31]",
+          "value": "u32(31)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[32]",
+          "value": "u32(32)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[33]",
+          "value": "u32(33)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[34]",
+          "value": "u32(34)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[35]",
+          "value": "u32(35)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[36]",
+          "value": "u32(36)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[37]",
+          "value": "u32(37)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[38]",
+          "value": "u32(38)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[39]",
+          "value": "u32(39)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[40]",
+          "value": "u32(40)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[41]",
+          "value": "u32(41)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[42]",
+          "value": "u32(42)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[43]",
+          "value": "u32(43)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[44]",
+          "value": "u32(44)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[45]",
+          "value": "u32(45)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[46]",
+          "value": "u32(46)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[47]",
+          "value": "u32(47)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[48]",
+          "value": "u32(48)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[49]",
+          "value": "u32(49)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[50]",
+          "value": "u32(50)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[51]",
+          "value": "u32(51)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[52]",
+          "value": "u32(52)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[53]",
+          "value": "u32(53)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[54]",
+          "value": "u32(54)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[55]",
+          "value": "u32(55)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[56]",
+          "value": "u32(56)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[57]",
+          "value": "u32(57)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[58]",
+          "value": "u32(58)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[59]",
+          "value": "u32(59)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[60]",
+          "value": "u32(60)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[61]",
+          "value": "u32(61)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[62]",
+          "value": "u32(62)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[63]",
+          "value": "u32(63)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[64]",
+          "value": "u32(64)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[65]",
+          "value": "u32(65)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[66]",
+          "value": "u32(66)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[67]",
+          "value": "u32(67)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[68]",
+          "value": "u32(68)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[69]",
+          "value": "u32(69)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[70]",
+          "value": "u32(70)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[71]",
+          "value": "u32(71)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[72]",
+          "value": "u32(72)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[73]",
+          "value": "u32(73)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[74]",
+          "value": "u32(74)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[75]",
+          "value": "u32(75)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[76]",
+          "value": "u32(76)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[77]",
+          "value": "u32(77)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[78]",
+          "value": "u32(78)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[79]",
+          "value": "u32(79)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[80]",
+          "value": "u32(80)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[81]",
+          "value": "u32(81)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[82]",
+          "value": "u32(82)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[83]",
+          "value": "u32(83)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[84]",
+          "value": "u32(84)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[85]",
+          "value": "u32(85)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[86]",
+          "value": "u32(86)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[87]",
+          "value": "u32(87)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[88]",
+          "value": "u32(88)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[89]",
+          "value": "u32(89)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[90]",
+          "value": "u32(90)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[91]",
+          "value": "u32(91)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[92]",
+          "value": "u32(92)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[93]",
+          "value": "u32(93)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[94]",
+          "value": "u32(94)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[95]",
+          "value": "u32(95)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[96]",
+          "value": "u32(96)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[97]",
+          "value": "u32(97)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[98]",
+          "value": "u32(98)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[99]",
+          "value": "u32(99)"
+        }
+      ],
+      "function": "wide",
+      "kind": "invoke_contract",
+      "summary": "Call wide on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 100 arguments"
+    }
+  ],
+  "address_bound": false,
+  "confidence": "opaque",
+  "credential_type": "address",
+  "nonce": 7,
+  "signed": false,
+  "subject": "GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M",
+  "unexplained": [
+    "The function wide on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; its 100 arguments are shown as raw values."
+  ],
+  "valid_until_ledger": 1000
+}

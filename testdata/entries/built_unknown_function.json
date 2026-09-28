@@ -1,0 +1,6 @@
+{
+  "name": "built_unknown_function",
+  "source": "built by testdata/gen: do_thing(address, i128, bytes) on an arbitrary contract",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "entry_xdr": "AAAAAQAAAAAAAAAAEREREREREREREREREREREREREREREREREREREREREREAAAAAAAAABwAAA+gAAAABAAAAAAAAAAFERERERERERERERERERERERERERERERERERERERERERAAAAAhkb190aGluZwAAAAMAAAASAAAAAAAAAAAzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMwAAAAoAAAAAAAAAAAAAAAAAAAAqAAAADQAAAALK/gAAAAAAAA=="
+}

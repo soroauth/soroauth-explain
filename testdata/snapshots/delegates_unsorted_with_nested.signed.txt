@@ -1,0 +1,33 @@
+Authorization entry: address_with_delegates credentials for GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5 [opaque]
+  nonce:              1234567890123456789
+  valid until ledger: 1234567
+  address-bound:      yes
+  signed:             no
+
+Authorizes:
+  [opaque] Call transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV with 13 arguments
+      contract  = CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV [decoded]
+      function  = transfer [decoded]
+      arguments = 13 [decoded]
+      arg[0]    = void [decoded]
+      arg[1]    = true [decoded]
+      arg[2]    = u32(7) [decoded]
+      arg[3]    = i32(-7) [decoded]
+      arg[4]    = u64(18446744073709551615) [decoded]
+      arg[5]    = i64(-9007199254740993) [decoded]
+      arg[6]    = sym(transfer) [decoded]
+      arg[7]    = "a string argument" [decoded]
+      arg[8]    = bytes[8](736f726f61757468) [decoded]
+      arg[9]    = GDH2RQKVTV6G3UAZ6PND7T2SVWYAWWJMIVPQLUBP22P3C3GNAMU6JJMM [decoded]
+      arg[10]   = CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6 [decoded]
+      arg[11]   = [u32(1), u32(2)] [decoded]
+      arg[12]   = {sym(amount): i128(-18446744073709551574)} [decoded]
+
+Delegates (each signs the same payload as the entry, CAP-71-01):
+  [opaque] GCHGHL74LCLIBNIAR5RFQ5NLEQSKRJJ645G3VJBULAW3W4F6I3EKOKMA (signed)
+  [opaque] GCZCHOZ7YRWJSP7HKKHF3UBPDQTRDTSNSX2VSLNXIQYTBRDIPW52TOBG (signed)
+    [opaque] GCWUKEH3R54NF477PDGAVNSZE4R6BOMAKDPZKVL4Q3GXJUYABHKREAC7 (signed)
+  [opaque] GDM2DZY3YKOIALQBPXBZ5O4YXKNT46N3CAOPV4F5VJL427LVEMWB2HZR (signed)
+
+Not determined:
+  - The function transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV is not interpreted by this library; its 13 arguments are shown as raw values.

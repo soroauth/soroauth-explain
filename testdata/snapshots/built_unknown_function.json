@@ -1,0 +1,53 @@
+{
+  "actions": [
+    {
+      "confidence": "opaque",
+      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "do_thing"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arguments",
+          "value": "3"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[0]",
+          "value": "GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[1]",
+          "value": "i128(42)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[2]",
+          "value": "bytes[2](cafe)"
+        }
+      ],
+      "function": "do_thing",
+      "kind": "invoke_contract",
+      "summary": "Call do_thing on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 3 arguments"
+    }
+  ],
+  "address_bound": false,
+  "confidence": "opaque",
+  "credential_type": "address",
+  "nonce": 7,
+  "signed": false,
+  "subject": "GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M",
+  "unexplained": [
+    "The function do_thing on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; its 3 arguments are shown as raw values."
+  ],
+  "valid_until_ledger": 1000
+}

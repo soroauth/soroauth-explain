@@ -1,0 +1,6 @@
+{
+  "name": "built_impostor_transfer",
+  "source": "built by testdata/gen: transfer(from, to, i128 1000000000) on the testnet Stellar Asset Contract of XLM:GAHKEAKBDDC467S3PFXPROVU6SBPQXDEWLUUTCPIIGD5MIO3KRRWS5HV, an issued asset coded XLM, not the native asset",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "entry_xdr": "AAAAAQAAAAAAAAAAEREREREREREREREREREREREREREREREREREREREREREAAAAAAAAABwAAA+gAAAABAAAAAAAAAAGhBjSLf73ICLrw2H73pHj+iJkO8n2f/yNdSk6/GkDxuwAAAAh0cmFuc2ZlcgAAAAMAAAASAAAAAAAAAAAiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIgAAABIAAAAAAAAAADMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAAAACgAAAAAAAAAAAAAAADuaygAAAAAA"
+}

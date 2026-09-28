@@ -1,0 +1,6 @@
+{
+  "name": "v2_create_contract.signed",
+  "source": "github.com/soroauth/soroauth-go@v0.1.0 testdata/vectors/v2_create_contract.json signed_entry_xdr",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "entry_xdr": "AAAAAgAAAAAAAAAAt7bYKS3hKDB7Aw8ykLPfkH7kJtcX2OWQMp2pPDOof8p//////////wAS1ocAAAAQAAAAAQAAAAEAAAARAAAAAQAAAAIAAAAPAAAACnB1YmxpY19rZXkAAAAAAA0AAAAgt7bYKS3hKDB7Aw8ykLPfkH7kJtcX2OWQMp2pPDOof8oAAAAPAAAACXNpZ25hdHVyZQAAAAAAAA0AAABAn72xV+cKk1fM7LV1fzJa5UobPmDFuDJYifjAvztLgVPzNpMXa3hdRSgxzuigiz5D7Fva30Qc61igtuWktivxAgAAAAEAAAAAAAAAAAAAAAC3ttgpLeEoMHsDDzKQs9+QfuQm1xfY5ZAynak8M6h/yla+gJ0aKcAJc8BX14wX5ZFCAdFUulvRQqgHs/OXdO+6AAAAAC7YjTWHM5NmGIvukUldMVZb23t8CkRvR1zYATfTLT2+AAAAAA=="
+}

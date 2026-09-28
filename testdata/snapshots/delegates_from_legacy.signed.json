@@ -1,0 +1,511 @@
+{
+  "actions": [
+    {
+      "confidence": "opaque",
+      "contract": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "transfer"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arguments",
+          "value": "13"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[0]",
+          "value": "void"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[1]",
+          "value": "true"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[2]",
+          "value": "u32(7)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[3]",
+          "value": "i32(-7)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[4]",
+          "value": "u64(18446744073709551615)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[5]",
+          "value": "i64(-9007199254740993)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[6]",
+          "value": "sym(transfer)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[7]",
+          "value": "\"a string argument\""
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[8]",
+          "value": "bytes[8](736f726f61757468)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[9]",
+          "value": "GDH2RQKVTV6G3UAZ6PND7T2SVWYAWWJMIVPQLUBP22P3C3GNAMU6JJMM"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[10]",
+          "value": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[11]",
+          "value": "[u32(1), u32(2)]"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[12]",
+          "value": "{sym(amount): i128(-18446744073709551574)}"
+        }
+      ],
+      "function": "transfer",
+      "kind": "invoke_contract",
+      "summary": "Call transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV with 13 arguments"
+    }
+  ],
+  "address_bound": true,
+  "confidence": "opaque",
+  "credential_type": "address_with_delegates",
+  "delegates": [
+    {
+      "actions": [
+        {
+          "confidence": "opaque",
+          "contract": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV",
+          "fields": [
+            {
+              "confidence": "decoded",
+              "name": "contract",
+              "value": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV"
+            },
+            {
+              "confidence": "decoded",
+              "name": "function",
+              "value": "transfer"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arguments",
+              "value": "13"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[0]",
+              "value": "void"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[1]",
+              "value": "true"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[2]",
+              "value": "u32(7)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[3]",
+              "value": "i32(-7)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[4]",
+              "value": "u64(18446744073709551615)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[5]",
+              "value": "i64(-9007199254740993)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[6]",
+              "value": "sym(transfer)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[7]",
+              "value": "\"a string argument\""
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[8]",
+              "value": "bytes[8](736f726f61757468)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[9]",
+              "value": "GDH2RQKVTV6G3UAZ6PND7T2SVWYAWWJMIVPQLUBP22P3C3GNAMU6JJMM"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[10]",
+              "value": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[11]",
+              "value": "[u32(1), u32(2)]"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[12]",
+              "value": "{sym(amount): i128(-18446744073709551574)}"
+            }
+          ],
+          "function": "transfer",
+          "kind": "invoke_contract",
+          "summary": "Call transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV with 13 arguments"
+        }
+      ],
+      "address_bound": true,
+      "confidence": "opaque",
+      "credential_type": "delegate",
+      "delegates": [
+        {
+          "actions": [
+            {
+              "confidence": "opaque",
+              "contract": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "transfer"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arguments",
+                  "value": "13"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[0]",
+                  "value": "void"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[1]",
+                  "value": "true"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[2]",
+                  "value": "u32(7)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[3]",
+                  "value": "i32(-7)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[4]",
+                  "value": "u64(18446744073709551615)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[5]",
+                  "value": "i64(-9007199254740993)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[6]",
+                  "value": "sym(transfer)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[7]",
+                  "value": "\"a string argument\""
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[8]",
+                  "value": "bytes[8](736f726f61757468)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[9]",
+                  "value": "GDH2RQKVTV6G3UAZ6PND7T2SVWYAWWJMIVPQLUBP22P3C3GNAMU6JJMM"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[10]",
+                  "value": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[11]",
+                  "value": "[u32(1), u32(2)]"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[12]",
+                  "value": "{sym(amount): i128(-18446744073709551574)}"
+                }
+              ],
+              "function": "transfer",
+              "kind": "invoke_contract",
+              "summary": "Call transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV with 13 arguments"
+            }
+          ],
+          "address_bound": true,
+          "confidence": "opaque",
+          "credential_type": "delegate",
+          "signed": true,
+          "subject": "GCWUKEH3R54NF477PDGAVNSZE4R6BOMAKDPZKVL4Q3GXJUYABHKREAC7",
+          "unexplained": [
+            "The function transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV is not interpreted by this library; its 13 arguments are shown as raw values."
+          ]
+        },
+        {
+          "actions": [
+            {
+              "confidence": "opaque",
+              "contract": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "transfer"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arguments",
+                  "value": "13"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[0]",
+                  "value": "void"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[1]",
+                  "value": "true"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[2]",
+                  "value": "u32(7)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[3]",
+                  "value": "i32(-7)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[4]",
+                  "value": "u64(18446744073709551615)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[5]",
+                  "value": "i64(-9007199254740993)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[6]",
+                  "value": "sym(transfer)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[7]",
+                  "value": "\"a string argument\""
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[8]",
+                  "value": "bytes[8](736f726f61757468)"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[9]",
+                  "value": "GDH2RQKVTV6G3UAZ6PND7T2SVWYAWWJMIVPQLUBP22P3C3GNAMU6JJMM"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[10]",
+                  "value": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[11]",
+                  "value": "[u32(1), u32(2)]"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[12]",
+                  "value": "{sym(amount): i128(-18446744073709551574)}"
+                }
+              ],
+              "function": "transfer",
+              "kind": "invoke_contract",
+              "summary": "Call transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV with 13 arguments"
+            }
+          ],
+          "address_bound": true,
+          "confidence": "opaque",
+          "credential_type": "delegate",
+          "signed": true,
+          "subject": "GDM2DZY3YKOIALQBPXBZ5O4YXKNT46N3CAOPV4F5VJL427LVEMWB2HZR",
+          "unexplained": [
+            "The function transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV is not interpreted by this library; its 13 arguments are shown as raw values."
+          ]
+        }
+      ],
+      "signed": true,
+      "subject": "GCHGHL74LCLIBNIAR5RFQ5NLEQSKRJJ645G3VJBULAW3W4F6I3EKOKMA",
+      "unexplained": [
+        "The function transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV is not interpreted by this library; its 13 arguments are shown as raw values."
+      ]
+    },
+    {
+      "actions": [
+        {
+          "confidence": "opaque",
+          "contract": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV",
+          "fields": [
+            {
+              "confidence": "decoded",
+              "name": "contract",
+              "value": "CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV"
+            },
+            {
+              "confidence": "decoded",
+              "name": "function",
+              "value": "transfer"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arguments",
+              "value": "13"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[0]",
+              "value": "void"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[1]",
+              "value": "true"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[2]",
+              "value": "u32(7)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[3]",
+              "value": "i32(-7)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[4]",
+              "value": "u64(18446744073709551615)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[5]",
+              "value": "i64(-9007199254740993)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[6]",
+              "value": "sym(transfer)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[7]",
+              "value": "\"a string argument\""
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[8]",
+              "value": "bytes[8](736f726f61757468)"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[9]",
+              "value": "GDH2RQKVTV6G3UAZ6PND7T2SVWYAWWJMIVPQLUBP22P3C3GNAMU6JJMM"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[10]",
+              "value": "CCEYJ3L56RXY4TDBUXJWREKLVME5FO225BAN4YERVYQY7V7RIDQ3F2I6"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[11]",
+              "value": "[u32(1), u32(2)]"
+            },
+            {
+              "confidence": "decoded",
+              "name": "arg[12]",
+              "value": "{sym(amount): i128(-18446744073709551574)}"
+            }
+          ],
+          "function": "transfer",
+          "kind": "invoke_contract",
+          "summary": "Call transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV with 13 arguments"
+        }
+      ],
+      "address_bound": true,
+      "confidence": "opaque",
+      "credential_type": "delegate",
+      "signed": true,
+      "subject": "GCZCHOZ7YRWJSP7HKKHF3UBPDQTRDTSNSX2VSLNXIQYTBRDIPW52TOBG",
+      "unexplained": [
+        "The function transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV is not interpreted by this library; its 13 arguments are shown as raw values."
+      ]
+    }
+  ],
+  "nonce": 1234567890123456789,
+  "signed": false,
+  "subject": "GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5",
+  "unexplained": [
+    "The function transfer on CA2GWZB4O7LIPISULUNERN4GCUNMVZP7VIHLLL3A6XDPHI7QD6VNCMEV is not interpreted by this library; its 13 arguments are shown as raw values."
+  ],
+  "valid_until_ledger": 1234567
+}

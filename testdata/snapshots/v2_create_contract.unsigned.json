@@ -1,0 +1,34 @@
+{
+  "actions": [
+    {
+      "confidence": "decoded",
+      "contract": "",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "executable",
+          "value": "wasm 2ed88d3587339366188bee91495d31565bdb7b7c0a446f475cd80137d32d3dbe"
+        },
+        {
+          "confidence": "decoded",
+          "name": "deployer",
+          "value": "GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5"
+        },
+        {
+          "confidence": "decoded",
+          "name": "salt",
+          "value": "56be809d1a29c00973c057d78c17e5914201d154ba5bd142a807b3f39774efba"
+        }
+      ],
+      "function": "",
+      "kind": "create_contract",
+      "summary": "Create a contract running wasm 2ed88d3587339366188bee91495d31565bdb7b7c0a446f475cd80137d32d3dbe, deployed by GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5 with salt 56be809d1a29c00973c057d78c17e5914201d154ba5bd142a807b3f39774efba"
+    }
+  ],
+  "address_bound": true,
+  "confidence": "decoded",
+  "credential_type": "address_v2",
+  "nonce": 9223372036854775807,
+  "signed": false,
+  "subject": "GC33NWBJFXQSQMD3AMHTFEFT36IH5ZBG24L5RZMQGKO2SPBTVB74VZI5"
+}
