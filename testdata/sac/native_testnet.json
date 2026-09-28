@@ -1,0 +1,23 @@
+{
+  "name": "native_testnet",
+  "fetched": "2026-09-28",
+  "rpc": "https://soroban-testnet.stellar.org",
+  "method": "getLedgerEntries",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "response": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+      "entries": [
+        {
+          "key": "AAAABgAAAAHXkotywnA8z+r365/0701QSlWouXn8m0UOoshCtNHOYQAAABQAAAAB",
+          "xdr": "AAAABgAAAAAAAAAB15KLcsJwPM/q9+uf9O9NUEpVqLl5/JtFDqLIQrTRzmEAAAAUAAAAAQAAABMAAAABAAAAAQAAAAIAAAAPAAAACE1FVEFEQVRBAAAAEQAAAAEAAAADAAAADwAAAAdkZWNpbWFsAAAAAAMAAAAHAAAADwAAAARuYW1lAAAADgAAAAZuYXRpdmUAAAAAAA8AAAAGc3ltYm9sAAAAAAAOAAAABm5hdGl2ZQAAAAAAEAAAAAEAAAABAAAADwAAAAlBc3NldEluZm8AAAAAAAAQAAAAAQAAAAEAAAAPAAAABk5hdGl2ZQAA",
+          "lastModifiedLedgerSeq": 4609662,
+          "liveUntilLedgerSeq": 7561567,
+          "extXdr": "AAAAAA=="
+        }
+      ],
+      "latestLedger": 4906849
+    }
+  }
+}

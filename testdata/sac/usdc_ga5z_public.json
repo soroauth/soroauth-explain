@@ -1,0 +1,23 @@
+{
+  "name": "usdc_ga5z_public",
+  "fetched": "2026-09-28",
+  "rpc": "https://mainnet.sorobanrpc.com",
+  "method": "getLedgerEntries",
+  "network_passphrase": "Public Global Stellar Network ; September 2015",
+  "response": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+      "entries": [
+        {
+          "key": "AAAABgAAAAGt785ZruUpaPdgYdSUwlJbdWWfpClqZfSZ7ynlZHfklgAAABQAAAAB",
+          "xdr": "AAAABgAAAAAAAAABre/OWa7lKWj3YGHUlMJSW3Vln6QpamX0me8p5WR35JYAAAAUAAAAAQAAABMAAAABAAAAAQAAAAMAAAAPAAAACE1FVEFEQVRBAAAAEQAAAAEAAAADAAAADwAAAAdkZWNpbWFsAAAAAAMAAAAHAAAADwAAAARuYW1lAAAADgAAAD1VU0RDOkdBNVpTRUpZQjM3SlJDNUFWQ0lBNU1PUDRSSFRNMzM1WDJLR1gzSUhPSkFQUDVSRTM0SzRLWlZOAAAAAAAADwAAAAZzeW1ib2wAAAAAAA4AAAAEVVNEQwAAABAAAAABAAAAAQAAAA8AAAAFQWRtaW4AAAAAAAASAAAAAZ601+BSioJxdy1pbNxo0dqyC/TYoHAyo14PApmGrMUeAAAAEAAAAAEAAAABAAAADwAAAAlBc3NldEluZm8AAAAAAAAQAAAAAQAAAAIAAAAPAAAACUFscGhhTnVtNAAAAAAAABEAAAABAAAAAgAAAA8AAAAKYXNzZXRfY29kZQAAAAAADgAAAARVU0RDAAAADwAAAAZpc3N1ZXIAAAAAAA0AAAAgO5kROA7+mIugqJAOsc/kTzZvfb6Ua+0HckD39iTfFcU=",
+          "lastModifiedLedgerSeq": 62313360,
+          "liveUntilLedgerSeq": 67326585,
+          "extXdr": "AAAAAA=="
+        }
+      ],
+      "latestLedger": 64654416
+    }
+  }
+}
