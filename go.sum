@@ -1,0 +1,10 @@
+github.com/klauspost/compress v1.17.6 h1:60eq2E/jlfwQXtvZEeBUYADs+BwKBWURIY+Gj2eRGjI=
+github.com/klauspost/compress v1.17.6/go.mod h1:/dCuZOvVtNoHsyb+cuJD3itjs3NbnF6KH9zAO4BDxPM=
+github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
+github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
+github.com/soroauth/soroauth-go v0.1.0 h1:A2owlKxSDJYqK+9J8Taj/4BpxmFFu3gIhd9KeJOZM7Y=
+github.com/soroauth/soroauth-go v0.1.0/go.mod h1:nmcQb9iq+93HNmCJVts1ZUGu3TmFiE1lm63zuSMNlqQ=
+github.com/stellar/go-stellar-sdk v0.7.3 h1:r4kKiiTOuNdJrEjKYs5ykLSLWKpq9fp6HnIXUs4TiuI=
+github.com/stellar/go-stellar-sdk v0.7.3/go.mod h1:YTYl7/zFt7oIX5Y4WRgL+3d2upWQDLywlHunZ4fOxvc=
+github.com/stellar/go-xdr v0.0.0-20260806060815-dc590f17552a h1:40YIhQusSioBKDW5Tr+YdjoXphcVeu7eXUS2ibMQBTs=
+github.com/stellar/go-xdr v0.0.0-20260806060815-dc590f17552a/go.mod h1:If+U9Z1W5xU97VrOgJandQT+2dN7/iOpkCrxBJEyF80=

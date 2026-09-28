@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Go build output
+/soroauth-explain
+/cmd/soroauth-explain/soroauth-explain
+*.test
+*.out
+/bin/
