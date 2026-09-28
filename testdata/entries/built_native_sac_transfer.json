@@ -1,6 +1,6 @@
 {
   "name": "built_native_sac_transfer",
-  "source": "built by testdata/gen: the same transfer on the testnet native Stellar Asset Contract: the positive control for the impostor case",
+  "source": "built by cmd/gensnapshots: the same transfer on the testnet native Stellar Asset Contract: the positive control for the impostor case",
   "network_passphrase": "Test SDF Network ; September 2015",
   "entry_xdr": "AAAAAQAAAAAAAAAAEREREREREREREREREREREREREREREREREREREREREREAAAAAAAAABwAAA+gAAAABAAAAAAAAAAHXkotywnA8z+r365/0701QSlWouXn8m0UOoshCtNHOYQAAAAh0cmFuc2ZlcgAAAAMAAAASAAAAAAAAAAAiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIgAAABIAAAAAAAAAADMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAAAACgAAAAAAAAAAAAAAADuaygAAAAAA"
 }

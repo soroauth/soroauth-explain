@@ -1,5 +1,5 @@
 // Package snapshot is the one place that turns a committed input entry into
-// its committed renderings. The generator (testdata/gen) and the gate
+// its committed renderings. The generator (cmd/gensnapshots) and the gate
 // (snapshot_test.go) both call Render, so they cannot disagree about how a
 // case is rendered; they can only disagree about what the code does, which is
 // what the gate exists to catch.

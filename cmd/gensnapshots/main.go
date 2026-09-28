@@ -1,6 +1,6 @@
-// Command gen regenerates testdata/entries and testdata/snapshots.
+// Command gensnapshots regenerates testdata/entries and testdata/snapshots.
 //
-// Run it from the module root with `go run ./testdata/gen`. It refuses to run
+// Run it from the module root with `go run ./cmd/gensnapshots`. It refuses to run
 // with a dirty working tree, so a regeneration can only ever change what the
 // code change behind it changed, and nothing smuggled in beside it.
 //
@@ -35,7 +35,7 @@ const (
 
 func main() {
 	if err := run(); err != nil {
-		fmt.Fprintln(os.Stderr, "gen:", err)
+		fmt.Fprintln(os.Stderr, "gensnapshots:", err)
 		os.Exit(1)
 	}
 }
@@ -44,12 +44,8 @@ func run() error {
 	if _, err := os.Stat("go.mod"); err != nil {
 		return fmt.Errorf("run from the module root: %w", err)
 	}
-	status, err := exec.Command("git", "status", "--porcelain").Output()
-	if err != nil {
-		return fmt.Errorf("git status: %w", err)
-	}
-	if len(strings.TrimSpace(string(status))) != 0 {
-		return fmt.Errorf("refusing to run with a dirty working tree; commit or stash first:\n%s", status)
+	if err := checkClean("."); err != nil {
+		return err
 	}
 
 	entries, err := copiedEntries()
@@ -90,7 +86,20 @@ func run() error {
 			}
 		}
 	}
-	fmt.Printf("gen: wrote %d entries and %d snapshots\n", len(entries), len(entries)*len(snapshot.Formats))
+	fmt.Printf("gensnapshots: wrote %d entries and %d snapshots\n", len(entries), len(entries)*len(snapshot.Formats))
+	return nil
+}
+
+// checkClean refuses a working tree with any modified, staged or untracked
+// file, so a regeneration can only carry the change that caused it.
+func checkClean(dir string) error {
+	status, err := exec.Command("git", "-C", dir, "status", "--porcelain").Output()
+	if err != nil {
+		return fmt.Errorf("git status: %w", err)
+	}
+	if len(strings.TrimSpace(string(status))) != 0 {
+		return fmt.Errorf("refusing to run with a dirty working tree; commit or stash first:\n%s", status)
+	}
 	return nil
 }
 
@@ -290,7 +299,7 @@ func builtEntries() ([]snapshot.Entry, error) {
 		}
 		entries = append(entries, snapshot.Entry{
 			Name:              c.name,
-			Source:            "built by testdata/gen: " + c.how,
+			Source:            "built by cmd/gensnapshots: " + c.how,
 			NetworkPassphrase: testnet,
 			EntryXDR:          b64,
 		})

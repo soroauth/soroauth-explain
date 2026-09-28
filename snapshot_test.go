@@ -26,7 +26,7 @@ const (
 // TestSnapshots is the correctness gate. Every committed input is rendered
 // in every format and compared byte for byte with its committed snapshot.
 // Snapshots are never edited by hand: when output changes, regenerate with
-// `go run ./testdata/gen` and explain the change in the commit body.
+// `go run ./cmd/gensnapshots` and explain the change in the commit body.
 func TestSnapshots(t *testing.T) {
 	entries, err := snapshot.LoadEntries(entriesDir)
 	if err != nil {
@@ -44,7 +44,7 @@ func TestSnapshots(t *testing.T) {
 			for _, format := range snapshot.Formats {
 				want, err := snapshot.Read(snapshotsDir, e.Name, format)
 				if err != nil {
-					t.Fatalf("%v (regenerate with `go run ./testdata/gen`)", err)
+					t.Fatalf("%v (regenerate with `go run ./cmd/gensnapshots`)", err)
 				}
 				if !bytes.Equal(got[format], want) {
 					t.Errorf("%s.%s differs from its snapshot at %s\n--- got ---\n%s\n--- want (committed) ---\n%s",
