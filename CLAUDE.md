@@ -175,7 +175,13 @@ into either
 
 - **A signer.** This library never signs, never holds a key, never takes a seed, and has no
   `Signer` interface. Signing is `soroauth-go`'s job. If you find yourself importing
-  `keypair`, stop.
+  `keypair` **directly**, stop.
+
+  It will appear in `go list -deps .` regardless, because `soroauth-go` keeps `Inspect` and
+  its `Signer` in one package and that package imports `keypair` (`v0.1.0:signer.go`).
+  That is structural and not a violation: linking ed25519 code creates no key and accepts
+  no seed. Do not try to strip it. The real fix is a `soroauth/inspect` subpackage in the
+  sibling repo, which is that project's work, not this one's.
 - **A transaction simulator or fee estimator.** Several projects in §1 want simulation and
   fee preview bundled in. That is a different tool with a network dependency and a different
   failure mode. This library explains what an entry *authorizes*; it does not predict what a
@@ -431,7 +437,15 @@ func Explain(entry xdr.SorobanAuthorizationEntry, opts ...Option) (Explanation, 
   it in tests.
 
 Options: `WithNetwork(passphrase string)` (required for any asset labelling — without it,
-no contract is ever labelled, per §2), `WithMaxDepth(int)`, `WithMaxNodes(int)`.
+no contract is ever labelled, per §2), `WithAssets(...xdr.Asset)`, `WithMaxDepth(int)`,
+`WithMaxNodes(int)`.
+
+`WithAssets` supplies the candidate assets `AssetLabel` derives against. Without it only
+the native asset can ever be identified, so every issued-asset SAC — every USDC transfer —
+renders `partial` forever. It changes nothing about the guard: each candidate is still
+derived to a contract ID and compared, and a candidate that does not derive to the contract
+under inspection is ignored. The caller is saying "these are the assets I care about", not
+"trust this label".
 
 ### 6.3 `action.go`
 
@@ -505,7 +519,12 @@ format.
 
 ### 6.6 `interfaces/` — where meaning comes from
 
-A registry mapping a function name and argument shape to an `Action` builder.
+A registry of function signatures and the matching rules for them.
+
+`Action` itself is built in the root package, not here: `Action` is defined there, so
+building it in `interfaces` would create an import cycle. The registry answers "does this
+call match a known signature, and what does each argument mean"; the caller assembles the
+`Action` from that answer.
 
 - Start with the token interface only. Read the SEP that defines it, cite its number and
   section in the doc comment, and verify every function signature against that text. Do not
