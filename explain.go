@@ -216,6 +216,18 @@ func (w *walker) explainInvocation(inv xdr.SorobanAuthorizedInvocation, depth in
 	return action, notes, nil
 }
 
+// argumentsShownRaw says how many arguments are shown uninterpreted, with the
+// verb agreeing with the count.
+func argumentsShownRaw(n int) string {
+	switch n {
+	case 0:
+		return "it takes no arguments"
+	case 1:
+		return "its 1 argument is shown as a raw value"
+	}
+	return "its " + strconv.Itoa(n) + " arguments are shown as raw values"
+}
+
 func pluralArguments(n int) string {
 	if n == 1 {
 		return "argument"
@@ -266,8 +278,8 @@ func (w *walker) explainContractFn(fn xdr.InvokeContractArgs, depth int, o optio
 		}
 	}
 
-	notes = append(notes, fmt.Sprintf("The function %s on %s is not interpreted by this library; its %d %s are shown as raw values.",
-		fnField.Value, contract, len(fn.Args), pluralArguments(len(fn.Args))))
+	notes = append(notes, fmt.Sprintf("The function %s on %s is not interpreted by this library; %s.",
+		fnField.Value, contract, argumentsShownRaw(len(fn.Args))))
 
 	return Action{
 		Kind:       ActionInvokeContract,
@@ -359,8 +371,8 @@ func (w *walker) explainCreateContract(pre xdr.ContractIdPreimage, exe xdr.Contr
 		}
 		if len(args) > 0 {
 			conf = Floor(conf, ConfidencePartial)
-			notes = append(notes, fmt.Sprintf("The %d constructor %s are shown as raw values; their meaning depends on the contract being created.",
-				len(args), pluralArguments(len(args))))
+			notes = append(notes, fmt.Sprintf("Constructor arguments: %s; their meaning depends on the contract being created.",
+				argumentsShownRaw(len(args))))
 		}
 	}
 
