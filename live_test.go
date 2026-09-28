@@ -67,11 +67,12 @@ const (
 )
 
 type rpcTx struct {
-	Status      string `json:"status"`
-	TxHash      string `json:"txHash"`
-	Ledger      uint32 `json:"ledger"`
-	EnvelopeXdr string `json:"envelopeXdr"`
-	Events      struct {
+	Status        string `json:"status"`
+	TxHash        string `json:"txHash"`
+	Ledger        uint32 `json:"ledger"`
+	EnvelopeXdr   string `json:"envelopeXdr"`
+	ResultMetaXdr string `json:"resultMetaXdr"`
+	Events        struct {
 		ContractEventsXdr [][]string `json:"contractEventsXdr"`
 	} `json:"events"`
 }
@@ -207,6 +208,7 @@ func liveRecords(ctx context.Context, t *testing.T, net liveNetwork, tx rpcTx) [
 			}
 		}
 		assetLabels, assets := eventAssets(events)
+		created := createdInstances(t, tx)
 
 		for authIndex, entry := range invoke.Auth {
 			b64, err := xdr.MarshalBase64(entry)
@@ -226,7 +228,7 @@ func liveRecords(ctx context.Context, t *testing.T, net liveNetwork, tx rpcTx) [
 				finalExp = exp2
 			}
 			if finalExp != nil {
-				rec.Checks = checkDecoded(ctx, net, finalExp.Actions, "", tx.Status, events)
+				rec.Checks = checkDecoded(ctx, net, finalExp.Actions, "", tx.Status, events, created)
 			}
 			out = append(out, rec)
 		}
@@ -328,22 +330,22 @@ func fieldRaw(a explain.Action, name string) string {
 // events the host emitted for the same operation. The events come from the
 // network, not from this library, so a match is independent evidence that
 // the rendering names the right contract, parties and raw amount.
-func checkDecoded(ctx context.Context, net liveNetwork, actions []explain.Action, prefix, status string, events []xdr.ContractEvent) []LiveCheck {
+func checkDecoded(ctx context.Context, net liveNetwork, actions []explain.Action, prefix, status string, events []xdr.ContractEvent, created map[string]string) []LiveCheck {
 	var out []LiveCheck
 	for i, a := range actions {
 		path := fmt.Sprintf("%s%d", prefix, i)
 		if a.Confidence == explain.ConfidenceDecoded {
-			out = append(out, checkOne(ctx, net, a, path, status, events))
+			out = append(out, checkOne(ctx, net, a, path, status, events, created))
 		}
-		out = append(out, checkDecoded(ctx, net, a.Sub, path+".", status, events)...)
+		out = append(out, checkDecoded(ctx, net, a.Sub, path+".", status, events, created)...)
 	}
 	return out
 }
 
-func checkOne(ctx context.Context, net liveNetwork, a explain.Action, path, status string, events []xdr.ContractEvent) LiveCheck {
+func checkOne(ctx context.Context, net liveNetwork, a explain.Action, path, status string, events []xdr.ContractEvent, created map[string]string) LiveCheck {
 	c := LiveCheck{Path: path, Kind: string(a.Kind)}
 	if a.Kind == explain.ActionCreateContract {
-		return checkCreate(ctx, net, a, c, status)
+		return checkCreate(net, a, c, status, created)
 	}
 	var topic string
 	var parties []string
@@ -411,6 +413,15 @@ func checkOne(ctx context.Context, net liveNetwork, a explain.Action, path, stat
 		if string(last) != asset {
 			c.Result = "asset-mismatch"
 		}
+		return c
+	}
+	// An authorization entry says what may be called, not what will be: a
+	// contract can leave an authorized sub-call unmade. If the contract
+	// emitted no event of this kind at all, the call did not run and there is
+	// nothing to compare with. An event of this kind that does not match is a
+	// contradiction.
+	if !emitted(events, a.Contract, topic) {
+		c.Result, c.Detail = "not-executed", fmt.Sprintf("%s emitted no %q event in this transaction; the authorized call did not run", a.Contract, topic)
 		return c
 	}
 	c.Result, c.Detail = "no-matching-event", fmt.Sprintf("no %q event on %s with parties %v and amount %s", topic, a.Contract, parties, amount)
@@ -515,13 +526,15 @@ func bigFromParts(hi int64, lo uint64) string {
 	return n.Add(n, new(big.Int).SetUint64(lo)).String()
 }
 
-// checkCreate verifies a decoded contract creation against ledger state. It
-// derives the new contract's ID from the rendered deployer and salt (the
-// SHA-256 of an ENVELOPE_TYPE_CONTRACT_ID preimage, computed here rather than
-// by the library) and fetches that contract's instance. The executable the
-// network stores must be the one the rendering names. A wrong deployer, salt
-// or hash finds no contract, or a different executable.
-func checkCreate(ctx context.Context, net liveNetwork, a explain.Action, c LiveCheck, status string) LiveCheck {
+// checkCreate verifies a decoded contract creation against the instance
+// the transaction itself created, read from its result meta. It derives the
+// new contract's ID from the rendered deployer and salt (the SHA-256 of an
+// ENVELOPE_TYPE_CONTRACT_ID preimage, computed here rather than by the
+// library) and requires the meta to show that contract created with the
+// rendered executable. The meta records the transaction's own effect, so a
+// later upgrade of the contract cannot change the answer, as comparing with
+// current ledger state did (advisory run 36497973651).
+func checkCreate(net liveNetwork, a explain.Action, c LiveCheck, status string, created map[string]string) LiveCheck {
 	if status != "SUCCESS" {
 		c.Result, c.Detail = "no-ledger-state", "transaction status "+status+"; no contract was created"
 		return c
@@ -560,45 +573,164 @@ func checkCreate(ctx context.Context, net liveNetwork, a explain.Action, c LiveC
 		return c
 	}
 	id := xdr.ContractId(sha256.Sum256(raw))
-	key, err := xdr.MarshalBase64(xdr.LedgerKey{Type: xdr.LedgerEntryTypeContractData, ContractData: &xdr.LedgerKeyContractData{
-		Contract:   xdr.ScAddress{Type: xdr.ScAddressTypeScAddressTypeContract, ContractId: &id},
-		Key:        xdr.ScVal{Type: xdr.ScValTypeScvLedgerKeyContractInstance},
-		Durability: xdr.ContractDataDurabilityPersistent,
-	}})
-	if err != nil {
-		c.Result, c.Detail = "check-error", err.Error()
-		return c
-	}
-	var resp struct {
-		Entries []struct {
-			XDR string `json:"xdr"`
-		} `json:"entries"`
-	}
-	if err := rpcCall(ctx, net.rpc, "getLedgerEntries", map[string]any{"keys": []string{key}}, &resp); err != nil {
-		c.Result, c.Detail = "check-error", err.Error()
-		return c
-	}
 	contract, _ := soroauth.FormatAddress(xdr.ScAddress{Type: xdr.ScAddressTypeScAddressTypeContract, ContractId: &id})
-	if len(resp.Entries) != 1 {
-		c.Result, c.Detail = "not-found", "no live instance at derived contract "+contract+" (it may have been archived)"
+	got, ok := created[contract]
+	if !ok {
+		c.Result, c.Detail = "ledger-mismatch", "the transaction's meta shows no instance created at derived contract "+contract
 		return c
 	}
-	var data xdr.LedgerEntryData
-	if err := xdr.SafeUnmarshalBase64(resp.Entries[0].XDR, &data); err != nil {
-		c.Result, c.Detail = "check-error", err.Error()
-		return c
-	}
-	inst, ok := data.MustContractData().Val.GetInstance()
-	if !ok || inst.Executable.WasmHash == nil {
-		c.Result, c.Detail = "ledger-mismatch", "instance at "+contract+" is not a wasm contract"
-		return c
-	}
-	onLedger := "wasm " + hex.EncodeToString(inst.Executable.WasmHash[:])
-	if onLedger != exe {
-		c.Result, c.Detail = "ledger-mismatch", fmt.Sprintf("contract %s runs %s on the ledger, rendering says %s", contract, onLedger, exe)
+	if got != exe {
+		c.Result, c.Detail = "ledger-mismatch", fmt.Sprintf("the transaction created %s running %s, rendering says %s", contract, got, exe)
 		return c
 	}
 	c.Result = "ledger-match"
-	c.Detail = fmt.Sprintf("contract %s, derived from deployer %s and salt %s, exists and runs %s", contract, deployer, salt, onLedger)
+	c.Detail = fmt.Sprintf("the transaction created contract %s, derived from deployer %s and salt %s, running %s", contract, deployer, salt, got)
 	return c
+}
+
+// createdInstances returns, from a transaction's result meta, every
+// contract instance it created and the wasm it runs.
+func createdInstances(t *testing.T, tx rpcTx) map[string]string {
+	out := map[string]string{}
+	if tx.ResultMetaXdr == "" {
+		return out
+	}
+	var meta xdr.TransactionMeta
+	if err := xdr.SafeUnmarshalBase64(tx.ResultMetaXdr, &meta); err != nil {
+		t.Fatalf("%s: meta: %v", tx.TxHash, err)
+	}
+	var changes []xdr.LedgerEntryChange
+	if m, ok := meta.GetV4(); ok {
+		for _, op := range m.Operations {
+			changes = append(changes, op.Changes...)
+		}
+	}
+	if m, ok := meta.GetV3(); ok {
+		for _, op := range m.Operations {
+			changes = append(changes, op.Changes...)
+		}
+	}
+	for _, ch := range changes {
+		if ch.Type != xdr.LedgerEntryChangeTypeLedgerEntryCreated || ch.Created == nil {
+			continue
+		}
+		cd, ok := ch.Created.Data.GetContractData()
+		if !ok {
+			continue
+		}
+		inst, ok := cd.Val.GetInstance()
+		if !ok || inst.Executable.WasmHash == nil {
+			continue
+		}
+		contract, err := soroauth.FormatAddress(cd.Contract)
+		if err != nil {
+			continue
+		}
+		out[contract] = "wasm " + hex.EncodeToString(inst.Executable.WasmHash[:])
+	}
+	return out
+}
+
+// emitted reports whether contract emitted any event whose first topic is
+// the given symbol.
+func emitted(events []xdr.ContractEvent, contract, topic string) bool {
+	for _, ev := range events {
+		if ev.ContractId == nil {
+			continue
+		}
+		cid := *ev.ContractId
+		c, err := soroauth.FormatAddress(xdr.ScAddress{Type: xdr.ScAddressTypeScAddressTypeContract, ContractId: &cid})
+		if err != nil || c != contract {
+			continue
+		}
+		body, ok := ev.Body.GetV0()
+		if !ok || len(body.Topics) == 0 {
+			continue
+		}
+		if sym, ok := body.Topics[0].GetSym(); ok && string(sym) == topic {
+			return true
+		}
+	}
+	return false
+}
+
+// fetchTx gets one transaction by hash, with its contract events taken from
+// the result meta, in the shape getTransactions returns.
+func fetchTx(ctx context.Context, t *testing.T, net liveNetwork, hash string) rpcTx {
+	t.Helper()
+	var res struct {
+		Status        string `json:"status"`
+		Ledger        uint32 `json:"ledger"`
+		EnvelopeXdr   string `json:"envelopeXdr"`
+		ResultMetaXdr string `json:"resultMetaXdr"`
+	}
+	if err := rpcCall(ctx, net.rpc, "getTransaction", map[string]any{"hash": hash}, &res); err != nil {
+		t.Fatalf("getTransaction %s: %v", hash, err)
+	}
+	tx := rpcTx{Status: res.Status, TxHash: hash, Ledger: res.Ledger, EnvelopeXdr: res.EnvelopeXdr, ResultMetaXdr: res.ResultMetaXdr}
+	var meta xdr.TransactionMeta
+	if err := xdr.SafeUnmarshalBase64(res.ResultMetaXdr, &meta); err != nil {
+		t.Fatal(err)
+	}
+	m, ok := meta.GetV4()
+	if !ok {
+		t.Fatalf("%s: meta version %d, want 4", hash, meta.V)
+	}
+	for _, op := range m.Operations {
+		var evs []string
+		for _, ev := range op.Events {
+			b64, err := xdr.MarshalBase64(ev)
+			if err != nil {
+				t.Fatal(err)
+			}
+			evs = append(evs, b64)
+		}
+		tx.Events.ContractEventsXdr = append(tx.Events.ContractEventsXdr, evs)
+	}
+	return tx
+}
+
+// TestLiveCheckRegressions pins the two cases the advisory run 36497973651
+// reported, both of which were flaws in the checks rather than wrong
+// renderings. They stay checkable while the RPCs retain the transactions.
+func TestLiveCheckRegressions(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	cases := []struct {
+		name string
+		net  liveNetwork
+		hash string
+		want map[string]string // action path -> check result
+	}{
+		// The contract was created running 528a..., as rendered, and later
+		// upgraded; the check must read the transaction's own meta.
+		{"create_then_upgraded", liveTestnet, "c24266269a186d13cbd07264580c6ae150eb1e00b995a3b38470ef0531de7f10",
+			map[string]string{"0": "ledger-match"}},
+		// The entry authorizes a burn on the SAC of 1:GB4P3...; the contract
+		// never made that call, so there is no burn event to compare with.
+		{"authorized_burn_not_executed", livePublic, "cc265b25c1b4dda49d69dfa522776de4b7a207dee7d69f6534b713b6808388f8",
+			map[string]string{"0.1": "not-executed"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			tx := fetchTx(ctx, t, tc.net, tc.hash)
+			got := map[string]string{}
+			for _, rec := range liveRecords(ctx, t, tc.net, tx) {
+				for _, c := range rec.Checks {
+					if rec.AuthIndex == 0 {
+						got[c.Path] = c.Result
+					}
+					t.Logf("auth %d action %s: %s: %s", rec.AuthIndex, c.Path, c.Result, c.Detail)
+					if c.Result == "no-matching-event" || c.Result == "ledger-mismatch" || c.Result == "asset-mismatch" || c.Result == "check-error" {
+						t.Errorf("auth %d action %s: %s", rec.AuthIndex, c.Path, c.Result)
+					}
+				}
+			}
+			for path, want := range tc.want {
+				if got[path] != want {
+					t.Errorf("action %s: check %q, want %q", path, got[path], want)
+				}
+			}
+		})
+	}
 }

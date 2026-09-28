@@ -33,11 +33,15 @@ that does not pass through this library's explanation code:
   the same contract, with the same parties and the same raw amount, and an asset topic equal to the label;
   for an approval, the event's live_until_ledger must also equal the rendered ledger.
 - **Contract creation**: the contract ID is derived in the test from the rendered deployer and salt, and the
-  instance fetched from the ledger must run the rendered wasm hash.
+  transaction's own result meta must show that contract created running the rendered wasm hash. The runs
+  recorded below predate this form of the check and compared with the ledger at recording time instead;
+  that compares the right thing only until the contract is upgraded, which an advisory run later hit.
 
-A result of `no-events` means the transaction failed, so the host emitted no events to compare against.
-Those renderings are not confirmed by this check; they are listed like every other decoded action, and are
-counted as checked but not passed in the summary.
+Two results mean the check could not confirm a rendering, and are counted as checked but not passed in the
+summary. `no-events`: the transaction failed, so the host emitted no events. `not-executed`: the transaction
+succeeded but the contract emitted no event of that kind at all, because an authorization entry states what
+may be called, and a contract can leave an authorized call unmade. Both are listed like every other decoded
+action. An event of the right kind that does not match fails the live test.
 
 Reproduce with new samples (the networks move, so the numbers will differ):
 
