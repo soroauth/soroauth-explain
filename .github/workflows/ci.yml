@@ -31,8 +31,12 @@ jobs:
       # SOROAUTH_REQUIRE_SHELLS=1 turns a missing shell into a failure.
       - name: install completion shells
         run: sudo apt-get update -qq && sudo apt-get install -y -qq fish zsh
+      # Vet every build tag. -tags live only compiles the network test; it
+      # does not run it.
       - name: vet
-        run: go vet ./...
+        run: |
+          go vet ./...
+          go vet -tags live ./...
       - name: test
         env:
           SOROAUTH_REQUIRE_SHELLS: "1"
