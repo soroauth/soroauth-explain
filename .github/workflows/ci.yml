@@ -26,10 +26,21 @@ jobs:
             echo "$unformatted"
             exit 1
           fi
+      # The completion scripts are advertised for bash, zsh and fish, so each
+      # must be parsed and exercised by its own shell here.
+      # SOROAUTH_REQUIRE_SHELLS=1 turns a missing shell into a failure.
+      - name: install completion shells
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq fish zsh
       - name: vet
         run: go vet ./...
       - name: test
+        env:
+          SOROAUTH_REQUIRE_SHELLS: "1"
         run: go test ./...
+      - name: show the completion checks ran
+        env:
+          SOROAUTH_REQUIRE_SHELLS: "1"
+        run: go test -count=1 -v -run 'Completion' ./cmd/soroauth-explain
 
   snapshot-drift:
     name: snapshots are reproducible

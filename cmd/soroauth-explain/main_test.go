@@ -427,15 +427,27 @@ func script(t *testing.T, sh string) string {
 	return path
 }
 
-// TestCompletionsSyntax parses each script with its own shell. A shell that
-// is not installed is reported as skipped, not passed.
+// requireShell finds a shell. A missing shell is a skip, reported as such,
+// unless SOROAUTH_REQUIRE_SHELLS=1, which CI sets so that a script it
+// advertises can never pass unverified.
+func requireShell(t *testing.T, sh string) string {
+	t.Helper()
+	bin, err := exec.LookPath(sh)
+	if err == nil {
+		return bin
+	}
+	if os.Getenv("SOROAUTH_REQUIRE_SHELLS") == "1" {
+		t.Fatalf("%s is not installed and SOROAUTH_REQUIRE_SHELLS=1", sh)
+	}
+	t.Skipf("%s is not installed; set SOROAUTH_REQUIRE_SHELLS=1 to make this a failure", sh)
+	return ""
+}
+
+// TestCompletionsSyntax parses each script with its own shell.
 func TestCompletionsSyntax(t *testing.T) {
 	for _, sh := range shells {
 		t.Run(sh, func(t *testing.T) {
-			bin, err := exec.LookPath(sh)
-			if err != nil {
-				t.Skipf("%s is not installed; its script is not syntax-checked here", sh)
-			}
+			bin := requireShell(t, sh)
 			if out, err := exec.Command(bin, "-n", script(t, sh)).CombinedOutput(); err != nil {
 				t.Fatalf("%s -n: %v\n%s", sh, err, out)
 			}
@@ -446,10 +458,7 @@ func TestCompletionsSyntax(t *testing.T) {
 // TestBashCompletionBehaviour sources the bash script and asks it for
 // completions at several positions.
 func TestBashCompletionBehaviour(t *testing.T) {
-	bash, err := exec.LookPath("bash")
-	if err != nil {
-		t.Skip("bash is not installed")
-	}
+	bash := requireShell(t, "bash")
 	path := script(t, "bash")
 	tests := []struct {
 		words string
@@ -473,6 +482,40 @@ func TestBashCompletionBehaviour(t *testing.T) {
 			}
 			if got := strings.TrimSpace(string(out)); got != tt.want {
 				t.Fatalf("COMPREPLY = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
+// TestFishCompletionBehaviour loads the fish script and asks fish itself,
+// through `complete -C`, what it would offer.
+func TestFishCompletionBehaviour(t *testing.T) {
+	fish := requireShell(t, "fish")
+	path := script(t, "fish")
+	tests := []struct {
+		line string
+		want string
+	}{
+		{"soroauth-explain --network ", "public testnet"},
+		{"soroauth-explain --", "--entry --json --network --strict"},
+		{"soroauth-explain completions --shell ", "bash fish zsh"},
+		{"soroauth-explain completions --", "--shell"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.line, func(t *testing.T) {
+			out, err := exec.Command(fish, "--no-config", "-c", `source $argv[1]; complete -C $argv[2]`, path, tt.line).CombinedOutput()
+			if err != nil {
+				t.Fatalf("%v\n%s", err, out)
+			}
+			var got []string
+			for _, l := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+				if l != "" {
+					got = append(got, strings.SplitN(l, "\t", 2)[0])
+				}
+			}
+			sort.Strings(got)
+			if strings.Join(got, " ") != tt.want {
+				t.Fatalf("fish offers %q, want %q\nraw:\n%s", strings.Join(got, " "), tt.want, out)
 			}
 		})
 	}
