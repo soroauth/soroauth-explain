@@ -221,7 +221,7 @@ func (w *walker) explainInvocation(inv xdr.SorobanAuthorizedInvocation, depth in
 func argumentsShownRaw(n int) string {
 	switch n {
 	case 0:
-		return "it takes no arguments"
+		return "the call passes no arguments"
 	case 1:
 		return "its 1 argument is shown as a raw value"
 	}

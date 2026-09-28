@@ -414,7 +414,7 @@ func TestExplainInvalidOptions(t *testing.T) {
 
 func TestArgumentsShownRaw(t *testing.T) {
 	for n, want := range map[int]string{
-		0: "it takes no arguments",
+		0: "the call passes no arguments",
 		1: "its 1 argument is shown as a raw value",
 		2: "its 2 arguments are shown as raw values",
 	} {
