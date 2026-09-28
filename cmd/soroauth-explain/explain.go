@@ -83,8 +83,36 @@ func networkPassphrase(name string) string {
 type explainFlags struct {
 	entry   string
 	network string
+	assets  assetList
 	json    bool
 	strict  bool
+}
+
+// assetList is the repeatable --asset flag. Each value must parse as
+// CODE:ISSUER; anything else is rejected when the flag is parsed, so a
+// mistyped candidate is a usage error rather than one silently dropped.
+type assetList struct {
+	labels []string
+	assets []xdr.Asset
+}
+
+func (l *assetList) String() string { return strings.Join(l.labels, ",") }
+
+func (l *assetList) Set(v string) error {
+	code, issuer, ok := strings.Cut(v, ":")
+	if !ok {
+		if v == "native" {
+			return errors.New("native is always a candidate and needs no --asset")
+		}
+		return fmt.Errorf("%q is not CODE:ISSUER", v)
+	}
+	a, err := xdr.NewCreditAsset(code, issuer)
+	if err != nil {
+		return fmt.Errorf("%q is not CODE:ISSUER: %v", v, err)
+	}
+	l.labels = append(l.labels, v)
+	l.assets = append(l.assets, a)
+	return nil
 }
 
 // newExplainFlagSet registers the explain flags. The completions spec is
@@ -96,6 +124,7 @@ func newExplainFlagSet(stderr io.Writer) (*flag.FlagSet, *explainFlags) {
 	fs.Usage = func() { fmt.Fprint(stderr, usageText) }
 	fs.StringVar(&f.entry, "entry", "", "the entry as base64 XDR, or - to read it from stdin")
 	fs.StringVar(&f.network, "network", "", "testnet, public, or a network passphrase")
+	fs.Var(&f.assets, "asset", "a candidate asset as CODE:ISSUER; repeat for several")
 	fs.BoolVar(&f.json, "json", false, "print the stable JSON rendering instead of text")
 	fs.BoolVar(&f.strict, "strict", false, "exit 3 unless the explanation is decoded")
 	return fs, f
@@ -147,6 +176,9 @@ func runExplain(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	var opts []explain.Option
 	if pp := networkPassphrase(f.network); pp != "" {
 		opts = append(opts, explain.WithNetwork(pp))
+	}
+	if len(f.assets.assets) > 0 {
+		opts = append(opts, explain.WithAssets(f.assets.assets...))
 	}
 	exp, err := explain.Explain(entry, opts...)
 	if err != nil {

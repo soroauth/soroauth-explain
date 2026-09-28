@@ -1,7 +1,8 @@
 // Command soroauth-explain explains what a Soroban authorization entry
 // authorizes, and says what it could not determine.
 //
-//	soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>] [--json] [--strict]
+//	soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>]
+//	                 [--asset CODE:ISSUER] [--json] [--strict]
 //	soroauth-explain completions --shell bash|zsh|fish
 //
 // Results go to stdout and diagnostics to stderr, so stdout only ever carries
@@ -26,7 +27,8 @@ const (
 )
 
 const usageText = `usage:
-  soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>] [--json] [--strict]
+  soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>]
+                   [--asset CODE:ISSUER] [--json] [--strict]
   soroauth-explain completions --shell bash|zsh|fish
 
 Explains what a Soroban authorization entry authorizes. Every node is marked
@@ -37,6 +39,9 @@ flags:
   --entry     the entry as base64 XDR, or - to read it from stdin
   --network   testnet, public, or a network passphrase; without it no
               contract is labelled with an asset
+  --asset     a candidate asset as CODE:ISSUER, repeatable. A contract is
+              labelled with it only if it is that asset's derived Stellar
+              Asset Contract on --network. native needs no flag.
   --json      print the stable JSON rendering instead of text
   --strict    exit 3 unless the explanation is decoded
 

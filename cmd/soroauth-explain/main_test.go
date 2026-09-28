@@ -66,25 +66,17 @@ func TestCLIMatchesSnapshots(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			// The CLI has no flag for candidate assets (section 6.8 defines
-			// none), so an entry that carries some is compared with its
-			// rendering without them.
-			if len(e.Assets) > 0 {
-				bare := e
-				bare.Assets = nil
-				out, err := snapshot.Render(bare)
-				if err != nil {
-					t.Fatal(err)
-				}
-				txt, js = out["txt"], out["json"]
+			base := []string{"--entry", e.EntryXDR, "--network", e.NetworkPassphrase}
+			for _, a := range e.Assets {
+				base = append(base, "--asset", a)
 			}
 			refused := bytes.HasPrefix(txt, []byte("error: "))
 			for _, tc := range []struct {
 				args []string
 				want []byte
 			}{
-				{[]string{"--entry", e.EntryXDR, "--network", e.NetworkPassphrase}, txt},
-				{[]string{"--entry", e.EntryXDR, "--network", e.NetworkPassphrase, "--json"}, js},
+				{base, txt},
+				{append(append([]string{}, base...), "--json"), js},
 			} {
 				out, errOut, code := runCLI(t, "", tc.args...)
 				if refused {
@@ -139,6 +131,37 @@ func TestCLIStdin(t *testing.T) {
 			t.Fatalf("code %d, stdout %q, stderr %q", code, out, errOut)
 		}
 	})
+}
+
+// TestCLIAsset: --asset is repeatable, and a value that is not CODE:ISSUER
+// is a usage error with nothing on stdout.
+func TestCLIAsset(t *testing.T) {
+	e := loadEntry(t, "built_usdc_transfer_with_asset")
+	const usdc = "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+	const other = "USDC:GAHKEAKBDDC467S3PFXPROVU6SBPQXDEWLUUTCPIIGD5MIO3KRRWS5HV"
+
+	out, _, code := runCLI(t, "", "--entry", e.EntryXDR, "--network", "public", "--asset", other, "--asset", usdc, "--strict")
+	if code != exitOK || !strings.Contains(out, "Transfer 100.0000000 "+usdc) {
+		t.Fatalf("repeated --asset: code %d\n%s", code, out)
+	}
+	out, _, code = runCLI(t, "", "--entry", e.EntryXDR, "--network", "public", "--asset", other)
+	if code != exitOK || !strings.Contains(out, "[partial]") || strings.Contains(out, "USDC:") {
+		t.Fatalf("non-deriving --asset labelled the contract: code %d\n%s", code, out)
+	}
+	for name, v := range map[string]string{
+		"native":        "native",
+		"no_issuer":     "USDC",
+		"bad_issuer":    "USDC:GNOTANACCOUNT",
+		"code_too_long": "ABCDEFGHIJKLM:" + "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+		"empty":         "",
+	} {
+		t.Run(name, func(t *testing.T) {
+			out, errOut, code := runCLI(t, "", "--entry", e.EntryXDR, "--network", "public", "--asset", v)
+			if code != exitUsage || out != "" || !strings.Contains(errOut, "--asset") {
+				t.Fatalf("code %d, stdout %q, stderr %q", code, out, errOut)
+			}
+		})
+	}
 }
 
 // TestCLIRealPipe builds the binary and feeds it through a shell pipe, with
@@ -465,11 +488,11 @@ func TestBashCompletionBehaviour(t *testing.T) {
 		cword int
 		want  string
 	}{
-		{`soroauth-explain ""`, 1, "--entry --network --json --strict completions help"},
+		{`soroauth-explain ""`, 1, "--entry --network --asset --json --strict completions help"},
 		{`soroauth-explain --network ""`, 2, "testnet public"},
 		{`soroauth-explain --network t`, 2, "testnet"},
 		{`soroauth-explain --entry ""`, 2, ""},
-		{`soroauth-explain --json ""`, 2, "--entry --network --json --strict"},
+		{`soroauth-explain --json ""`, 2, "--entry --network --asset --json --strict"},
 		{`soroauth-explain completions ""`, 2, "--shell"},
 		{`soroauth-explain completions --shell ""`, 3, "bash zsh fish"},
 	}
@@ -497,7 +520,7 @@ func TestFishCompletionBehaviour(t *testing.T) {
 		want string
 	}{
 		{"soroauth-explain --network ", "public testnet"},
-		{"soroauth-explain --", "--entry --json --network --strict"},
+		{"soroauth-explain --", "--asset --entry --json --network --strict"},
 		{"soroauth-explain completions --shell ", "bash fish zsh"},
 		{"soroauth-explain completions --", "--shell"},
 	}
