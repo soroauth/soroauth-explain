@@ -1,0 +1,615 @@
+# Evidence: what soroauth-explain says about real entries
+
+Generated from `testdata/live/testnet.json` by `TestEvidenceUpToDate` in `evidence_test.go`. Do not edit by hand.
+
+This is one recorded run of `TestLiveTestnet` (`live_test.go`, build tag `live`) against real testnet
+transactions. It shows how often the tool can explain real authorization entries, and it lists every
+rendering the tool marked `decoded`, because each of those is a claim made to a user.
+
+## The run
+
+| | |
+|---|---|
+| Network | `Test SDF Network ; September 2015` |
+| RPC | https://soroban-testnet.stellar.org |
+| Fetched | 2026-09-28T22:34:51Z |
+| RPC retention range | ledgers 4801301 to 4922260 |
+| Sample windows (start ledgers) | 4801351, 4816458, 4831565, 4846672, 4861779, 4876886, 4891993, 4907100 |
+| Transactions scanned | 1289 |
+| Authorization entries explained | 480 |
+
+Reproduce with a new sample (the network moves, so the numbers will differ):
+
+```sh
+SOROAUTH_LIVE_RECORD=testdata/live/testnet.json go test -tags live -run TestLiveTestnet -v -count=1 -timeout 20m .
+SOROAUTH_WRITE_EVIDENCE=1 go test -run TestEvidenceUpToDate .
+```
+
+## Confidence distribution
+
+*Default* is `Explain` with `WithNetwork` only: what a caller gets with no other input. *With event
+assets* adds, through `WithAssets`, the `CODE:ISSUER` strings found in the transaction's own Stellar Asset
+Contract event topics. Those are candidates only: each is derived to a contract ID and compared, and one that
+does not derive to the contract under inspection is ignored.
+
+| Confidence | Default | % | With event assets | % |
+|---|---:|---:|---:|---:|
+| decoded | 7 | 1.5% | 35 | 7.3% |
+| partial | 43 | 9.0% | 15 | 3.1% |
+| opaque | 430 | 89.6% | 430 | 89.6% |
+| refused | 0 | 0.0% | 0 | 0.0% |
+
+## What the sample is made of
+
+| Credential type | Entries |
+|---|---:|
+| `address` | 22 |
+| `address_v2` | 2 |
+| `source_account` | 456 |
+
+Root function, ten most frequent of 50 distinct:
+
+| Root function | Entries |
+|---|---:|
+| `set_price` | 189 |
+| `approve` | 35 |
+| `replace_batch` | 26 |
+| `set_price_stable` | 18 |
+| `create_order` | 16 |
+| `update_indices` | 16 |
+| `write_prices` | 15 |
+| `publish_round` | 12 |
+| `replace` | 12 |
+| `report` | 12 |
+
+Most opaque entries are calls to application contracts (price oracles dominate testnet in this sample)
+whose functions are not in the registry, which holds the SEP-41 token interface only. That is the expected
+output for an unknown function, not a failure to decode bytes.
+
+## Independent checks of every decoded action
+
+Every action marked `decoded`, in either pass and at any depth of the call tree, was checked against data
+that does not pass through this library:
+
+- **Token actions**: in a successful transaction, the host must have emitted the matching SEP-41 event from
+  the same contract, with the same parties and the same raw amount, and an asset topic equal to the label;
+  for an approval, the event's live_until_ledger must also equal the rendered ledger.
+- **Contract creation**: the contract ID is derived in the test from the rendered deployer and salt, and the
+  instance fetched from the ledger must run the rendered wasm hash.
+
+| Action kind / result | Count |
+|---|---:|
+| create_contract / ledger-match | 1 |
+| token_approve / event-match | 51 |
+| token_burn / event-match | 1 |
+| token_transfer / event-match | 117 |
+
+## Every entry rendered decoded
+
+Entries whose whole explanation was `decoded` in the pass shown. Each summary line is the recorded
+action `Summary`, which the text and JSON renderings share.
+
+1. tx `4715d8bd188eeec4b8188aecea3b80223db755e835a4e8efa1f2c312bd20be27`, ledger 4801351, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 352.9365718 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GCQABHYY5ECUUPKRTV4747MNVEDW3LOCL4YNUAWZCXG67URAG4UQNIXG until ledger 4801849, replacing any current allowance
+   - check 0: **event-match**
+2. tx `d34557c4f14785d58b5f1746aafbc787fff6edceafe4ebccedf0c72d799ad015`, ledger 4801352, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 312.0273120 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GCQABHYY5ECUUPKRTV4747MNVEDW3LOCL4YNUAWZCXG67URAG4UQNIXG until ledger 4801849, replacing any current allowance
+   - check 0: **event-match**
+3. tx `69112177a4eca029bea2672b6d2a283a37166a65c25d3ec8b8dd1e7e8837409d`, ledger 4801354, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 0.1069779 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GAEHPX4CQOYXAKZHO3P5CYBC67GZKXEA7HITH2GKUWWXCOGDGTIICGGH until ledger 4801852, replacing any current allowance
+   - check 0: **event-match**
+4. tx `f181e9e0949e3e403c7c61454fe6387ec54933c18bf726684bb98538759b3dcb`, ledger 4801356, SUCCESS, operation 0, entry 0 (source_account), decoded in: default and with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 1169.8921575 native from GAX7NEYJRJZUC5HKANPR74HGKRAUO6YQRSGGKZMBLHRGNLERT4ATNN7W until ledger 4801854, replacing any current allowance
+   - check 0: **event-match**
+5. tx `ec0142f3b63776ce1b21a24ac0c1f95d4b1009c38e547ff21572ba8913e3db0e`, ledger 4816458, SUCCESS, operation 0, entry 0 (source_account), decoded in: default and with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 1170.1712533 native from GAX7NEYJRJZUC5HKANPR74HGKRAUO6YQRSGGKZMBLHRGNLERT4ATNN7W until ledger 4816956, replacing any current allowance
+   - check 0: **event-match**
+6. tx `f6bbbd39a22918e2c4226228b17aa9d976e5418a8ea6c72dc42a833ede24ac60`, ledger 4816466, SUCCESS, operation 0, entry 0 (source_account), decoded in: default and with event assets
+   - Transfer 0.5500000 native from GA2L6HQ2D7Y4DSDNHJT56ZFOYBCYEDMVCO6OCSW5MJ6FQWC6PT2YISFC to CCNOOPL3BI5GX6IPHE66T22CIXDGXBFJ5HAQMEK2L2S3EJLHPR2FXFMZ
+   - check 0: **event-match**
+7. tx `3c973f8a2c1b393647f6bb043098b267510a9971d6d5d84e9a04481fd4f0454a`, ledger 4831566, SUCCESS, operation 0, entry 0 (source_account), decoded in: default and with event assets
+   - Create a contract running wasm 1708b3f19409a8083c4fa89434de0155f33c19cc95c21daf799be91843c4db02, deployed by GAO6NJO7F4BORGN2X5PMBZ743LZK22PAB5UISQCT6CVMYTUIJPETRHTR with salt 198730a3c5958a971e3bc7e18229b5624e6e5c2854adc632ae606f8b2b0b7a5f, with 0 constructor arguments
+   - check 0: **ledger-match**
+8. tx `b6e708a0a47ce2e0657727ff6f0ea88c19422bf6b1e2022dd0feb27d3a83b333`, ledger 4831569, SUCCESS, operation 0, entry 0 (address_v2), decoded in: with event assets
+   - Burn 500000.0000000 COLIBRI:GBN3XJIOKQARATHF73FWYP2B56XXPVVPH6ZTKWX7CNBTSCSW64OHW4PI from GAOXPODNIZC3KYVLU66O4JC4ISI4NBRCY3YIS3HMTR2PJAKR6J2NKXJY
+   - check 0: **event-match**
+9. tx `44d84ec6ca80aa16439e8d6133271e435e8b70489b10335bf98058c4ffbe1642`, ledger 4846672, SUCCESS, operation 0, entry 0 (address), decoded in: with event assets
+   - Transfer 0.0250000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GCB3QQ2YP64N7TLG6BGATVU7AMBBUZIQZFUWG6IEETDIYXYQ74RW66SA to GC4HILFF6LHZXGURG7TTYFGNKHZAZCEDTLCAAR2D25EBLNWWKR4LM7FN
+   - check 0: **event-match**
+10. tx `a4cbf3c16673e5df9eaec00c6495c8e724c0ac684ad0a9af5437fcca70e469cf`, ledger 4846672, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 197.7107810 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GA7RYAKRJ7MQ575MUQNBPJXHDH2VGMHRQORPY4AFFGII5ZTIHX7IGM5T until ledger 4847171, replacing any current allowance
+   - check 0: **event-match**
+11. tx `24b73d9cdbedc503f932a95909af8b94bfcc70babbb144120635470d53e8f795`, ledger 4846673, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 196.2888492 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GA7RYAKRJ7MQ575MUQNBPJXHDH2VGMHRQORPY4AFFGII5ZTIHX7IGM5T until ledger 4847171, replacing any current allowance
+   - check 0: **event-match**
+12. tx `60a7e0a2d2a7ecc768a7d86201c03542204f5f04f702a4423b1d5697d81145cf`, ledger 4846679, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 587.2898956 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GCHCIX4VIKPHWISQDOO4WIKEEQOOSCMAHRLM2KIKJIPMZX5XA6SAKGVL until ledger 4847178, replacing any current allowance
+   - check 0: **event-match**
+13. tx `2032fb67214c5737aa87a9dd110aafcfe60e585cca8e432cc73d98de828a1d40`, ledger 4846680, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 584.9255442 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GCHCIX4VIKPHWISQDOO4WIKEEQOOSCMAHRLM2KIKJIPMZX5XA6SAKGVL until ledger 4847178, replacing any current allowance
+   - check 0: **event-match**
+14. tx `d45e55871de05af4167e2cc58b2bc934873434a5e652ec51743ba9b4528ab823`, ledger 4846681, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 163.7108525 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GA7SM64U5JA56A6UA3UF6T4WTOJIOFDNK7UTFHWSZNJRLGXECYZWVNLM until ledger 4847180, replacing any current allowance
+   - check 0: **event-match**
+15. tx `0494d6e2e72925e128ba892ac30445249ac895daea4dcef40aefc8894a99c970`, ledger 4846683, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 170.3711163 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GDY2OKTWQNRJWOCLD2WPDJHKZCPZFMPHRKGOS2FEZGHXDJNGCAPDFTRH until ledger 4847182, replacing any current allowance
+   - check 0: **event-match**
+16. tx `32d530982320cebb4a4cb3054f14c29432f021286a1e7f1c28fb7d990ee780f7`, ledger 4861779, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 163.8232667 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GA7SM64U5JA56A6UA3UF6T4WTOJIOFDNK7UTFHWSZNJRLGXECYZWVNLM until ledger 4862278, replacing any current allowance
+   - check 0: **event-match**
+17. tx `f1e6e9f51686a47869d30b3bc3de81fc44d58621e407a63b0a797a8932921842`, ledger 4861781, SUCCESS, operation 0, entry 0 (source_account), decoded in: default and with event assets
+   - Transfer 1.2800000 native from GCVVDPD4M4YOAXEKXJ6YQLPFO43F5MEMSG3J7FOVRBWSMYT7KT7QDHOS to CDAM4O427TUPATTJXWYYMFX5UOLPTQXOLWGOB6DAH6I3EDS4RPUGR3JL
+   - check 0: **event-match**
+18. tx `fb54320a85ba83625253e1d0f3a05fc1af243a981aa1ef978b33aa15b4a363b4`, ledger 4861782, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 170.4765701 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GDY2OKTWQNRJWOCLD2WPDJHKZCPZFMPHRKGOS2FEZGHXDJNGCAPDFTRH until ledger 4862280, replacing any current allowance
+   - check 0: **event-match**
+19. tx `99e6f58cde8010b41f84cf568fe807d95e0f5a0ac694b219f85e6ad3049675b6`, ledger 4861783, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 168.7435864 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GDY2OKTWQNRJWOCLD2WPDJHKZCPZFMPHRKGOS2FEZGHXDJNGCAPDFTRH until ledger 4862280, replacing any current allowance
+   - check 0: **event-match**
+20. tx `447629749b21c93041bab0753e405fda6be68f30135fb6764eed28d8e5350310`, ledger 4861786, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 353.8400389 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GCQABHYY5ECUUPKRTV4747MNVEDW3LOCL4YNUAWZCXG67URAG4UQNIXG until ledger 4862284, replacing any current allowance
+   - check 0: **event-match**
+21. tx `f9156a18575578fd5649898c1b0f322971d915659759960c34ff399026fbaf63`, ledger 4861787, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 312.8606261 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GCQABHYY5ECUUPKRTV4747MNVEDW3LOCL4YNUAWZCXG67URAG4UQNIXG until ledger 4862284, replacing any current allowance
+   - check 0: **event-match**
+22. tx `c71530683f653e4dd6ab4f8ac7220f8d0a6700be834b16d027399d79a7e5eb7b`, ledger 4861788, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 0.1072518 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GAEHPX4CQOYXAKZHO3P5CYBC67GZKXEA7HITH2GKUWWXCOGDGTIICGGH until ledger 4862287, replacing any current allowance
+   - check 0: **event-match**
+23. tx `2a3061b4a09d6043a54e98b6c7ae9ff483ce510bfe0dc0576397a93d2b567171`, ledger 4876892, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 588.0178472 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GCHCIX4VIKPHWISQDOO4WIKEEQOOSCMAHRLM2KIKJIPMZX5XA6SAKGVL until ledger 4877390, replacing any current allowance
+   - check 0: **event-match**
+24. tx `d9d363636cc54b31298121d515f435bcc2dac81b7fd62a58eb167acab5bcf797`, ledger 4876893, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 585.6793374 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GCHCIX4VIKPHWISQDOO4WIKEEQOOSCMAHRLM2KIKJIPMZX5XA6SAKGVL until ledger 4877390, replacing any current allowance
+   - check 0: **event-match**
+25. tx `87db0ce78551c1f3856877a69f6d74af80d6ade9dec4cc125514c3fdf2846336`, ledger 4876894, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 163.9218236 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GA7SM64U5JA56A6UA3UF6T4WTOJIOFDNK7UTFHWSZNJRLGXECYZWVNLM until ledger 4877393, replacing any current allowance
+   - check 0: **event-match**
+26. tx `ff33a36e6a1fc2f82f3ef667d569c0c0278b51cedf3e3aaf126a45fbaae8359d`, ledger 4876896, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 170.5822929 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GDY2OKTWQNRJWOCLD2WPDJHKZCPZFMPHRKGOS2FEZGHXDJNGCAPDFTRH until ledger 4877395, replacing any current allowance
+   - check 0: **event-match**
+27. tx `57bef0c361ec38aeeb35a13164277602b7111f20b568a4afe999883480bb5802`, ledger 4876897, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 168.8451033 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GDY2OKTWQNRJWOCLD2WPDJHKZCPZFMPHRKGOS2FEZGHXDJNGCAPDFTRH until ledger 4877395, replacing any current allowance
+   - check 0: **event-match**
+28. tx `8b6449947e55da1595106942fcb9e7ceae9f1031a75c8775e414785ee6478d79`, ledger 4891993, SUCCESS, operation 0, entry 0 (source_account), decoded in: default and with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 1171.5530451 native from GAX7NEYJRJZUC5HKANPR74HGKRAUO6YQRSGGKZMBLHRGNLERT4ATNN7W until ledger 4892491, replacing any current allowance
+   - check 0: **event-match**
+29. tx `5fdac4d594d000aff46cf2f7edde59c2d2e018815c31b99feb91e8d4dca17354`, ledger 4892003, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 588.3822888 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GCHCIX4VIKPHWISQDOO4WIKEEQOOSCMAHRLM2KIKJIPMZX5XA6SAKGVL until ledger 4892502, replacing any current allowance
+   - check 0: **event-match**
+30. tx `570693ba593008d1a714f6ad6f32a0832b51abdf47f5a272bd6a8192e7d2c6bf`, ledger 4892004, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 586.0314032 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GCHCIX4VIKPHWISQDOO4WIKEEQOOSCMAHRLM2KIKJIPMZX5XA6SAKGVL until ledger 4892502, replacing any current allowance
+   - check 0: **event-match**
+31. tx `15fc4b66ce6f340ee8f4a08c1f28f62f84c4e7b580278628cb4d019cd24198b1`, ledger 4892005, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 164.0203544 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GA7SM64U5JA56A6UA3UF6T4WTOJIOFDNK7UTFHWSZNJRLGXECYZWVNLM until ledger 4892504, replacing any current allowance
+   - check 0: **event-match**
+32. tx `b4df81de240033f74204f3f72308c48d2e04c713a7027c9c2e0e22bc02cc3c76`, ledger 4907103, SUCCESS, operation 0, entry 0 (source_account), decoded in: default and with event assets
+   - Transfer 1.9300000 native from GCN4RB7H6L45V7ITINOGAEU6Q2XXQVEHCFBNWAVL5FIEJTSNESO5WDOJ to CCNOOPL3BI5GX6IPHE66T22CIXDGXBFJ5HAQMEK2L2S3EJLHPR2FXFMZ
+   - check 0: **event-match**
+33. tx `eb7e2ec350d47f1792525f85752d4a14e4a294b95ddf543e65dfc9d076a30056`, ledger 4907107, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 588.7465132 USDC:GATALTGTWIOT6BUDBCZM3Q4OQ4BO2COLOAZ7IYSKPLC2PMSOPPGF5V56 from GCHCIX4VIKPHWISQDOO4WIKEEQOOSCMAHRLM2KIKJIPMZX5XA6SAKGVL until ledger 4907605, replacing any current allowance
+   - check 0: **event-match**
+34. tx `c6b33ccc43b3c6abd399d8d3982994c033c404adb54ab666320bb70fa573517b`, ledger 4907108, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 586.3832594 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GCHCIX4VIKPHWISQDOO4WIKEEQOOSCMAHRLM2KIKJIPMZX5XA6SAKGVL until ledger 4907605, replacing any current allowance
+   - check 0: **event-match**
+35. tx `ba8ad9c50c8c81abed992971459f202b931cfd1de3b0efc4fbcd4c3ab2f67832`, ledger 4907109, SUCCESS, operation 0, entry 0 (source_account), decoded in: with event assets
+   - Allow CAZLR6EHZXQNZJIFNP6F7SIJQC3P64MKHHQNZSSG5BNAEFCYTTGTDZXB to spend up to 164.1188396 USDC:GAHPYWLK6YRN7CVYZOO4H3VDRZ7PVF5UJGLZCSPAEIKJE2XSWF5LAGER from GA7SM64U5JA56A6UA3UF6T4WTOJIOFDNK7UTFHWSZNJRLGXECYZWVNLM until ledger 4907608, replacing any current allowance
+   - check 0: **event-match**
+
+## Every decoded action inside an entry that is not decoded
+
+An entry can be opaque or partial as a whole while some of its actions are decoded, typically a token
+transfer or approval beneath an application call this library does not interpret. Each of these is shown
+to a user as decoded, so each is listed with its check. Path is the action's position in the call tree.
+
+1. tx `95ff8406d0fecc756a2301fc502ce51b7874f448bc62881f95cece4b08431b37`, ledger 4801351, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GCEYWSY5EVGUL4TZ46ZGOMAYYERFYGSOHNKNK4UE36EPVDU3EZ4LAWE7 to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+2. tx `2ae0290a901a9d5a14e4d5aaa098d28a6b7f4dd25f921bae4562b85961a4e7f1`, ledger 4801351, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 16880.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+3. tx `a20a9975a96b7b7ce75d07c0c793a50a811ba3db932a760346c68cd5222f455a`, ledger 4801352, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 1156.9192000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+4. tx `b494dd373fb58e6095f67d3a136756cf7ad3e873442f62d12571defc2e1533e6`, ledger 4801352, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 2.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CA32VKK3KIORLTYHHZB4HEMCCEUVP3LEHH6K33TXL7IG7N3RCUMPV7KI until ledger 4801451, replacing any current allowance
+   - check: **event-match**
+5. tx `b494dd373fb58e6095f67d3a136756cf7ad3e873442f62d12571defc2e1533e6`, ledger 4801352, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.1
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 0.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CA32VKK3KIORLTYHHZB4HEMCCEUVP3LEHH6K33TXL7IG7N3RCUMPV7KI until ledger 4801451, replacing any current allowance
+   - check: **event-match**
+6. tx `b494dd373fb58e6095f67d3a136756cf7ad3e873442f62d12571defc2e1533e6`, ledger 4801352, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.2.0
+   - Transfer 14.4424294 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CA32VKK3KIORLTYHHZB4HEMCCEUVP3LEHH6K33TXL7IG7N3RCUMPV7KI to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+7. tx `b494dd373fb58e6095f67d3a136756cf7ad3e873442f62d12571defc2e1533e6`, ledger 4801352, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.3.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CA32VKK3KIORLTYHHZB4HEMCCEUVP3LEHH6K33TXL7IG7N3RCUMPV7KI to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+8. tx `b494dd373fb58e6095f67d3a136756cf7ad3e873442f62d12571defc2e1533e6`, ledger 4801352, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.4.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CA32VKK3KIORLTYHHZB4HEMCCEUVP3LEHH6K33TXL7IG7N3RCUMPV7KI to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+9. tx `f30d6f9e51451642238927e5a3773001c36186bec65b88b9738e60e207b5e78e`, ledger 4801353, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 2804.0815000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+10. tx `aaa8553a055042053af2af6e6e56cc48ce797470c11f5870a928efa98b10f01b`, ledger 4801353, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 30.0000000 native from GBTQA6F4QWMC4IK7L4NO5H57J336NM7UB4GGZEZTGSGKWPX2DYVPBRY6 to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+11. tx `43d03d02dc6a4227f0615113ec43beb9a9b45fc1cfcaadbf30507648f20a0154`, ledger 4801353, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 5.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+12. tx `b532c6c71cbb3b9f43317a0000f0fab430065a16764d7bca3ad3563e01fa5151`, ledger 4801354, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 2015.5784000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+13. tx `b532c6c71cbb3b9f43317a0000f0fab430065a16764d7bca3ad3563e01fa5151`, ledger 4801354, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.1
+   - Transfer 1720.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+14. tx `b371bf61b80f27fa909a9a84624db722dd7d957a848c55accf7b1b79665c2c6b`, ledger 4801355, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 2.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDOYDAPY7RP4H2Z6EW6QKWEEQTSAGQR2BQ3DMTYXZPZ7AGQPDP3UMDFD until ledger 4801454, replacing any current allowance
+   - check: **event-match**
+15. tx `b371bf61b80f27fa909a9a84624db722dd7d957a848c55accf7b1b79665c2c6b`, ledger 4801355, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.1
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 0.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDOYDAPY7RP4H2Z6EW6QKWEEQTSAGQR2BQ3DMTYXZPZ7AGQPDP3UMDFD until ledger 4801454, replacing any current allowance
+   - check: **event-match**
+16. tx `b371bf61b80f27fa909a9a84624db722dd7d957a848c55accf7b1b79665c2c6b`, ledger 4801355, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.2.0
+   - Transfer 14.4384309 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDOYDAPY7RP4H2Z6EW6QKWEEQTSAGQR2BQ3DMTYXZPZ7AGQPDP3UMDFD to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+17. tx `b371bf61b80f27fa909a9a84624db722dd7d957a848c55accf7b1b79665c2c6b`, ledger 4801355, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.3.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDOYDAPY7RP4H2Z6EW6QKWEEQTSAGQR2BQ3DMTYXZPZ7AGQPDP3UMDFD to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+18. tx `b371bf61b80f27fa909a9a84624db722dd7d957a848c55accf7b1b79665c2c6b`, ledger 4801355, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.4.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDOYDAPY7RP4H2Z6EW6QKWEEQTSAGQR2BQ3DMTYXZPZ7AGQPDP3UMDFD to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+19. tx `dd8220935897eb68c51aa94ee29da8a1a7e0566fcd910d37e9f7f2f8880c04e0`, ledger 4801355, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 9200.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+20. tx `8f243d1595b3908b6ed89acbbbcb8145fbcba2359a893db692259ef9915c9aa7`, ledger 4801356, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 16880.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+21. tx `5eda3d3b58c6a5cd834adeadb4934d72351a92aa6fce8c73c21ecf0472699491`, ledger 4801358, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 10.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+22. tx `c67bcab274049a288c7dbef0285be9057dce064abc345b1b38cd64fd3c6662a6`, ledger 4801359, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 1156.1152000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+23. tx `e311aca7ff9ba040497e2f7d968354b7f828d09ccca494dc384b0fc68d96eede`, ledger 4801360, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 2802.1424000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+24. tx `da2e447ab100e68c6e1f5fbc29c44f34ae97962f7848b761c442ab6a0bbc0236`, ledger 4801361, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 2014.1913000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+25. tx `da2e447ab100e68c6e1f5fbc29c44f34ae97962f7848b761c442ab6a0bbc0236`, ledger 4801361, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.1
+   - Transfer 1720.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+26. tx `3ba25d7e2b6bb2aa48ca836235e944e3a79cfd18f5e187c286c26917a9cabc8c`, ledger 4816458, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 490.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+27. tx `60023878e81731e2eb172e72565c351f689f777f9f126eab72139b7f325c9a11`, ledger 4816458, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GCEYWSY5EVGUL4TZ46ZGOMAYYERFYGSOHNKNK4UE36EPVDU3EZ4LAWE7 to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+28. tx `9e408bbcf4000680370d5ce2742a462e62d3998dd549f8ed22c02eb200dce252`, ledger 4816458, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 590.0000000 native from GBTQA6F4QWMC4IK7L4NO5H57J336NM7UB4GGZEZTGSGKWPX2DYVPBRY6 to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+29. tx `96b2fd168dcf280f38fceb39dcdfeb165029a9d2b0cd8c50010b740ee034a65c`, ledger 4816459, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 610.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+30. tx `96db9e56276c06721e9af4780d54d869d180855e10b98c6db31b320116958cd4`, ledger 4816460, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 9200.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+31. tx `7d3ee135e15a8ae2efe128651c01747490fa0c85fb655397a06c305de7a1a4b0`, ledger 4816460, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GCEYWSY5EVGUL4TZ46ZGOMAYYERFYGSOHNKNK4UE36EPVDU3EZ4LAWE7 to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+32. tx `d38ce1c328d4ba438b6210ce2dacd94d0977c07081dc76febb46fa718f7d97d7`, ledger 4816461, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 16880.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+33. tx `4b19bf54611e8394109fc2b1afe18dcb8e7a77bf07e905f87da3a8a1e78371d5`, ledger 4816462, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 5.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+34. tx `2d38b53eb946faecab192f14735fc4ed763a0f9324eea30fa02fb008c1781cdd`, ledger 4816462, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 1.1808237 CETES:GC3CW7EDYRTWQ635VDIGY6S4ZUF5L6TQ7AA4MWS7LEQDBLUSZXV7UPS4 from GBDCULE53LUPK4XHUCXBI35MAZFQHENMZ3JRKAJS2PPYBV646M6XKVHG to CCJQB4EEQLBL7RHIPYMYG26ZT2QRKEYNGVWWL2EPZCECFI6GZGNXMIEX
+   - check: **event-match**
+35. tx `aaa0f1ae8055451d712f92696acc14c8312ed9212698cabeb3e1ec0d94649161`, ledger 4816462, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 10.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+36. tx `1cba0e39a8dcdd736adb2f498dcfd5246080a1e2267022af54a5c0e41704f41d`, ledger 4816463, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 1154.6241000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+37. tx `945cc6c09b6d82c6e849abef6155df642b9e4719d5d43d1bc68661a9d24fd431`, ledger 4816464, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 2.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CCFXJ3XMH6TVT7F2CYDYFR25LFJYFOJUEECY6BBWDK3FTWUSRKY7V5FG until ledger 4816562, replacing any current allowance
+   - check: **event-match**
+38. tx `945cc6c09b6d82c6e849abef6155df642b9e4719d5d43d1bc68661a9d24fd431`, ledger 4816464, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.1
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 0.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CCFXJ3XMH6TVT7F2CYDYFR25LFJYFOJUEECY6BBWDK3FTWUSRKY7V5FG until ledger 4816562, replacing any current allowance
+   - check: **event-match**
+39. tx `945cc6c09b6d82c6e849abef6155df642b9e4719d5d43d1bc68661a9d24fd431`, ledger 4816464, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.2.0
+   - Transfer 13.6495084 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CCFXJ3XMH6TVT7F2CYDYFR25LFJYFOJUEECY6BBWDK3FTWUSRKY7V5FG to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+40. tx `945cc6c09b6d82c6e849abef6155df642b9e4719d5d43d1bc68661a9d24fd431`, ledger 4816464, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.3.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CCFXJ3XMH6TVT7F2CYDYFR25LFJYFOJUEECY6BBWDK3FTWUSRKY7V5FG to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+41. tx `945cc6c09b6d82c6e849abef6155df642b9e4719d5d43d1bc68661a9d24fd431`, ledger 4816464, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.4.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CCFXJ3XMH6TVT7F2CYDYFR25LFJYFOJUEECY6BBWDK3FTWUSRKY7V5FG to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+42. tx `f5d6e5627a0bbdf7bd67c257fdf0066955f9fabbdaebfb565620d1e77ba2f16f`, ledger 4816464, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 2798.5069000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+43. tx `5b9c93e65930d00af72520cf7362b0fc0b8a3a165c8ef004cf73967baf8d78d6`, ledger 4816465, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 464.7489000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+44. tx `35c8354ef1c6f01257bc2e2242eb011e90db98ad47c3f7fc21ce6746bcbd728b`, ledger 4816466, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 490.1974000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+45. tx `c6815bd99f743d10a9829e8d347d3e4905ddb34773e1abb243c3176d2667eb41`, ledger 4831565, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 490.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+46. tx `29911d5a9d8a878445a11c10b3e7a3c46e50cf0cf87e138367d1c361713ac38a`, ledger 4831566, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0.0
+   - Transfer 6.2176048 W1USDC:GDNFXYCVMCTVWWYS2SINQ5CHWONFVD3DX4TV5PV3SGJ7TWHR5RFPSMOQ from CDCFNKTVOWTHZ5DSG6F3LIEAU7IKFZVR6CC3HNLEY3ALER6FLAZX5XKB to CCQS6FLWYW2RPIFK2DYBJ7EDGKWVFB5EUZITEPFGVF27QCZC7B6ZFG6U
+   - check: **event-match**
+47. tx `56a29a1f7eaf3e01855bf491e1113f78c38921156d1abdc07c11a8ecd436961f`, ledger 4831566, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 10.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+48. tx `297bde245bc85f71c3887dc8b80425e05ea877faa9e973ae24a806fb78bd7370`, ledger 4831566, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 610.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+49. tx `170a79c8631304f1b8092b0eeb49a1bae2480996c7460c90e136bf3d8f883e33`, ledger 4831566, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 5.0000000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GAIRBRP4ZRHHD2CBWKZYC6VQXSOFSKNB53G6FPMQMTDBUA6WRAMFLV3T to CAOKFG3NUIHZWD2ROULKZEVXJBDOYLQ72OH6JCFVMHG62X2UKQPQY77G
+   - check: **event-match**
+50. tx `55c3b22936fec207d36325718d98454d3d42869ea04567492fe9ae7933c93f4a`, ledger 4831567, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 9200.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+51. tx `7b72c2148a1d9b31436da887381f9b7f47ea575c5034ab7ccbdce8512aa946bb`, ledger 4831567, SUCCESS, operation 0, entry 1 (address, entry is opaque), path 0.0.0
+   - Transfer 5.0747398 W1USDC:GDNFXYCVMCTVWWYS2SINQ5CHWONFVD3DX4TV5PV3SGJ7TWHR5RFPSMOQ from CDCFNKTVOWTHZ5DSG6F3LIEAU7IKFZVR6CC3HNLEY3ALER6FLAZX5XKB to CCQS6FLWYW2RPIFK2DYBJ7EDGKWVFB5EUZITEPFGVF27QCZC7B6ZFG6U
+   - check: **event-match**
+52. tx `7b72c2148a1d9b31436da887381f9b7f47ea575c5034ab7ccbdce8512aa946bb`, ledger 4831567, SUCCESS, operation 0, entry 1 (address, entry is opaque), path 0.1.0
+   - Transfer 6.3643950 W1USDC:GDNFXYCVMCTVWWYS2SINQ5CHWONFVD3DX4TV5PV3SGJ7TWHR5RFPSMOQ from CDCFNKTVOWTHZ5DSG6F3LIEAU7IKFZVR6CC3HNLEY3ALER6FLAZX5XKB to CCQS6FLWYW2RPIFK2DYBJ7EDGKWVFB5EUZITEPFGVF27QCZC7B6ZFG6U
+   - check: **event-match**
+53. tx `b38e98bef5c87d7c938f3b83b1499ae22791ba95368221687f7512a5bca0332a`, ledger 4831567, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GCEYWSY5EVGUL4TZ46ZGOMAYYERFYGSOHNKNK4UE36EPVDU3EZ4LAWE7 to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+54. tx `8d468d4e80c80595ad6b4c9b1f2e509aca24cfca5c1b6fa94188e40c4f445b14`, ledger 4831568, SUCCESS, operation 0, entry 1 (address, entry is opaque), path 0.0
+   - Transfer 6.2176048 W1USDC:GDNFXYCVMCTVWWYS2SINQ5CHWONFVD3DX4TV5PV3SGJ7TWHR5RFPSMOQ from CDCFNKTVOWTHZ5DSG6F3LIEAU7IKFZVR6CC3HNLEY3ALER6FLAZX5XKB to CCQS6FLWYW2RPIFK2DYBJ7EDGKWVFB5EUZITEPFGVF27QCZC7B6ZFG6U
+   - check: **event-match**
+55. tx `bea965a059eed1bd7caa29379601cb5a0bf376c42d389fa60696406ad95f8af1`, ledger 4831568, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 16880.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+56. tx `38f7b08ef19c3d334efe6bdea22d8c3e3cc80b55eede61024f55ba3a15e1fa5f`, ledger 4831568, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+57. tx `fb1d086894f440a3023219b0861460add79b1c53392c8fd7c8929159cc81413f`, ledger 4831569, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GCEYWSY5EVGUL4TZ46ZGOMAYYERFYGSOHNKNK4UE36EPVDU3EZ4LAWE7 to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+58. tx `dde332eb28685201eed3500a80292bc7cc7394afcdaebeeb485f3e9656b84d4c`, ledger 4831569, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 1085.6891000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+59. tx `f8c7feac00b6383ab4c628b8cfa54d4d94948744648c0176d35d5d86a5e229a9`, ledger 4831570, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 2631.4317000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+60. tx `bbddbf94beab8d532c828cf8b90b954e032db9b0de98baf55aef352825f54afc`, ledger 4831570, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 3.0000000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GAIRBRP4ZRHHD2CBWKZYC6VQXSOFSKNB53G6FPMQMTDBUA6WRAMFLV3T to CAOKFG3NUIHZWD2ROULKZEVXJBDOYLQ72OH6JCFVMHG62X2UKQPQY77G
+   - check: **event-match**
+61. tx `097f1249ed3a151fc8ea66e9c90902c7b6e70874d9248fec9a28011607c1a5e1`, ledger 4831571, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GCEYWSY5EVGUL4TZ46ZGOMAYYERFYGSOHNKNK4UE36EPVDU3EZ4LAWE7 to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+62. tx `808d20162296d708fc00e1b3b0325665494f441317d9c2629486a4e065e8ad0e`, ledger 4831571, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 2.0000000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GAIRBRP4ZRHHD2CBWKZYC6VQXSOFSKNB53G6FPMQMTDBUA6WRAMFLV3T to CAOKFG3NUIHZWD2ROULKZEVXJBDOYLQ72OH6JCFVMHG62X2UKQPQY77G
+   - check: **event-match**
+63. tx `441baed670371c3da08f8ed7913bcb2077fee7b814b0f7c11fd24bb3edd7e653`, ledger 4831571, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 1891.5020000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+64. tx `441baed670371c3da08f8ed7913bcb2077fee7b814b0f7c11fd24bb3edd7e653`, ledger 4831571, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.1
+   - Transfer 1720.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+65. tx `a4676c68e8ebee080205ac75d22c30f9da4269b9376d63ff427f328e42fab581`, ledger 4831571, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 54.8613000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GBTQA6F4QWMC4IK7L4NO5H57J336NM7UB4GGZEZTGSGKWPX2DYVPBRY6 to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+66. tx `44b9948e4873c1d47620c6b77feff22a539f73837cd924fc34b916ce06d10cd1`, ledger 4846673, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Transfer 32.4600000 native from GAHRRHJR2TMUZA7DTJOH3ISL6U3UXTLOBVXNKV2WSLRFTRW2GCDGJWOQ to CDAM4O427TUPATTJXWYYMFX5UOLPTQXOLWGOB6DAH6I3EDS4RPUGR3JL
+   - check: **event-match**
+67. tx `92e0d01488ed7d4731a495e3d25e7a3a993a088c2c3678cbb2db83afbb1564f5`, ledger 4846675, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 2.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CAF4JEOURG6IIUUQF73DECFFBUIJUDLROWETD5BPYW2PQE7ERCYQ6TKH until ledger 4846773, replacing any current allowance
+   - check: **event-match**
+68. tx `92e0d01488ed7d4731a495e3d25e7a3a993a088c2c3678cbb2db83afbb1564f5`, ledger 4846675, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.1
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 0.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CAF4JEOURG6IIUUQF73DECFFBUIJUDLROWETD5BPYW2PQE7ERCYQ6TKH until ledger 4846773, replacing any current allowance
+   - check: **event-match**
+69. tx `92e0d01488ed7d4731a495e3d25e7a3a993a088c2c3678cbb2db83afbb1564f5`, ledger 4846675, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.2.0
+   - Transfer 12.0902212 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CAF4JEOURG6IIUUQF73DECFFBUIJUDLROWETD5BPYW2PQE7ERCYQ6TKH to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+70. tx `92e0d01488ed7d4731a495e3d25e7a3a993a088c2c3678cbb2db83afbb1564f5`, ledger 4846675, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.3.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CAF4JEOURG6IIUUQF73DECFFBUIJUDLROWETD5BPYW2PQE7ERCYQ6TKH to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+71. tx `92e0d01488ed7d4731a495e3d25e7a3a993a088c2c3678cbb2db83afbb1564f5`, ledger 4846675, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.4.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CAF4JEOURG6IIUUQF73DECFFBUIJUDLROWETD5BPYW2PQE7ERCYQ6TKH to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+72. tx `1539a08c70eb60fc74b496f6fe1c932b19dd83692f684c0f452bdfc9a250e5db`, ledger 4846677, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 10.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+73. tx `bcfd2387312944a1dd8b3198adad86beb9f3bf8ea407e0f4d325a4dc50e2c2b2`, ledger 4846678, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 1087.3946000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+74. tx `2760531f3956d35d4a785356b4522ab2a5981aae5982f16cee64a3971191119b`, ledger 4846679, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 2635.5876000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+75. tx `d5e538cc0c60f8c0287cc6150373980b766dbd9bcdca4e63deed4c11f9225393`, ledger 4846680, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 437.6890000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+76. tx `27015d4f4e4c3db0c96383e41cef5f1778028b9d51ae50f3a1ec87d4588a51ed`, ledger 4846681, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 461.6640000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+77. tx `71f3f3c4ab3a38ac55b9093b4b73933f051078d34c02b7d602914237ac381356`, ledger 4846682, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 485.5909000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+78. tx `2fe00716c93028aafa3f07067a55709e91590116cbbcdf3417c38428f571766d`, ledger 4846682, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 10.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+79. tx `1dbca238e12fbf2232022db73ecbd47d1dacdf2d0182ee13d75c6cf9b3ce9ff9`, ledger 4861781, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 400.0000000 native from GDSERIC5BA5KJIDF6LWSHKU7ZBX3GJLGPNEYK7AISBW7FOKPXVTJF6VH to CBZQHFNKDUUFKHRU5UD37GJMB3R2IQCRLB2GATTPWIQ34DUNMAXIDL6Z
+   - check: **event-match**
+80. tx `b1005bd0c4c6c8bb996c623407b8d9840967a5ed574cff55ea34d4e9bfb68eb8`, ledger 4861785, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 11.0080000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GBTQA6F4QWMC4IK7L4NO5H57J336NM7UB4GGZEZTGSGKWPX2DYVPBRY6 to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+81. tx `9cfe97d9f9ac018c830200eff990aad5b54ce26627d1c84f7510b6aefec7d388`, ledger 4861789, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 100.0000000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GCMKRSMTN3MGTLM5MNMXXFNFJYBQLRATLJCX6LG6V6AI7IRNDEDKOX5Z to CAJEK3ONB4B2WNUKVR5XUPDMMCQXNTIYVZA3CNCHSPXQB45NOWWGTIHX
+   - check: **event-match**
+82. tx `5c04f8457e9e97d2a235516e1b069820c571794773356e6f690fadf6b142ecf3`, ledger 4861790, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 10.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+83. tx `fdfa016724ef0894cbe4110223a102e7bd9f5dfcb5c7fc53cb8b21e384cb402c`, ledger 4876887, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 10.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+84. tx `273bc613cd7b2d3a7dfb48835e6ae6c7c532f944f3608e618ed9291419f92a72`, ledger 4876888, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+85. tx `b4d63c88f640dee724031fee933bfabf4c0ca7aeadba761ec8a07f690e165173`, ledger 4876888, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 2.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CAA3YWW3XGG3ATDAD2E7P4ACLV73LZHTM7JPBD6EGSWFFB5GNGVNCJHX until ledger 4876987, replacing any current allowance
+   - check: **event-match**
+86. tx `b4d63c88f640dee724031fee933bfabf4c0ca7aeadba761ec8a07f690e165173`, ledger 4876888, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.1
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 0.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CAA3YWW3XGG3ATDAD2E7P4ACLV73LZHTM7JPBD6EGSWFFB5GNGVNCJHX until ledger 4876987, replacing any current allowance
+   - check: **event-match**
+87. tx `b4d63c88f640dee724031fee933bfabf4c0ca7aeadba761ec8a07f690e165173`, ledger 4876888, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.2.0
+   - Transfer 14.6925245 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CAA3YWW3XGG3ATDAD2E7P4ACLV73LZHTM7JPBD6EGSWFFB5GNGVNCJHX to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+88. tx `b4d63c88f640dee724031fee933bfabf4c0ca7aeadba761ec8a07f690e165173`, ledger 4876888, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.3.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CAA3YWW3XGG3ATDAD2E7P4ACLV73LZHTM7JPBD6EGSWFFB5GNGVNCJHX to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+89. tx `b4d63c88f640dee724031fee933bfabf4c0ca7aeadba761ec8a07f690e165173`, ledger 4876888, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.4.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CAA3YWW3XGG3ATDAD2E7P4ACLV73LZHTM7JPBD6EGSWFFB5GNGVNCJHX to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+90. tx `e75f9ecf699c9d5190f41a144de304e1d2a3fb502d35af39aee2547b1eb4c2da`, ledger 4876889, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 5.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+91. tx `a8a0fa7502a7b34b99cc825fbee95ede8887cd15aedbd35c18ff45e304332316`, ledger 4876889, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 241.5034000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+92. tx `a8a0fa7502a7b34b99cc825fbee95ede8887cd15aedbd35c18ff45e304332316`, ledger 4876889, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.1
+   - Transfer 1110.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+93. tx `c3df2d3d0b315a9b2ad1d0f658160cda7957beaa030fa3b7b22066bf802d8820`, ledger 4876891, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 17.4312000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GBTQA6F4QWMC4IK7L4NO5H57J336NM7UB4GGZEZTGSGKWPX2DYVPBRY6 to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+94. tx `aa27f7d9a30da3baaf78dde16c290575e1fa9fecb07360b7175a3de81ca90650`, ledger 4876892, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Transfer 0.8900000 native from GCJWO3JMR3SDLT6367KJ7OJJ3KK2CH4KJBHJG66C2OTGH52CKPUSZRN4 to CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO
+   - check: **event-match**
+95. tx `89bda81aa114b5a3e59e1b1a56f8320550bed33a8cc6ed58729be7cc3133aca5`, ledger 4876895, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 250.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+96. tx `1d168d32b196b533515bddfdba15e059534098c80e20808176af41d93d872b19`, ledger 4876898, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 2.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDYGDYONVV267GYJVACACD2VGAWDGOMEXKM7VMMZF7AKEPOM5GHOQQSE until ledger 4876996, replacing any current allowance
+   - check: **event-match**
+97. tx `1d168d32b196b533515bddfdba15e059534098c80e20808176af41d93d872b19`, ledger 4876898, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.1
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 0.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDYGDYONVV267GYJVACACD2VGAWDGOMEXKM7VMMZF7AKEPOM5GHOQQSE until ledger 4876996, replacing any current allowance
+   - check: **event-match**
+98. tx `1d168d32b196b533515bddfdba15e059534098c80e20808176af41d93d872b19`, ledger 4876898, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.2.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDYGDYONVV267GYJVACACD2VGAWDGOMEXKM7VMMZF7AKEPOM5GHOQQSE to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+99. tx `3a2cf037a4fd91d65a9480b755d75a75a05e6273cf143a6a383e35fd3554e2bd`, ledger 4891994, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Transfer 0.5500000 native from GCVVDPD4M4YOAXEKXJ6YQLPFO43F5MEMSG3J7FOVRBWSMYT7KT7QDHOS to CDAM4O427TUPATTJXWYYMFX5UOLPTQXOLWGOB6DAH6I3EDS4RPUGR3JL
+   - check: **event-match**
+100. tx `c4a7d4ce584242b2232588d95857531d18db694905311362c398c77576f7b231`, ledger 4891994, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 134.7507000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GBTQA6F4QWMC4IK7L4NO5H57J336NM7UB4GGZEZTGSGKWPX2DYVPBRY6 to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+101. tx `6118db5c5313bdd5cd5e734be59bb94ad2f4af3c8e753c93af41eb6e122a35cc`, ledger 4891995, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 2.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC4D6LEJQPXIRNQ5YLJX3M2TGI3EYAKZ24J7WP5C3VGJDHE3GDHQI72R until ledger 4892093, replacing any current allowance
+   - check: **event-match**
+102. tx `6118db5c5313bdd5cd5e734be59bb94ad2f4af3c8e753c93af41eb6e122a35cc`, ledger 4891995, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.1
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 0.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC4D6LEJQPXIRNQ5YLJX3M2TGI3EYAKZ24J7WP5C3VGJDHE3GDHQI72R until ledger 4892093, replacing any current allowance
+   - check: **event-match**
+103. tx `6118db5c5313bdd5cd5e734be59bb94ad2f4af3c8e753c93af41eb6e122a35cc`, ledger 4891995, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.2.0
+   - Transfer 6.6766667 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC4D6LEJQPXIRNQ5YLJX3M2TGI3EYAKZ24J7WP5C3VGJDHE3GDHQI72R to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+104. tx `661ce579045ad64cbd638b8508aecf277397c263a3535115e14fefb3e8c9590b`, ledger 4891996, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 2.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC4D6LEJQPXIRNQ5YLJX3M2TGI3EYAKZ24J7WP5C3VGJDHE3GDHQI72R until ledger 4892095, replacing any current allowance
+   - check: **event-match**
+105. tx `661ce579045ad64cbd638b8508aecf277397c263a3535115e14fefb3e8c9590b`, ledger 4891996, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.1
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 0.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC4D6LEJQPXIRNQ5YLJX3M2TGI3EYAKZ24J7WP5C3VGJDHE3GDHQI72R until ledger 4892095, replacing any current allowance
+   - check: **event-match**
+106. tx `661ce579045ad64cbd638b8508aecf277397c263a3535115e14fefb3e8c9590b`, ledger 4891996, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.2.0
+   - Transfer 6.6766667 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC4D6LEJQPXIRNQ5YLJX3M2TGI3EYAKZ24J7WP5C3VGJDHE3GDHQI72R to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+107. tx `b5ff604bce3bf075a1db10c3724f5fb57d76cfc6db9c9ccbff5049bc36654863`, ledger 4891997, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 2.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC4D6LEJQPXIRNQ5YLJX3M2TGI3EYAKZ24J7WP5C3VGJDHE3GDHQI72R until ledger 4892096, replacing any current allowance
+   - check: **event-match**
+108. tx `b5ff604bce3bf075a1db10c3724f5fb57d76cfc6db9c9ccbff5049bc36654863`, ledger 4891997, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.1
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 0.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC4D6LEJQPXIRNQ5YLJX3M2TGI3EYAKZ24J7WP5C3VGJDHE3GDHQI72R until ledger 4892096, replacing any current allowance
+   - check: **event-match**
+109. tx `b5ff604bce3bf075a1db10c3724f5fb57d76cfc6db9c9ccbff5049bc36654863`, ledger 4891997, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.2.0
+   - Transfer 6.6766667 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC4D6LEJQPXIRNQ5YLJX3M2TGI3EYAKZ24J7WP5C3VGJDHE3GDHQI72R to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+110. tx `64a8bdac18506ea5bb74c2814c6ab60e91e1b1d6d665e026c8ff98fcb06eb381`, ledger 4892000, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 10.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+111. tx `d9bb1e5f7af3c0dd26a534a4340390fcc4863189e04b9afbafa92f497356d302`, ledger 4892000, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 250.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+112. tx `770f9d585cc3fd92eae3e186438cd294795fe8b7d2df4bf5c375b08d3a85985e`, ledger 4892001, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+113. tx `e971c35e4d2af9fe83418e16e93920c4bf2acf64ad5059f73d6b4a65ccab9645`, ledger 4892002, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 5.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+114. tx `cd39faeabc0f6ddbaa6290ac69c7921acec7bf73abdcb9265565c99e2945b520`, ledger 4892005, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 2.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC7ZREQNIHZSJ2TZVDDJEJFKU3Q5BEFWIRIPM7VCIXZAANECNKQ5SCEB until ledger 4892104, replacing any current allowance
+   - check: **event-match**
+115. tx `cd39faeabc0f6ddbaa6290ac69c7921acec7bf73abdcb9265565c99e2945b520`, ledger 4892005, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.1
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 0.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC7ZREQNIHZSJ2TZVDDJEJFKU3Q5BEFWIRIPM7VCIXZAANECNKQ5SCEB until ledger 4892104, replacing any current allowance
+   - check: **event-match**
+116. tx `cd39faeabc0f6ddbaa6290ac69c7921acec7bf73abdcb9265565c99e2945b520`, ledger 4892005, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.2.0
+   - Transfer 14.5841157 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC7ZREQNIHZSJ2TZVDDJEJFKU3Q5BEFWIRIPM7VCIXZAANECNKQ5SCEB to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+117. tx `cd39faeabc0f6ddbaa6290ac69c7921acec7bf73abdcb9265565c99e2945b520`, ledger 4892005, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.3.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC7ZREQNIHZSJ2TZVDDJEJFKU3Q5BEFWIRIPM7VCIXZAANECNKQ5SCEB to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+118. tx `cd39faeabc0f6ddbaa6290ac69c7921acec7bf73abdcb9265565c99e2945b520`, ledger 4892005, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.4.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CC7ZREQNIHZSJ2TZVDDJEJFKU3Q5BEFWIRIPM7VCIXZAANECNKQ5SCEB to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+119. tx `9b237971020126753ca7c87a1e15a50dfbfddfbc3e1feb473df131167d67e92f`, ledger 4907100, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 250.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+120. tx `ed87a87fbb275477de943cec9d0b68bbecb147d3665d1ba4ae5192b8514348e9`, ledger 4907102, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.0
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 2.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDDAPTAHDQ24FFI6QHIQ45RAMJBML3XJQCBKP7NXPS6YUXAQ2PUVT3UC until ledger 4907200, replacing any current allowance
+   - check: **event-match**
+121. tx `ed87a87fbb275477de943cec9d0b68bbecb147d3665d1ba4ae5192b8514348e9`, ledger 4907102, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.1
+   - Allow CA6F5E42TCRGPMDXU33WGMXAADPNEKOIZETAWSKYKAWNHESQQ2MTLSCC to spend up to 0.0000000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDDAPTAHDQ24FFI6QHIQ45RAMJBML3XJQCBKP7NXPS6YUXAQ2PUVT3UC until ledger 4907200, replacing any current allowance
+   - check: **event-match**
+122. tx `ed87a87fbb275477de943cec9d0b68bbecb147d3665d1ba4ae5192b8514348e9`, ledger 4907102, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.2.0
+   - Transfer 16.3980065 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDDAPTAHDQ24FFI6QHIQ45RAMJBML3XJQCBKP7NXPS6YUXAQ2PUVT3UC to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+123. tx `ed87a87fbb275477de943cec9d0b68bbecb147d3665d1ba4ae5192b8514348e9`, ledger 4907102, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.3.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDDAPTAHDQ24FFI6QHIQ45RAMJBML3XJQCBKP7NXPS6YUXAQ2PUVT3UC to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+124. tx `ed87a87fbb275477de943cec9d0b68bbecb147d3665d1ba4ae5192b8514348e9`, ledger 4907102, SUCCESS, operation 0, entry 0 (address, entry is opaque), path 0.4.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from CDDAPTAHDQ24FFI6QHIQ45RAMJBML3XJQCBKP7NXPS6YUXAQ2PUVT3UC to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+125. tx `c9fd7176710a76cba495b59058e61db283682dee7c37db1a20ff104c1f398324`, ledger 4907102, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 10.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+126. tx `85c44257f51661987268153ac0febc4c3682b01d8350e66b753d57b326013507`, ledger 4907103, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 0.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+127. tx `2326a0a3521346503ae65f24325e06eb984c7ad0c14a846c7030da5a87f85fcb`, ledger 4907104, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 5.0100000 USDC:GCLSQU55UGBZQITOD4JFGEMIFAAUZSHZ6V2BK7BQNZ2F76V5KNXLOUGC from GDNEIKEOJWX4HK7X2UHEJISG5662DVNDVE7D5KHIMBL462UEFOWE5NNL to CB25X5ISYYR5MDGQPWUOMSFAW27MAZWZN34A32J22I4TBCBXV3YEPSAY
+   - check: **event-match**
+128. tx `e3966305fc6b3fa251ff9905c2b9dd6bd79c94d8366a7ad22d8107461dfd9f6a`, ledger 4907106, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 10.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+129. tx `1cb329d0f04ab81efe1950f8902b727631a56eed99d03c428a9f75e7334471ff`, ledger 4907107, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 1166.8157000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+130. tx `b4477582be0031ef84eb8a0486cf4f190a70eb625ee0481b28c5e424b2968061`, ledger 4907108, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 2879.5756000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+131. tx `8f285da0e39c0a99f4008a2453f7b7234a97dc2b6add3c552cca671b613d634d`, ledger 4907109, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 1563.1719000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+132. tx `8f285da0e39c0a99f4008a2453f7b7234a97dc2b6add3c552cca671b613d634d`, ledger 4907109, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.1
+   - Transfer 2450.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+133. tx `a0d706812388148e17a6c27068e6652c35d7b0d5a9bd99c5de8192ac9d651a2c`, ledger 4907110, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 600.0000000 native from GBTQA6F4QWMC4IK7L4NO5H57J336NM7UB4GGZEZTGSGKWPX2DYVPBRY6 to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+134. tx `8a9d6fb5b2b4015493a76de6933acd358ce0a2262f74136917ecbf218fab2c53`, ledger 4907110, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 10160.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+135. tx `b2586739c70279833f6a0e2492524365247f0efee21a459cc4c85e01b1ea64c2`, ledger 4907111, SUCCESS, operation 0, entry 0 (source_account, entry is opaque), path 0.0
+   - Transfer 15190.0000000 native from GDBXA45UBW2O3UH2RJOCOBXRGEMIP5745RQRINZZ2WHKECHHKKUWDOBH to CAYPAQDKNWMHRATKU5DQ327VDHVRSIVK7UGVWT2A5SUZCUFTLUHXH2JA
+   - check: **event-match**
+
+## Limits of this evidence
+
+- It is testnet, sampled over eight windows of one retention range; public-network traffic may differ.
+- The checks show that each decoded rendering matches what the host did or stored for that transaction.
+  They do not show the tool is correct on entries outside this sample.
+- The library is unaudited.
