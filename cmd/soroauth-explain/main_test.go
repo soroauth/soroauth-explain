@@ -543,3 +543,19 @@ func TestFishCompletionBehaviour(t *testing.T) {
 		})
 	}
 }
+
+// TestReadmeUsage: the README's CLI synopsis is the usage text's synopsis.
+func TestReadmeUsage(t *testing.T) {
+	readme, err := os.ReadFile("../../README.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	synopsis := strings.SplitN(strings.TrimPrefix(usageText, "usage:\n"), "\n\n", 2)[0]
+	var want []string
+	for _, l := range strings.Split(synopsis, "\n") {
+		want = append(want, strings.TrimPrefix(l, "  "))
+	}
+	if !strings.Contains(string(readme), "```text\n"+strings.Join(want, "\n")+"\n```") {
+		t.Fatalf("README does not contain the CLI synopsis:\n%s", strings.Join(want, "\n"))
+	}
+}
