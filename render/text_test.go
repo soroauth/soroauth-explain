@@ -92,12 +92,21 @@ Not determined:
 }
 
 func TestTextSourceAccount(t *testing.T) {
-	got := Text(explain.Explanation{CredentialType: "source_account", Confidence: explain.ConfidenceDecoded, Actions: []explain.Action{}})
-	want := "Authorization entry: source-account credentials [decoded]\n" +
-		"The transaction's source account authorizes this entry through the envelope signature.\n" +
-		"The entry carries no address, nonce, expiration or signature of its own.\n"
-	if got != want {
-		t.Fatalf("got\n%s\nwant\n%s", got, want)
+	exp := sample()
+	exp.CredentialType = "source_account"
+	exp.Subject, exp.AddressBound, exp.Nonce, exp.ValidUntilLedger, exp.Delegates = "", false, 0, 0, nil
+	got := Text(exp)
+	wantHead := "Authorization entry: source_account credentials, authenticated by the transaction's envelope signature [opaque]\n" +
+		"  The entry carries no address, nonce, expiration or signature of its own.\n" +
+		"\nAuthorizes:\n" +
+		"  [opaque] Deploy the Stellar Asset Contract for native (stellar_asset)\n"
+	if !strings.HasPrefix(got, wantHead) {
+		t.Fatalf("got\n%s\nwant prefix\n%s", got, wantHead)
+	}
+	for _, s := range []string{"do_thing", "Not determined:", "first reason"} {
+		if !strings.Contains(got, s) {
+			t.Errorf("source-account rendering omits %q", s)
+		}
 	}
 }
 

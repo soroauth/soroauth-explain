@@ -38,17 +38,17 @@ func tag(c explain.Confidence) string {
 
 func writeExplanation(b *strings.Builder, exp explain.Explanation) {
 	if exp.CredentialType == soroauth.CredentialTypeSourceAccount {
-		b.WriteString("Authorization entry: source-account credentials " + tag(exp.Confidence) + "\n")
-		b.WriteString("The transaction's source account authorizes this entry through the envelope signature.\n")
-		b.WriteString("The entry carries no address, nonce, expiration or signature of its own.\n")
-		return
+		// Who authorizes differs; what is authorized is rendered below
+		// exactly as for any other entry.
+		b.WriteString("Authorization entry: source_account credentials, authenticated by the transaction's envelope signature " + tag(exp.Confidence) + "\n")
+		b.WriteString("  The entry carries no address, nonce, expiration or signature of its own.\n")
+	} else {
+		b.WriteString("Authorization entry: " + exp.CredentialType + " credentials for " + exp.Subject + " " + tag(exp.Confidence) + "\n")
+		b.WriteString("  nonce:              " + strconv.FormatInt(exp.Nonce, 10) + "\n")
+		b.WriteString("  valid until ledger: " + strconv.FormatUint(uint64(exp.ValidUntilLedger), 10) + "\n")
+		b.WriteString("  address-bound:      " + yesNo(exp.AddressBound) + "\n")
+		b.WriteString("  signed:             " + yesNo(exp.Signed) + "\n")
 	}
-
-	b.WriteString("Authorization entry: " + exp.CredentialType + " credentials for " + exp.Subject + " " + tag(exp.Confidence) + "\n")
-	b.WriteString("  nonce:              " + strconv.FormatInt(exp.Nonce, 10) + "\n")
-	b.WriteString("  valid until ledger: " + strconv.FormatUint(uint64(exp.ValidUntilLedger), 10) + "\n")
-	b.WriteString("  address-bound:      " + yesNo(exp.AddressBound) + "\n")
-	b.WriteString("  signed:             " + yesNo(exp.Signed) + "\n")
 
 	b.WriteString("\nAuthorizes:\n")
 	for i := range exp.Actions {

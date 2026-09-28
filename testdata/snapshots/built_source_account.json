@@ -1,7 +1,35 @@
 {
-  "actions": [],
+  "actions": [
+    {
+      "confidence": "opaque",
+      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "do_thing"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arguments",
+          "value": "0"
+        }
+      ],
+      "function": "do_thing",
+      "kind": "invoke_contract",
+      "summary": "Call do_thing on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments"
+    }
+  ],
   "address_bound": false,
-  "confidence": "decoded",
+  "confidence": "opaque",
   "credential_type": "source_account",
-  "signed": false
+  "signed": false,
+  "unexplained": [
+    "The function do_thing on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments."
+  ]
 }

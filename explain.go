@@ -68,9 +68,11 @@ func WithMaxNodes(n int) Option {
 // error is returned wrapped.
 //
 // A source-account entry carries no address, nonce or signature of its own:
-// the transaction's source account authorizes it through the envelope
-// signature. Its Explanation says exactly that, with no actions, and is
-// decoded, because that much is fully understood.
+// the transaction's source account authenticates it through the envelope
+// signature. That changes who authorizes, not what: its invocation tree is
+// explained exactly like any other entry's, and its confidence is the floor
+// across those actions. Leaving the tree out would show a reader an entry
+// with nothing in it, while it authorizes calls they were never shown.
 func Explain(entry xdr.SorobanAuthorizationEntry, opts ...Option) (Explanation, error) {
 	o := options{maxDepth: DefaultMaxDepth, maxNodes: DefaultMaxNodes}
 	for _, opt := range opts {
@@ -101,10 +103,6 @@ func Explain(entry xdr.SorobanAuthorizationEntry, opts ...Option) (Explanation, 
 		Signed:           info.TopLevelSigned,
 		Actions:          []Action{},
 	}
-	if info.CredentialType == soroauth.CredentialTypeSourceAccount {
-		return exp, nil
-	}
-
 	w := newWalker(o.maxDepth, o.maxNodes)
 	root, notes, err := w.explainInvocation(entry.RootInvocation, 1, o)
 	if err != nil {

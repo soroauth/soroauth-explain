@@ -1,3 +1,11 @@
-Authorization entry: source-account credentials [decoded]
-The transaction's source account authorizes this entry through the envelope signature.
-The entry carries no address, nonce, expiration or signature of its own.
+Authorization entry: source_account credentials, authenticated by the transaction's envelope signature [opaque]
+  The entry carries no address, nonce, expiration or signature of its own.
+
+Authorizes:
+  [opaque] Call do_thing on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 0 arguments
+      contract  = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+      function  = do_thing [decoded]
+      arguments = 0 [decoded]
+
+Not determined:
+  - The function do_thing on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; the call passes no arguments.

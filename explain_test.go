@@ -175,13 +175,24 @@ func explainChecked(t testing.TB, entry xdr.SorobanAuthorizationEntry, opts ...O
 	return exp
 }
 
+// TestExplainSourceAccount: the arm changes who authorizes, not what. The
+// invocation tree is explained and floors the confidence like any other
+// entry's; an opaque call makes a source-account entry opaque.
 func TestExplainSourceAccount(t *testing.T) {
-	exp := explainChecked(t, sourceAccountEntry(callInvocation(contractAddress(testContractKey), "do_thing", nil)))
-	if exp.Confidence != ConfidenceDecoded || exp.CredentialType != soroauth.CredentialTypeSourceAccount {
-		t.Fatalf("got %+v", exp)
+	opaque := explainChecked(t, sourceAccountEntry(callInvocation(contractAddress(testContractKey), "do_thing", nil)))
+	if opaque.CredentialType != soroauth.CredentialTypeSourceAccount || opaque.Subject != "" || opaque.Signed || opaque.Nonce != 0 {
+		t.Fatalf("structure = %+v", opaque)
 	}
-	if exp.Subject != "" || exp.Signed || exp.Nonce != 0 || len(exp.Actions) != 0 || exp.Actions == nil {
-		t.Fatalf("source-account explanation carries fields it has no basis for: %+v", exp)
+	if len(opaque.Actions) != 1 || opaque.Actions[0].Function != "do_thing" {
+		t.Fatalf("the authorized call is not shown: %+v", opaque.Actions)
+	}
+	if opaque.Confidence != ConfidenceOpaque || len(opaque.Unexplained) == 0 {
+		t.Fatalf("confidence = %s, unexplained = %q; want opaque with reasons", opaque.Confidence, opaque.Unexplained)
+	}
+
+	decoded := explainChecked(t, sourceAccountEntry(createInvocation(accountAddress(testAccountKey), nil)))
+	if decoded.Confidence != ConfidenceDecoded || len(decoded.Actions) != 1 || decoded.Actions[0].Kind != ActionCreateContract {
+		t.Fatalf("got %+v", decoded)
 	}
 }
 
