@@ -48,9 +48,10 @@ that does not pass through this library's explanation code:
 
 Two results mean the check could not confirm a rendering, and are counted as checked but not passed in the
 summary. `no-events`: the transaction failed, so the host emitted no events. `not-executed`: the transaction
-succeeded but the contract emitted no event of that kind at all, because an authorization entry states what
-may be called, and a contract can leave an authorized call unmade. Both are listed like every other decoded
-action. An event of the right kind that does not match fails the live test.
+succeeded but the contract emitted no event of that kind for the action's party, because an authorization
+entry states what may be called, and a contract can leave an authorized call unmade (a batch may execute
+some of its participants' calls and not others). Both are listed like every other decoded action. An
+event of the right kind for the same party that does not match fails the live test.
 
 Reproduce with new samples (the networks move, so the numbers will differ):
 

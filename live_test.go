@@ -418,12 +418,13 @@ func checkOne(ctx context.Context, net liveNetwork, a explain.Action, path, stat
 		return c
 	}
 	// An authorization entry says what may be called, not what will be: a
-	// contract can leave an authorized sub-call unmade. If the contract
-	// emitted no event of this kind at all, the call did not run and there is
-	// nothing to compare with. An event of this kind that does not match is a
-	// contradiction.
-	if !emitted(events, a.Contract, topic) {
-		c.Result, c.Detail = "not-executed", fmt.Sprintf("%s emitted no %q event in this transaction; the authorized call did not run", a.Contract, topic)
+	// contract can leave an authorized call unmade, as a batch may for some
+	// of its participants. If the contract emitted no event of this kind for
+	// this action's first party, the call did not run and there is nothing to
+	// compare with. An event of this kind for the same party that does not
+	// match is a contradiction.
+	if !emitted(events, a.Contract, topic, parties[0]) {
+		c.Result, c.Detail = "not-executed", fmt.Sprintf("%s emitted no %q event for %s in this transaction; the authorized call did not run", a.Contract, topic, parties[0])
 		return c
 	}
 	c.Result, c.Detail = "no-matching-event", fmt.Sprintf("no %q event on %s with parties %v and amount %s", topic, a.Contract, parties, amount)
@@ -633,9 +634,9 @@ func createdInstances(t *testing.T, tx rpcTx) map[string]string {
 	return out
 }
 
-// emitted reports whether contract emitted any event whose first topic is
-// the given symbol.
-func emitted(events []xdr.ContractEvent, contract, topic string) bool {
+// emitted reports whether contract emitted an event whose first topic is the
+// given symbol and whose second topic is the given party.
+func emitted(events []xdr.ContractEvent, contract, topic, party string) bool {
 	for _, ev := range events {
 		if ev.ContractId == nil {
 			continue
@@ -649,8 +650,13 @@ func emitted(events []xdr.ContractEvent, contract, topic string) bool {
 		if !ok || len(body.Topics) == 0 {
 			continue
 		}
-		if sym, ok := body.Topics[0].GetSym(); ok && string(sym) == topic {
-			return true
+		if sym, ok := body.Topics[0].GetSym(); !ok || string(sym) != topic || len(body.Topics) < 2 {
+			continue
+		}
+		if addr, ok := body.Topics[1].GetAddress(); ok {
+			if p, err := soroauth.FormatAddress(addr); err == nil && p == party {
+				return true
+			}
 		}
 	}
 	return false
@@ -712,16 +718,23 @@ func TestLiveCheckRegressions(t *testing.T) {
 		// never made that call, so there is no burn event to compare with.
 		{"authorized_burn_not_executed", livePublic, "cc265b25c1b4dda49d69dfa522776de4b7a207dee7d69f6534b713b6808388f8",
 			map[string]string{"0.1": "not-executed"}},
+		// Twelve authorized KALE burns in one batch, six executed. The six
+		// match their events exactly; the other six have no burn event for
+		// their party, although the contract burned for others
+		// (advisory runs 36560088637, 36560298385, 36560504740).
+		{"batch_burns_partly_executed", livePublic, "55ea6c0a7c2ed70f5694bad2709c5b2d73a45f621b0febe9ba0d83112944e90e", nil},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			tx := fetchTx(ctx, t, tc.net, tc.hash)
 			got := map[string]string{}
+			results := map[string]int{}
 			for _, rec := range liveRecords(ctx, t, tc.net, tx) {
 				for _, c := range rec.Checks {
 					if rec.AuthIndex == 0 {
 						got[c.Path] = c.Result
 					}
+					results[c.Result]++
 					t.Logf("auth %d action %s: %s: %s", rec.AuthIndex, c.Path, c.Result, c.Detail)
 					if c.Result == "no-matching-event" || c.Result == "ledger-mismatch" || c.Result == "asset-mismatch" || c.Result == "check-error" {
 						t.Errorf("auth %d action %s: %s", rec.AuthIndex, c.Path, c.Result)
@@ -732,6 +745,9 @@ func TestLiveCheckRegressions(t *testing.T) {
 				if got[path] != want {
 					t.Errorf("action %s: check %q, want %q", path, got[path], want)
 				}
+			}
+			if tc.name == "batch_burns_partly_executed" && (results["event-match"] != 6 || results["not-executed"] != 6) {
+				t.Errorf("results %v, want 6 event-match and 6 not-executed", results)
 			}
 		})
 	}
