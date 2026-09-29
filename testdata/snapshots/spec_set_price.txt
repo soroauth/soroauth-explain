@@ -1,0 +1,14 @@
+Authorization entry: source_account credentials, authenticated by the transaction's envelope signature [partial]
+  The entry carries no address, nonce, expiration or signature of its own.
+
+Authorizes:
+  [partial] Call set_price on CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC with 3 arguments, named by the spec the contract publishes
+      contract      = CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC [decoded]
+      function      = set_price [decoded]
+      arguments     = 3 [decoded]
+      arg[0]:caller = GAEQ5IUNQTW36XMQF6MR2VWKPG3JOF6IKEGAD2JQ6OUNKTUVBAIE5AO3 [decoded]
+      arg[1]:symbol = sym(ETHUSD) [decoded]
+      arg[2]:price  = i128(27803150000) [decoded]
+
+Not determined:
+  - The argument names of set_price on CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC come from the spec the contract publishes. A name says what an argument is called, not what the contract does with it, so the call is not interpreted.

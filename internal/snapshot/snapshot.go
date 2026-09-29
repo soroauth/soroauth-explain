@@ -6,6 +6,7 @@
 package snapshot
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 
 	explain "github.com/soroauth/soroauth-explain"
 	"github.com/soroauth/soroauth-explain/render"
+	"github.com/soroauth/soroauth-explain/spec"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
@@ -30,7 +32,28 @@ type Entry struct {
 	Source            string   `json:"source"`
 	NetworkPassphrase string   `json:"network_passphrase"`
 	Assets            []string `json:"assets,omitempty"` // candidates for explain.WithAssets, as CODE:ISSUER
-	EntryXDR          string   `json:"entry_xdr"`
+	// Specs are contract spec sections (spec.Section), base64, keyed by
+	// contract address, for explain.WithSpecs.
+	Specs      map[string]string `json:"specs,omitempty"`
+	SpecSource string            `json:"spec_source,omitempty"`
+	EntryXDR   string            `json:"entry_xdr"`
+}
+
+// ParseSpecs decodes an entry's recorded spec sections.
+func ParseSpecs(specs map[string]string) (map[string]spec.Spec, error) {
+	out := make(map[string]spec.Spec, len(specs))
+	for c, b64 := range specs {
+		raw, err := base64.StdEncoding.DecodeString(b64)
+		if err != nil {
+			return nil, fmt.Errorf("spec for %s: %w", c, err)
+		}
+		s, err := spec.Parse(raw)
+		if err != nil {
+			return nil, fmt.Errorf("spec for %s: %w", c, err)
+		}
+		out[c] = s
+	}
+	return out, nil
 }
 
 // ParseAssets turns CODE:ISSUER strings into assets.
@@ -90,7 +113,11 @@ func Render(e Entry) (map[string][]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", e.Name, err)
 	}
-	exp, err := explain.Explain(entry, explain.WithNetwork(e.NetworkPassphrase), explain.WithAssets(assets...))
+	specs, err := ParseSpecs(e.Specs)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", e.Name, err)
+	}
+	exp, err := explain.Explain(entry, explain.WithNetwork(e.NetworkPassphrase), explain.WithAssets(assets...), explain.WithSpecs(specs))
 	if err != nil {
 		refusal, jerr := json.MarshalIndent(map[string]string{"error": err.Error()}, "", "  ")
 		if jerr != nil {

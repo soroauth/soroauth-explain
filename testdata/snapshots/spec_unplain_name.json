@@ -1,0 +1,49 @@
+{
+  "actions": [
+    {
+      "confidence": "partial",
+      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "configure"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arguments",
+          "value": "2"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[0]",
+          "value": "u32(5)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[1]:window",
+          "value": "u32(60)"
+        }
+      ],
+      "function": "configure",
+      "kind": "invoke_contract",
+      "summary": "Call configure on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 2 arguments, named by the spec the contract publishes"
+    }
+  ],
+  "address_bound": false,
+  "confidence": "partial",
+  "credential_type": "address",
+  "nonce": 7,
+  "signed": false,
+  "subject": "GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M",
+  "unexplained": [
+    "Argument 0 of configure on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ has a name in the contract's spec outside A-Z, a-z, 0-9 and underscore, which is not shown.",
+    "The argument names of configure on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ come from the spec the contract publishes. A name says what an argument is called, not what the contract does with it, so the call is not interpreted."
+  ],
+  "valid_until_ledger": 1000
+}

@@ -1,0 +1,48 @@
+{
+  "actions": [
+    {
+      "confidence": "partial",
+      "contract": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "do_thing"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arguments",
+          "value": "2"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[0]:xlm_amount",
+          "value": "i128(1000000000)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[1]:recipient",
+          "value": "GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6"
+        }
+      ],
+      "function": "do_thing",
+      "kind": "invoke_contract",
+      "summary": "Call do_thing on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 2 arguments, named by the spec the contract publishes"
+    }
+  ],
+  "address_bound": false,
+  "confidence": "partial",
+  "credential_type": "address",
+  "nonce": 7,
+  "signed": false,
+  "subject": "GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M",
+  "unexplained": [
+    "The argument names of do_thing on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ come from the spec the contract publishes. A name says what an argument is called, not what the contract does with it, so the call is not interpreted."
+  ],
+  "valid_until_ledger": 1000
+}

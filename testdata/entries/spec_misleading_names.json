@@ -1,0 +1,10 @@
+{
+  "name": "spec_misleading_names",
+  "source": "built by cmd/gensnapshots: a spec naming arguments xlm_amount and recipient on an arbitrary contract",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "specs": {
+    "CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ": "AAAAAAAAAAAAAAAIZG9fdGhpbmcAAAACAAAAAAAAAAp4bG1fYW1vdW50AAAAAAALAAAAAAAAAAlyZWNpcGllbnQAAAAAAAATAAAAAA=="
+  },
+  "spec_source": "built by cmd/gensnapshots",
+  "entry_xdr": "AAAAAQAAAAAAAAAAEREREREREREREREREREREREREREREREREREREREREREAAAAAAAAABwAAA+gAAAABAAAAAAAAAAFERERERERERERERERERERERERERERERERERERERERERAAAAAhkb190aGluZwAAAAIAAAAKAAAAAAAAAAAAAAAAO5rKAAAAABIAAAAAAAAAADMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzAAAAAA=="
+}

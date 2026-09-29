@@ -1,0 +1,50 @@
+{
+  "actions": [
+    {
+      "confidence": "partial",
+      "contract": "CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "set_price"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arguments",
+          "value": "3"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[0]:caller",
+          "value": "GAEQ5IUNQTW36XMQF6MR2VWKPG3JOF6IKEGAD2JQ6OUNKTUVBAIE5AO3"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[1]:symbol",
+          "value": "sym(ETHUSD)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[2]:price",
+          "value": "i128(27803150000)"
+        }
+      ],
+      "function": "set_price",
+      "kind": "invoke_contract",
+      "summary": "Call set_price on CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC with 3 arguments, named by the spec the contract publishes"
+    }
+  ],
+  "address_bound": false,
+  "confidence": "partial",
+  "credential_type": "source_account",
+  "signed": false,
+  "unexplained": [
+    "The argument names of set_price on CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC come from the spec the contract publishes. A name says what an argument is called, not what the contract does with it, so the call is not interpreted."
+  ]
+}

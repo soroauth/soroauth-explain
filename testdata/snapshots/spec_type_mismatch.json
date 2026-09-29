@@ -1,0 +1,54 @@
+{
+  "actions": [
+    {
+      "confidence": "opaque",
+      "contract": "CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC",
+      "fields": [
+        {
+          "confidence": "decoded",
+          "name": "contract",
+          "value": "CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC"
+        },
+        {
+          "confidence": "decoded",
+          "name": "function",
+          "value": "set_price"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arguments",
+          "value": "3"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[0]",
+          "value": "GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[1]",
+          "value": "sym(BTC)"
+        },
+        {
+          "confidence": "decoded",
+          "name": "arg[2]",
+          "value": "sym(high)"
+        }
+      ],
+      "function": "set_price",
+      "kind": "invoke_contract",
+      "summary": "Call set_price on CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC with 3 arguments"
+    }
+  ],
+  "address_bound": false,
+  "confidence": "opaque",
+  "credential_type": "address",
+  "nonce": 7,
+  "signed": false,
+  "subject": "GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M",
+  "unexplained": [
+    "The spec the contract at CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC publishes declares set_price with different arguments from this call, so its argument names are not used.",
+    "The function set_price on CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC is not interpreted by this library; its 3 arguments are shown as raw values."
+  ],
+  "valid_until_ledger": 1000
+}

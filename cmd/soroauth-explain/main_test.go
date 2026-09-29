@@ -66,6 +66,17 @@ func TestCLIMatchesSnapshots(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			// The CLI has no way to supply specs, so an entry that carries
+			// some is compared with its rendering without them.
+			if len(e.Specs) > 0 {
+				bare := e
+				bare.Specs = nil
+				out, err := snapshot.Render(bare)
+				if err != nil {
+					t.Fatal(err)
+				}
+				txt, js = out["txt"], out["json"]
+			}
 			base := []string{"--entry", e.EntryXDR, "--network", e.NetworkPassphrase}
 			for _, a := range e.Assets {
 				base = append(base, "--asset", a)

@@ -13,6 +13,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -22,6 +23,8 @@ import (
 
 	explain "github.com/soroauth/soroauth-explain"
 	"github.com/soroauth/soroauth-explain/internal/snapshot"
+	"github.com/soroauth/soroauth-explain/spec"
+	"github.com/stellar/go-stellar-sdk/strkey"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
@@ -58,6 +61,11 @@ func run() error {
 		return err
 	}
 	entries = append(entries, built...)
+	specCases, err := specEntries()
+	if err != nil {
+		return err
+	}
+	entries = append(entries, specCases...)
 
 	// Rewrite both directories from scratch so a removed case leaves no
 	// orphaned file behind.
@@ -340,4 +348,127 @@ func builtEntries() ([]snapshot.Entry, error) {
 		})
 	}
 	return entries, nil
+}
+
+// oracleContract runs the code recorded in spec/testdata/oracle_testnet.wasm.
+const oracleContract = "CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC"
+
+func specFunction(name string, inputs ...xdr.ScSpecFunctionInputV0) xdr.ScSpecEntry {
+	return xdr.ScSpecEntry{Kind: xdr.ScSpecEntryKindScSpecEntryFunctionV0, FunctionV0: &xdr.ScSpecFunctionV0{Name: xdr.ScSymbol(name), Inputs: inputs}}
+}
+
+func specInput(name string, typ xdr.ScSpecType) xdr.ScSpecFunctionInputV0 {
+	return xdr.ScSpecFunctionInputV0{Name: name, Type: xdr.ScSpecTypeDef{Type: typ}}
+}
+
+func specSection(entries ...xdr.ScSpecEntry) (string, error) {
+	var out []byte
+	for _, e := range entries {
+		b, err := e.MarshalBinary()
+		if err != nil {
+			return "", err
+		}
+		out = append(out, b...)
+	}
+	return base64.StdEncoding.EncodeToString(out), nil
+}
+
+// specEntries builds the cases for explain.WithSpecs. The real case is a
+// set_price entry taken from the committed testnet live record, explained
+// with the spec section of the recorded oracle wasm.
+func specEntries() ([]snapshot.Entry, error) {
+	wasm, err := os.ReadFile("spec/testdata/oracle_testnet.wasm")
+	if err != nil {
+		return nil, err
+	}
+	section, err := spec.Section(wasm)
+	if err != nil {
+		return nil, err
+	}
+	oracleSpec := base64.StdEncoding.EncodeToString(section)
+	oracleSource := "spec section of spec/testdata/oracle_testnet.wasm, the testnet code of " + oracleContract
+
+	raw, err := os.ReadFile("testdata/live/testnet.json")
+	if err != nil {
+		return nil, err
+	}
+	var run struct {
+		Records []struct {
+			TxHash    string `json:"tx_hash"`
+			Operation int    `json:"operation"`
+			AuthIndex int    `json:"auth_index"`
+			EntryXDR  string `json:"entry_xdr"`
+		} `json:"records"`
+	}
+	if err := json.Unmarshal(raw, &run); err != nil {
+		return nil, err
+	}
+	var realXDR, realFrom string
+	for _, r := range run.Records {
+		var e xdr.SorobanAuthorizationEntry
+		if err := xdr.SafeUnmarshalBase64(r.EntryXDR, &e); err != nil {
+			return nil, err
+		}
+		fn, ok := e.RootInvocation.Function.GetContractFn()
+		if !ok || string(fn.FunctionName) != "set_price" {
+			continue
+		}
+		if c, err := strkey.Encode(strkey.VersionByteContract, fn.ContractAddress.ContractId[:]); err == nil && c == oracleContract {
+			realXDR = r.EntryXDR
+			realFrom = fmt.Sprintf("testnet tx %s operation %d entry %d, from testdata/live/testnet.json", r.TxHash, r.Operation, r.AuthIndex)
+			break
+		}
+	}
+	if realXDR == "" {
+		return nil, fmt.Errorf("no set_price entry on %s in the testnet live record", oracleContract)
+	}
+
+	oracleRaw, err := strkey.Decode(strkey.VersionByteContract, oracleContract)
+	if err != nil {
+		return nil, err
+	}
+	oracle := contract([32]byte(oracleRaw))
+	mismatch, err := xdr.MarshalBase64(addressEntry(call(oracle, "set_price", []xdr.ScVal{
+		addr(account(fromKey)), {Type: xdr.ScValTypeScvSymbol, Sym: ptrSym("BTC")}, {Type: xdr.ScValTypeScvSymbol, Sym: ptrSym("high")}})))
+	if err != nil {
+		return nil, err
+	}
+
+	misleadingSpec, err := specSection(
+		specFunction("do_thing", specInput("xlm_amount", xdr.ScSpecTypeScSpecTypeI128), specInput("recipient", xdr.ScSpecTypeScSpecTypeAddress)))
+	if err != nil {
+		return nil, err
+	}
+	misleading, err := xdr.MarshalBase64(addressEntry(call(contract(opaqueKey), "do_thing", []xdr.ScVal{i128(1000000000), addr(account(toKey))})))
+	if err != nil {
+		return nil, err
+	}
+	unplainSpec, err := specSection(specFunction("configure", specInput("limit\x1b[31m", xdr.ScSpecTypeScSpecTypeU32), specInput("window", xdr.ScSpecTypeScSpecTypeU32)))
+	if err != nil {
+		return nil, err
+	}
+	unplain, err := xdr.MarshalBase64(addressEntry(call(contract(opaqueKey), "configure", []xdr.ScVal{u32(5), u32(60)})))
+	if err != nil {
+		return nil, err
+	}
+	opaqueContract, err := strkey.Encode(strkey.VersionByteContract, opaqueKey[:])
+	if err != nil {
+		return nil, err
+	}
+
+	return []snapshot.Entry{
+		{Name: "spec_set_price", Source: realFrom, NetworkPassphrase: testnet,
+			Specs: map[string]string{oracleContract: oracleSpec}, SpecSource: oracleSource, EntryXDR: realXDR},
+		{Name: "spec_type_mismatch", Source: "built by cmd/gensnapshots: set_price on the oracle with a symbol where its spec declares i128",
+			NetworkPassphrase: testnet, Specs: map[string]string{oracleContract: oracleSpec}, SpecSource: oracleSource, EntryXDR: mismatch},
+		{Name: "spec_misleading_names", Source: "built by cmd/gensnapshots: a spec naming arguments xlm_amount and recipient on an arbitrary contract",
+			NetworkPassphrase: testnet, Specs: map[string]string{opaqueContract: misleadingSpec}, SpecSource: "built by cmd/gensnapshots", EntryXDR: misleading},
+		{Name: "spec_unplain_name", Source: "built by cmd/gensnapshots: a spec whose argument name carries a terminal escape",
+			NetworkPassphrase: testnet, Specs: map[string]string{opaqueContract: unplainSpec}, SpecSource: "built by cmd/gensnapshots", EntryXDR: unplain},
+	}, nil
+}
+
+func ptrSym(s string) *xdr.ScSymbol {
+	sym := xdr.ScSymbol(s)
+	return &sym
 }

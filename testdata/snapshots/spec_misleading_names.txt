@@ -1,0 +1,16 @@
+Authorization entry: address credentials for GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M [partial]
+  nonce:              7
+  valid until ledger: 1000
+  address-bound:      no
+  signed:             no
+
+Authorizes:
+  [partial] Call do_thing on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ with 2 arguments, named by the spec the contract publishes
+      contract          = CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ [decoded]
+      function          = do_thing [decoded]
+      arguments         = 2 [decoded]
+      arg[0]:xlm_amount = i128(1000000000) [decoded]
+      arg[1]:recipient  = GAZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTGMZTHCM6 [decoded]
+
+Not determined:
+  - The argument names of do_thing on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ come from the spec the contract publishes. A name says what an argument is called, not what the contract does with it, so the call is not interpreted.

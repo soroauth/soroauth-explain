@@ -1,0 +1,18 @@
+Authorization entry: address credentials for GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M [opaque]
+  nonce:              7
+  valid until ledger: 1000
+  address-bound:      no
+  signed:             no
+
+Authorizes:
+  [opaque] Call set_price on CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC with 3 arguments
+      contract  = CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC [decoded]
+      function  = set_price [decoded]
+      arguments = 3 [decoded]
+      arg[0]    = GARCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCFRVX [decoded]
+      arg[1]    = sym(BTC) [decoded]
+      arg[2]    = sym(high) [decoded]
+
+Not determined:
+  - The spec the contract at CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC publishes declares set_price with different arguments from this call, so its argument names are not used.
+  - The function set_price on CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC is not interpreted by this library; its 3 arguments are shown as raw values.
