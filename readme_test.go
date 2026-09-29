@@ -1,8 +1,10 @@
 package explain_test
 
 import (
+	"fmt"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -92,4 +94,41 @@ func exampleBody(t *testing.T, name string) string {
 		lines[i] = strings.TrimPrefix(l, "\t")
 	}
 	return strings.Join(lines, "\n") + "\n"
+}
+
+// TestBacklogCounts keeps the backlog's summary table in step with its
+// items: each section's per-tier counts, and the total.
+func TestBacklogCounts(t *testing.T) {
+	doc := mustRead(t, "docs/ISSUE_BACKLOG.md")
+	parts := regexp.MustCompile(`(?m)^## `).Split(doc, -1)
+	tierRe := regexp.MustCompile(`(?m)^\*\*Tier:\*\* (high|medium|low)$`)
+	itemRe := regexp.MustCompile(`(?m)^### (\d+)\. `)
+	total := map[string]int{}
+	next := 1
+	for _, sec := range parts[1:] {
+		name := strings.SplitN(sec, "\n", 2)[0]
+		count := map[string]int{}
+		for _, m := range tierRe.FindAllStringSubmatch(sec, -1) {
+			count[m[1]]++
+			total[m[1]]++
+		}
+		items := itemRe.FindAllStringSubmatch(sec, -1)
+		for _, m := range items {
+			if m[1] != strconv.Itoa(next) {
+				t.Fatalf("item numbered %s, want %d", m[1], next)
+			}
+			next++
+		}
+		if len(items) != count["high"]+count["medium"]+count["low"] {
+			t.Errorf("section %q: %d items but %d tiers", name, len(items), count["high"]+count["medium"]+count["low"])
+		}
+		row := fmt.Sprintf("| %s | %d | %d | %d | %d |", name, count["high"], count["medium"], count["low"], len(items))
+		if !strings.Contains(parts[0], row+"\n") {
+			t.Errorf("summary table lacks %q", row)
+		}
+	}
+	want := fmt.Sprintf("| **Total** | **%d** | **%d** | **%d** | **%d** |", total["high"], total["medium"], total["low"], next-1)
+	if !strings.Contains(parts[0], want) {
+		t.Errorf("summary table lacks %q", want)
+	}
 }
