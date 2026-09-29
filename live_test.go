@@ -20,6 +20,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -34,6 +35,7 @@ import (
 
 	explain "github.com/soroauth/soroauth-explain"
 	"github.com/soroauth/soroauth-explain/render"
+	"github.com/soroauth/soroauth-explain/spec"
 	soroauth "github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/network"
 	"github.com/stellar/go-stellar-sdk/xdr"
@@ -733,4 +735,96 @@ func TestLiveCheckRegressions(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestLiveSpecs fetches, with the library's own spec.RPC, the spec of every
+// contract called in the committed live records, and records them in
+// testdata/live/<name>.specs.json. The entries are not re-sampled: the
+// evidence test re-explains the same recorded entries with these specs, so
+// the change in the opaque share is measured on the same traffic.
+func TestLiveSpecs(t *testing.T) {
+	for _, net := range []liveNetwork{liveTestnet, livePublic} {
+		t.Run(net.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), 20*time.Minute)
+			defer cancel()
+			raw, err := os.ReadFile("testdata/live/" + net.name + ".json")
+			if err != nil {
+				t.Fatal(err)
+			}
+			var run LiveRun
+			if err := json.Unmarshal(raw, &run); err != nil {
+				t.Fatal(err)
+			}
+			contracts := map[string]bool{}
+			for _, r := range run.Records {
+				var e xdr.SorobanAuthorizationEntry
+				if err := xdr.SafeUnmarshalBase64(r.EntryXDR, &e); err != nil {
+					t.Fatal(err)
+				}
+				for _, c := range spec.Contracts(e) {
+					contracts[c] = true
+				}
+			}
+			out := LiveSpecs{Name: net.name, RPC: net.rpc, Fetched: time.Now().UTC().Format(time.RFC3339),
+				Contracts: map[string]LiveContract{}, Sections: map[string]string{}}
+			rpc := spec.RPC{URL: net.rpc}
+			reasons := map[string]int{}
+			for c := range contracts {
+				wasm, err := rpc.Wasm(ctx, c)
+				if err != nil {
+					out.Contracts[c] = LiveContract{Error: err.Error()}
+					reasons[firstLine(err)]++
+					continue
+				}
+				sum := sha256.Sum256(wasm)
+				h := hex.EncodeToString(sum[:])
+				section, err := spec.Section(wasm)
+				if err != nil {
+					out.Contracts[c] = LiveContract{WasmSHA256: h, Error: err.Error()}
+					reasons[firstLine(err)]++
+					continue
+				}
+				if _, err := spec.Parse(section); err != nil {
+					out.Contracts[c] = LiveContract{WasmSHA256: h, Error: err.Error()}
+					reasons[firstLine(err)]++
+					continue
+				}
+				out.Contracts[c] = LiveContract{WasmSHA256: h}
+				out.Sections[h] = base64.StdEncoding.EncodeToString(section)
+			}
+			t.Logf("%s: %d contracts, %d with a readable spec, %d distinct wasm; no spec: %v",
+				net.name, len(contracts), len(contracts)-sum(reasons), len(out.Sections), reasons)
+			if os.Getenv("SOROAUTH_LIVE_RECORD") == "1" {
+				b, err := json.MarshalIndent(out, "", "  ")
+				if err != nil {
+					t.Fatal(err)
+				}
+				path := "testdata/live/" + net.name + ".specs.json"
+				if err := os.WriteFile(path, append(b, '\n'), 0o644); err != nil {
+					t.Fatal(err)
+				}
+				t.Logf("recorded %s", path)
+			}
+		})
+	}
+}
+
+// firstLine reduces an error to its reason, without the contract address,
+// for counting.
+func firstLine(err error) string {
+	s := err.Error()
+	for _, marker := range []string{"does not run wasm", "returned 0 entries", "no contract spec section", "malformed"} {
+		if strings.Contains(s, marker) {
+			return marker
+		}
+	}
+	return "other: " + s
+}
+
+func sum(m map[string]int) int {
+	n := 0
+	for _, v := range m {
+		n += v
+	}
+	return n
 }

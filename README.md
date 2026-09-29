@@ -28,14 +28,22 @@ whole explanation from being `decoded`. Anything that is not `decoded` comes wit
 Measured on real transactions, and recorded in [docs/EVIDENCE.md](docs/EVIDENCE.md):
 
 <!-- evidence: summary-table -->
-| Run | Entries | Decoded, default | Decoded, with event assets | Opaque | Decoded actions checked | Checks passed |
-|---|---:|---:|---:|---:|---:|---:|
-| testnet | 480 | 7 (1.5%) | 35 (7.3%) | 430 (89.6%) | 170 | 170 |
-| public | 481 | 0 (0.0%) | 6 (1.2%) | 475 (98.8%) | 159 | 111 |
+| Run | Entries | Decoded, default | Decoded, with event assets | Opaque, with event assets | Opaque, with assets and specs | Decoded actions checked | Checks passed |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| testnet | 480 | 7 (1.5%) | 35 (7.3%) | 430 (89.6%) | 19 (4.0%) | 170 | 170 |
+| public | 481 | 0 (0.0%) | 6 (1.2%) | 475 (98.8%) | 0 (0.0%) | 159 | 111 |
 
 On testnet the tool decoded **1.5%** of 480 real entries with no extra input, and **7.3%** when the assets
 involved were supplied as candidates. On the public network it decoded **0.0%** and **1.2%** of 481. Most
 entries are `opaque`.
+
+Supplying each contract's own published spec changes the picture, and what it changes matters. On the same
+testnet sample the opaque share falls from **89.6%** to **4.0%**, and on the public network from **98.8%** to
+**0.0%**. Those entries become `partial`, not `decoded`: the spec names each argument (`caller`, `symbol`,
+`price`), which says what the contract calls it, not what the contract does with it. A spec names a
+function's parameters, and a contract can authorize a different list of arguments, so a name may not even
+describe the value beside it, and the rendering says so. The decoded share does not move, and a test fails
+if a spec ever makes anything `decoded`.
 
 That is the tool working, not failing. An `opaque` entry is a call to a contract function outside the one
 interface this library knows, the SEP-41 token interface, such as an oracle's `set_price` or a game's
@@ -228,7 +236,18 @@ for _, reason := range exp.Unexplained {
 ```
 
 Candidate assets for labelling are passed with `explain.WithAssets(...)`; each is still derived and
-compared. `render.Text` and `render.JSON` (package `render`) produce the two output formats. The JSON field
+compared.
+
+To name the arguments of calls the library does not interpret, fetch the called contracts' own specs and
+pass them in. Fetching is the only networked step and takes a context; `Explain` itself stays offline:
+
+```go
+specs, _ := spec.RPC{URL: "https://soroban-testnet.stellar.org"}.Fetch(ctx, entry)
+exp, err := explain.Explain(entry, explain.WithNetwork(network.TestNetworkPassphrase), explain.WithSpecs(specs))
+```
+
+A contract whose spec cannot be fetched or read is left out, and its calls render as they would with no
+spec. A spec-named call is at most `partial`. `render.Text` and `render.JSON` (package `render`) produce the two output formats. The JSON field
 names are a wire format: renaming one is a breaking change.
 
 Limits, all exported with their reasons: `explain.DefaultMaxDepth` (32) and `explain.DefaultMaxNodes`

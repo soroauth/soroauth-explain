@@ -15,14 +15,23 @@ assets* adds, through `WithAssets`, the `CODE:ISSUER` strings found in the trans
 Contract event topics. Those are candidates only: each is derived to a contract ID and compared, and one
 that does not derive to the contract under inspection is ignored.
 
-| Run | Entries | Decoded, default | Decoded, with event assets | Opaque | Decoded actions checked | Checks passed |
-|---|---:|---:|---:|---:|---:|---:|
-| testnet | 480 | 7 (1.5%) | 35 (7.3%) | 430 (89.6%) | 170 | 170 |
-| public | 481 | 0 (0.0%) | 6 (1.2%) | 475 (98.8%) | 159 | 111 |
+| Run | Entries | Decoded, default | Decoded, with event assets | Opaque, with event assets | Opaque, with assets and specs | Decoded actions checked | Checks passed |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| testnet | 480 | 7 (1.5%) | 35 (7.3%) | 430 (89.6%) | 19 (4.0%) | 170 | 170 |
+| public | 481 | 0 (0.0%) | 6 (1.2%) | 475 (98.8%) | 0 (0.0%) | 159 | 111 |
 
 Most opaque entries are calls to application contracts whose functions are not in the registry, which
 holds the SEP-41 token interface only. That is the tool saying what it does not know, not a failure to
 decode bytes.
+
+*With assets and specs* also passes each contract's own published spec (`WithSpecs`), fetched with
+`spec.RPC` by `TestLiveSpecs` after the run and recorded in `testdata/live/<run>.specs.json`. A spec
+names a call's arguments; it cannot make anything `decoded`, and this test fails if it does. An entry
+that was opaque and is now named moves to `partial`. The specs were fetched after the entries were
+recorded, so a contract upgraded in between may publish a different spec; a spec is applied only when
+every argument has the type it declares. Even then, a spec names a function's parameters, and a contract
+can authorize a different list of arguments (`require_auth_for_args`), so a name may not describe the
+value beside it. Named calls say so.
 
 ## How decoded actions are checked
 
@@ -64,12 +73,72 @@ SOROAUTH_WRITE_EVIDENCE=1 go test -run TestEvidenceUpToDate .
 
 ### Confidence distribution
 
-| Confidence | Default | % | With event assets | % |
-|---|---:|---:|---:|---:|
-| decoded | 7 | 1.5% | 35 | 7.3% |
-| partial | 43 | 9.0% | 15 | 3.1% |
-| opaque | 430 | 89.6% | 430 | 89.6% |
-| refused | 0 | 0.0% | 0 | 0.0% |
+| Confidence | Default | % | With event assets | % | With assets and specs | % |
+|---|---:|---:|---:|---:|---:|---:|
+| decoded | 7 | 1.5% | 35 | 7.3% | 35 | 7.3% |
+| partial | 43 | 9.0% | 15 | 3.1% | 426 | 88.8% |
+| opaque | 430 | 89.6% | 430 | 89.6% | 19 | 4.0% |
+| refused | 0 | 0.0% | 0 | 0.0% | 0 | 0.0% |
+
+### Contract specs
+
+Fetched 2026-09-29T11:16:20Z from https://soroban-testnet.stellar.org: 64 distinct contracts called, 56 with a readable spec (44 distinct wasm).
+
+Functions whose arguments a spec named, and how many actions:
+
+| Function | Actions |
+|---|---:|
+| `apply_reserve_attestation` | 1 |
+| `approve_claim` | 1 |
+| `borrow` | 1 |
+| `cancel_claim` | 1 |
+| `cancel_order` | 4 |
+| `cancel_vault_order` | 7 |
+| `classify_flights` | 1 |
+| `create_order` | 41 |
+| `create_vault_order` | 5 |
+| `credit_account` | 3 |
+| `dispute` | 1 |
+| `execute` | 5 |
+| `mint` | 1 |
+| `multiply` | 1 |
+| `pay` | 2 |
+| `pay_installment` | 1 |
+| `place` | 11 |
+| `post` | 1 |
+| `process_incoming_transaction` | 3 |
+| `process_outgoing_transaction` | 8 |
+| `publish_round` | 12 |
+| `push_price` | 6 |
+| `refresh` | 1 |
+| `repay_debt_with_collateral` | 1 |
+| `replace` | 12 |
+| `replace_batch` | 26 |
+| `report` | 12 |
+| `reset_all_circuit_breakers` | 2 |
+| `resolve` | 1 |
+| `rollup` | 12 |
+| `seal` | 1 |
+| `set_manual_override` | 2 |
+| `set_multiple_values` | 8 |
+| `set_price` | 189 |
+| `set_price_for_arbitrum` | 1 |
+| `set_price_stable` | 18 |
+| `set_prices` | 1 |
+| `set_score` | 1 |
+| `submit_prices` | 4 |
+| `supply` | 1 |
+| `trade` | 2 |
+| `transact` | 5 |
+| `update_indices` | 16 |
+| `write_prices` | 15 |
+
+Why the actions still opaque after the spec pass are opaque:
+
+| Reason | Actions |
+|---|---:|
+| the call's arguments differ from the spec's declaration, or the spec names none of them | 13 |
+| the contract runs no wasm (a Stellar Asset Contract), so it has no spec | 6 |
 
 ### What the sample is made of
 
@@ -640,12 +709,51 @@ to a user as decoded, so each is listed with its check. Path is the action's pos
 
 ### Confidence distribution
 
-| Confidence | Default | % | With event assets | % |
-|---|---:|---:|---:|---:|
-| decoded | 0 | 0.0% | 6 | 1.2% |
-| partial | 6 | 1.2% | 0 | 0.0% |
-| opaque | 475 | 98.8% | 475 | 98.8% |
-| refused | 0 | 0.0% | 0 | 0.0% |
+| Confidence | Default | % | With event assets | % | With assets and specs | % |
+|---|---:|---:|---:|---:|---:|---:|
+| decoded | 0 | 0.0% | 6 | 1.2% | 6 | 1.2% |
+| partial | 6 | 1.2% | 0 | 0.0% | 475 | 98.8% |
+| opaque | 475 | 98.8% | 475 | 98.8% | 0 | 0.0% |
+| refused | 0 | 0.0% | 0 | 0.0% | 0 | 0.0% |
+
+### Contract specs
+
+Fetched 2026-09-29T11:17:04Z from https://mainnet.sorobanrpc.com: 34 distinct contracts called, 29 with a readable spec (25 distinct wasm).
+
+Functions whose arguments a spec named, and how many actions:
+
+| Function | Actions |
+|---|---:|
+| `batch` | 1 |
+| `batch_plant` | 7 |
+| `batch_work` | 73 |
+| `claim` | 1 |
+| `claim_all_position_fees` | 1 |
+| `deposit_position` | 1 |
+| `exec` | 1 |
+| `execute` | 1 |
+| `liquidate_asset` | 9 |
+| `plant` | 259 |
+| `publish_rate` | 2 |
+| `publish_statements` | 15 |
+| `relay` | 1 |
+| `report` | 2 |
+| `set_price` | 2 |
+| `set_price_for_arbitrum` | 1 |
+| `submit_prices` | 3 |
+| `swap` | 74 |
+| `swap_chained` | 11 |
+| `swap_split` | 4 |
+| `swap_strict_receive` | 1 |
+| `withdraw` | 1 |
+| `withdraw_position` | 1 |
+| `write_prices` | 8 |
+
+Why the actions still opaque after the spec pass are opaque:
+
+| Reason | Actions |
+|---|---:|
+| (none) | 0 |
 
 ### What the sample is made of
 

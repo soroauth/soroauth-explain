@@ -8,6 +8,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 The JSON rendering (`render.JSON`) is a wire format for wallets. Renaming or removing one of its fields is
 a breaking change and is listed here as one.
 
+## [Unreleased]
+
+### Added
+
+- Package `spec` reads a contract's own interface spec from its wasm (`FromWasm`, `Parse`, `Section`),
+  bounded by `MaxWasmBytes`, and `spec.RPC` fetches it over Soroban RPC with a context (`Wasm`, `Spec`,
+  `Fetch`, `Contracts`). `Fetch` never fails as a whole.
+- `explain.WithSpecs` names the arguments of calls the library does not otherwise interpret. A named call
+  is at most `partial`: a spec names a function's parameters, not what the contract does with them, and a
+  contract can authorize different arguments from its parameters. On the recorded testnet sample the
+  opaque share falls from 89.6% to 4.0%, and on the public sample from 98.8% to 0.0%; the decoded share
+  does not change.
+
+### Fixed
+
+- `WithAssets` kept a reference to the caller's slice until `Explain` ran; it now copies its arguments
+  when called.
+
 ## [0.1.0] - 2026-09-29
 
 First release. Unaudited.

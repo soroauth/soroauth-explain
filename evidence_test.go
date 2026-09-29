@@ -11,6 +11,7 @@ import (
 	explain "github.com/soroauth/soroauth-explain"
 	"github.com/soroauth/soroauth-explain/internal/snapshot"
 	"github.com/soroauth/soroauth-explain/render"
+	"github.com/soroauth/soroauth-explain/spec"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
@@ -64,11 +65,30 @@ type LiveRun struct {
 	Records             []LiveRecord `json:"records"`
 }
 
+// LiveSpecs is the recorded spec of every contract a live run's entries
+// call, fetched with spec.RPC after the run.
+type LiveSpecs struct {
+	Name      string                  `json:"name"`
+	RPC       string                  `json:"rpc"`
+	Fetched   string                  `json:"fetched"`
+	Contracts map[string]LiveContract `json:"contracts"`
+	// Sections are spec sections, base64, keyed by the SHA-256 of the wasm
+	// they came from, so contracts sharing code share one copy.
+	Sections map[string]string `json:"sections"`
+}
+
+// LiveContract is what fetching one contract's spec found.
+type LiveContract struct {
+	WasmSHA256 string `json:"wasm_sha256,omitempty"`
+	Error      string `json:"error,omitempty"`
+}
+
 // liveEntry is a recorded entry re-explained by the current code.
 type liveEntry struct {
 	rec        LiveRecord
 	defaultExp *explain.Explanation
 	assetsExp  *explain.Explanation // nil when the record has no event assets
+	specsExp   *explain.Explanation // with event assets and the recorded specs
 }
 
 // final is the explanation the independent checks ran against: with event
@@ -84,7 +104,7 @@ func (e liveEntry) final() *explain.Explanation {
 // and requires the text to be exactly what was recorded. A change to the
 // code that changes what the tool says about real entries therefore fails
 // here until the live runs are recorded again.
-func reexplain(t *testing.T, run LiveRun, rec LiveRecord) liveEntry {
+func reexplain(t *testing.T, run LiveRun, rec LiveRecord, specs map[string]spec.Spec) liveEntry {
 	t.Helper()
 	where := fmt.Sprintf("%s: %s op %d auth %d", run.Name, rec.TxHash, rec.Operation, rec.AuthIndex)
 	var entry xdr.SorobanAuthorizationEntry
@@ -113,6 +133,24 @@ func reexplain(t *testing.T, run LiveRun, rec LiveRecord) liveEntry {
 		}
 		le.assetsExp = one(*rec.WithAssets, explain.WithNetwork(run.Network), explain.WithAssets(assets...))
 	}
+
+	// The spec pass has no recorded text: it is computed here, from the
+	// recorded entry and the recorded specs, and so is deterministic.
+	assets, err := snapshot.ParseAssets(rec.EventAsset)
+	if err != nil {
+		t.Fatalf("%s: %v", where, err)
+	}
+	if exp, err := explain.Explain(entry, explain.WithNetwork(run.Network), explain.WithAssets(assets...), explain.WithSpecs(specs)); err == nil {
+		le.specsExp = &exp
+	}
+	// A spec may name arguments; it must never make anything decoded.
+	final := le.final()
+	if (le.specsExp != nil && le.specsExp.Confidence == explain.ConfidenceDecoded) != (final != nil && final.Confidence == explain.ConfidenceDecoded) {
+		t.Fatalf("%s: specs changed whether the entry is decoded", where)
+	}
+	if le.specsExp != nil && final != nil && countDecoded(le.specsExp.Actions) != countDecoded(final.Actions) {
+		t.Fatalf("%s: specs changed the number of decoded actions", where)
+	}
 	return le
 }
 
@@ -123,6 +161,7 @@ func reexplain(t *testing.T, run LiveRun, rec LiveRecord) liveEntry {
 func TestEvidenceUpToDate(t *testing.T) {
 	var runs []LiveRun
 	entries := map[string][]liveEntry{}
+	fetched := map[string]LiveSpecs{}
 	for _, path := range liveRecordPaths {
 		raw, err := os.ReadFile(path)
 		if err != nil {
@@ -135,12 +174,14 @@ func TestEvidenceUpToDate(t *testing.T) {
 		if run.Name == "" || len(run.Records) == 0 {
 			t.Fatalf("%s: empty run", path)
 		}
+		ls, specs := loadLiveSpecs(t, run.Name)
+		fetched[run.Name] = ls
 		for _, rec := range run.Records {
-			entries[run.Name] = append(entries[run.Name], reexplain(t, run, rec))
+			entries[run.Name] = append(entries[run.Name], reexplain(t, run, rec, specs))
 		}
 		runs = append(runs, run)
 	}
-	want := renderEvidence(runs, entries)
+	want := renderEvidence(runs, entries, fetched)
 	if os.Getenv("SOROAUTH_WRITE_EVIDENCE") == "1" {
 		if err := os.WriteFile(evidencePath, []byte(want), 0o644); err != nil {
 			t.Fatal(err)
@@ -172,20 +213,112 @@ func confidenceOf(exp *explain.Explanation) string {
 }
 
 type distribution struct {
-	def, assets map[string]int
-	total       int
+	def, assets, specs map[string]int
+	total              int
 }
 
 func distributionOf(es []liveEntry) distribution {
-	d := distribution{def: map[string]int{}, assets: map[string]int{}, total: len(es)}
+	d := distribution{def: map[string]int{}, assets: map[string]int{}, specs: map[string]int{}, total: len(es)}
 	for _, e := range es {
 		d.def[confidenceOf(e.defaultExp)]++
 		d.assets[confidenceOf(e.final())]++
+		d.specs[confidenceOf(e.specsExp)]++
 	}
 	return d
 }
 
-func renderEvidence(runs []LiveRun, entries map[string][]liveEntry) string {
+func countDecoded(as []explain.Action) int {
+	n := 0
+	for _, a := range as {
+		if a.Confidence == explain.ConfidenceDecoded {
+			n++
+		}
+		n += countDecoded(a.Sub)
+	}
+	return n
+}
+
+// loadLiveSpecs reads the specs recorded for a run by TestLiveSpecs.
+func loadLiveSpecs(t *testing.T, name string) (LiveSpecs, map[string]spec.Spec) {
+	t.Helper()
+	raw, err := os.ReadFile("testdata/live/" + name + ".specs.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var ls LiveSpecs
+	if err := json.Unmarshal(raw, &ls); err != nil {
+		t.Fatal(err)
+	}
+	sections := map[string]spec.Spec{}
+	for h, b64 := range ls.Sections {
+		parsed, err := snapshot.ParseSpecs(map[string]string{h: b64})
+		if err != nil {
+			t.Fatalf("%s specs: %v", name, err)
+		}
+		sections[h] = parsed[h]
+	}
+	specs := map[string]spec.Spec{}
+	for c, lc := range ls.Contracts {
+		if lc.Error == "" {
+			specs[c] = sections[lc.WasmSHA256]
+		}
+	}
+	return ls, specs
+}
+
+// opaqueReasons classifies each action that is still opaque after the spec
+// pass by why it is: the contract has no spec, the function is not in its
+// spec, the call differs from the spec, or a named argument could not be
+// rendered.
+func opaqueReasons(es []liveEntry, ls LiveSpecs, specs map[string]spec.Spec) (map[string]int, map[string]int) {
+	reasons, named := map[string]int{}, map[string]int{}
+	var walk func([]explain.Action)
+	walk = func(as []explain.Action) {
+		for _, a := range as {
+			if strings.HasSuffix(a.Summary, "named by the spec the contract publishes") {
+				named[a.Function]++
+			}
+			own := a.Confidence
+			for _, sub := range a.Sub {
+				if sub.Confidence == own {
+					own = "" // inherited from a sub-action; counted there
+				}
+			}
+			if own == explain.ConfidenceOpaque {
+				reasons[opaqueReason(a, ls, specs)]++
+			}
+			walk(a.Sub)
+		}
+	}
+	for _, e := range es {
+		if e.specsExp != nil {
+			walk(e.specsExp.Actions)
+		}
+	}
+	return reasons, named
+}
+
+func opaqueReason(a explain.Action, ls LiveSpecs, specs map[string]spec.Spec) string {
+	if a.Kind != explain.ActionInvokeContract {
+		return "not a contract call (" + string(a.Kind) + ")"
+	}
+	if strings.HasSuffix(a.Summary, "named by the spec the contract publishes") {
+		return "named from the spec, but an argument could not be rendered"
+	}
+	s, ok := specs[a.Contract]
+	if !ok {
+		if lc, found := ls.Contracts[a.Contract]; found && strings.Contains(lc.Error, "does not run wasm") {
+			return "the contract runs no wasm (a Stellar Asset Contract), so it has no spec"
+		}
+		return "no spec was available for the contract"
+	}
+	if _, ok := s.Function(a.Function); !ok {
+		return "the function is not in the contract's spec"
+	}
+	return "the call's arguments differ from the spec's declaration, or the spec names none of them"
+}
+
+func renderEvidence(runs []LiveRun, entries map[string][]liveEntry, fetched map[string]LiveSpecs) string {
 	var b strings.Builder
 	w := func(format string, args ...any) { fmt.Fprintf(&b, format, args...) }
 
@@ -202,8 +335,8 @@ func renderEvidence(runs []LiveRun, entries map[string][]liveEntry) string {
 	w("assets* adds, through `WithAssets`, the `CODE:ISSUER` strings found in the transaction's own Stellar Asset\n")
 	w("Contract event topics. Those are candidates only: each is derived to a contract ID and compared, and one\n")
 	w("that does not derive to the contract under inspection is ignored.\n\n")
-	w("| Run | Entries | Decoded, default | Decoded, with event assets | Opaque | Decoded actions checked | Checks passed |\n")
-	w("|---|---:|---:|---:|---:|---:|---:|\n")
+	w("| Run | Entries | Decoded, default | Decoded, with event assets | Opaque, with event assets | Opaque, with assets and specs | Decoded actions checked | Checks passed |\n")
+	w("|---|---:|---:|---:|---:|---:|---:|---:|\n")
 	for _, run := range runs {
 		d := distributionOf(entries[run.Name])
 		checked, passed := 0, 0
@@ -215,14 +348,23 @@ func renderEvidence(runs []LiveRun, entries map[string][]liveEntry) string {
 				}
 			}
 		}
-		w("| %s | %d | %d (%s) | %d (%s) | %d (%s) | %d | %d |\n", run.Name, d.total,
+		w("| %s | %d | %d (%s) | %d (%s) | %d (%s) | %d (%s) | %d | %d |\n", run.Name, d.total,
 			d.def["decoded"], percent(d.def["decoded"], d.total),
 			d.assets["decoded"], percent(d.assets["decoded"], d.total),
-			d.def["opaque"], percent(d.def["opaque"], d.total), checked, passed)
+			d.assets["opaque"], percent(d.assets["opaque"], d.total),
+			d.specs["opaque"], percent(d.specs["opaque"], d.total), checked, passed)
 	}
 	w("\nMost opaque entries are calls to application contracts whose functions are not in the registry, which\n")
 	w("holds the SEP-41 token interface only. That is the tool saying what it does not know, not a failure to\n")
 	w("decode bytes.\n\n")
+	w("*With assets and specs* also passes each contract's own published spec (`WithSpecs`), fetched with\n")
+	w("`spec.RPC` by `TestLiveSpecs` after the run and recorded in `testdata/live/<run>.specs.json`. A spec\n")
+	w("names a call's arguments; it cannot make anything `decoded`, and this test fails if it does. An entry\n")
+	w("that was opaque and is now named moves to `partial`. The specs were fetched after the entries were\n")
+	w("recorded, so a contract upgraded in between may publish a different spec; a spec is applied only when\n")
+	w("every argument has the type it declares. Even then, a spec names a function's parameters, and a contract\n")
+	w("can authorize a different list of arguments (`require_auth_for_args`), so a name may not describe the\n")
+	w("value beside it. Named calls say so.\n\n")
 
 	w("## How decoded actions are checked\n\n")
 	w("Every action marked `decoded`, in either pass and at any depth of the call tree, is checked against data\n")
@@ -244,7 +386,7 @@ func renderEvidence(runs []LiveRun, entries map[string][]liveEntry) string {
 	w("SOROAUTH_WRITE_EVIDENCE=1 go test -run TestEvidenceUpToDate .\n```\n\n")
 
 	for _, run := range runs {
-		renderRun(w, run, entries[run.Name])
+		renderRun(w, run, entries[run.Name], fetched[run.Name])
 	}
 
 	w("## Limits of this evidence\n\n")
@@ -255,7 +397,7 @@ func renderEvidence(runs []LiveRun, entries map[string][]liveEntry) string {
 	return b.String()
 }
 
-func renderRun(w func(string, ...any), run LiveRun, es []liveEntry) {
+func renderRun(w func(string, ...any), run LiveRun, es []liveEntry, ls LiveSpecs) {
 	w("## Run: %s\n\n", run.Name)
 	w("| | |\n|---|---|\n")
 	w("| Network | `%s` |\n", run.Network)
@@ -272,9 +414,30 @@ func renderRun(w func(string, ...any), run LiveRun, es []liveEntry) {
 
 	d := distributionOf(es)
 	w("### Confidence distribution\n\n")
-	w("| Confidence | Default | %% | With event assets | %% |\n|---|---:|---:|---:|---:|\n")
+	w("| Confidence | Default | %% | With event assets | %% | With assets and specs | %% |\n|---|---:|---:|---:|---:|---:|---:|\n")
 	for _, c := range []string{"decoded", "partial", "opaque", "refused"} {
-		w("| %s | %d | %s | %d | %s |\n", c, d.def[c], percent(d.def[c], d.total), d.assets[c], percent(d.assets[c], d.total))
+		w("| %s | %d | %s | %d | %s | %d | %s |\n", c, d.def[c], percent(d.def[c], d.total), d.assets[c], percent(d.assets[c], d.total), d.specs[c], percent(d.specs[c], d.total))
+	}
+	w("\n")
+
+	readable, specsParsed := loadSpecsForDoc(ls)
+	reasons, named := opaqueReasons(es, ls, specsParsed)
+	w("### Contract specs\n\n")
+	w("Fetched %s from %s: %d distinct contracts called, %d with a readable spec (%d distinct wasm).\n\n",
+		ls.Fetched, ls.RPC, len(ls.Contracts), readable, len(ls.Sections))
+	w("Functions whose arguments a spec named, and how many actions:\n\n| Function | Actions |\n|---|---:|\n")
+	for _, k := range sortedKeys(named) {
+		w("| `%s` | %d |\n", k, named[k])
+	}
+	if len(named) == 0 {
+		w("| (none) | 0 |\n")
+	}
+	w("\nWhy the actions still opaque after the spec pass are opaque:\n\n| Reason | Actions |\n|---|---:|\n")
+	for _, k := range sortedKeys(reasons) {
+		w("| %s | %d |\n", k, reasons[k])
+	}
+	if len(reasons) == 0 {
+		w("| (none) | 0 |\n")
 	}
 	w("\n")
 
@@ -408,4 +571,19 @@ func sortedKeys(m map[string]int) []string {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+// loadSpecsForDoc parses a run's recorded specs for the document.
+func loadSpecsForDoc(ls LiveSpecs) (int, map[string]spec.Spec) {
+	out := map[string]spec.Spec{}
+	for c, lc := range ls.Contracts {
+		if lc.Error != "" {
+			continue
+		}
+		parsed, err := snapshot.ParseSpecs(map[string]string{c: ls.Sections[lc.WasmSHA256]})
+		if err == nil {
+			out[c] = parsed[c]
+		}
+	}
+	return len(out), out
 }
