@@ -257,7 +257,7 @@ Limits, all exported with their reasons: `explain.DefaultMaxDepth` (32) and `exp
 
 ```text
 soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>]
-                 [--asset CODE:ISSUER] [--json] [--strict]
+                 [--asset CODE:ISSUER] [--rpc <url>] [--json] [--strict]
 soroauth-explain completions --shell bash|zsh|fish
 ```
 
@@ -265,6 +265,10 @@ soroauth-explain completions --shell bash|zsh|fish
   output.
 - `--asset` is repeatable. `native` is always a candidate. A value that is not `CODE:ISSUER` is a usage
   error.
+- `--rpc <url>` is the only thing that makes the tool use the network, and only when given. It fetches
+  the published spec of each contract the entry calls from that Soroban RPC and names their arguments.
+  Named calls stay `partial`, so `--strict` still fails on them. If a fetch fails, the entry is explained
+  as it would be without `--rpc`, with a note on stderr.
 - `--strict` exits 3 unless the explanation is `decoded`, for use in a policy check. The rendering is
   still printed.
 - Results go to stdout and diagnostics to stderr. On failure stdout is empty. Exit codes: 0 success,

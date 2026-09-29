@@ -2,7 +2,7 @@
 // authorizes, and says what it could not determine.
 //
 //	soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>]
-//	                 [--asset CODE:ISSUER] [--json] [--strict]
+//	                 [--asset CODE:ISSUER] [--rpc <url>] [--json] [--strict]
 //	soroauth-explain completions --shell bash|zsh|fish
 //
 // Results go to stdout and diagnostics to stderr, so stdout only ever carries
@@ -28,7 +28,7 @@ const (
 
 const usageText = `usage:
   soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>]
-                   [--asset CODE:ISSUER] [--json] [--strict]
+                   [--asset CODE:ISSUER] [--rpc <url>] [--json] [--strict]
   soroauth-explain completions --shell bash|zsh|fish
 
 Explains what a Soroban authorization entry authorizes. Every node is marked
@@ -42,6 +42,12 @@ flags:
   --asset     a candidate asset as CODE:ISSUER, repeatable. A contract is
               labelled with it only if it is that asset's derived Stellar
               Asset Contract on --network. native needs no flag.
+  --rpc       a Soroban RPC URL. When given, this command makes network
+              requests (getLedgerEntries) to that URL to fetch the published
+              spec of each contract the entry calls, and uses it to name
+              arguments. Named calls stay partial; --strict still fails on
+              them. If a fetch fails, the rest is explained as without --rpc.
+              Without --rpc, nothing is sent anywhere.
   --json      print the stable JSON rendering instead of text
   --strict    exit 3 unless the explanation is decoded
 

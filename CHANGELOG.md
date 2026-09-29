@@ -21,6 +21,10 @@ a breaking change and is listed here as one.
   opaque share falls from 89.6% to 4.0%, and on the public sample from 98.8% to 0.0%; the decoded share
   does not change.
 
+- CLI `--rpc <url>`: fetches the published spec of each contract an entry calls and names its arguments.
+  It is the only network access in the tool and happens only when given. A failed fetch degrades to the
+  offline rendering, and `--strict` still fails on a spec-named call.
+
 ### Fixed
 
 - `WithAssets` kept a reference to the caller's slice until `Explain` ran; it now copies its arguments

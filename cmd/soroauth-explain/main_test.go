@@ -2,9 +2,13 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"flag"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,6 +18,7 @@ import (
 	"testing"
 
 	"github.com/soroauth/soroauth-explain/internal/snapshot"
+	soroauth "github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/network"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
@@ -66,18 +71,14 @@ func TestCLIMatchesSnapshots(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			// The CLI has no way to supply specs, so an entry that carries
-			// some is compared with its rendering without them.
-			if len(e.Specs) > 0 {
-				bare := e
-				bare.Specs = nil
-				out, err := snapshot.Render(bare)
-				if err != nil {
-					t.Fatal(err)
-				}
-				txt, js = out["txt"], out["json"]
-			}
 			base := []string{"--entry", e.EntryXDR, "--network", e.NetworkPassphrase}
+			// An entry with recorded specs is explained through the real
+			// --rpc path, against a local RPC serving exactly those specs.
+			if len(e.Specs) > 0 {
+				srv := httptest.NewServer(newFakeRPC(t, e.Specs))
+				defer srv.Close()
+				base = append(base, "--rpc", srv.URL)
+			}
 			for _, a := range e.Assets {
 				base = append(base, "--asset", a)
 			}
@@ -499,11 +500,11 @@ func TestBashCompletionBehaviour(t *testing.T) {
 		cword int
 		want  string
 	}{
-		{`soroauth-explain ""`, 1, "--entry --network --asset --json --strict completions help"},
+		{`soroauth-explain ""`, 1, "--entry --network --asset --rpc --json --strict completions help"},
 		{`soroauth-explain --network ""`, 2, "testnet public"},
 		{`soroauth-explain --network t`, 2, "testnet"},
 		{`soroauth-explain --entry ""`, 2, ""},
-		{`soroauth-explain --json ""`, 2, "--entry --network --asset --json --strict"},
+		{`soroauth-explain --json ""`, 2, "--entry --network --asset --rpc --json --strict"},
 		{`soroauth-explain completions ""`, 2, "--shell"},
 		{`soroauth-explain completions --shell ""`, 3, "bash zsh fish"},
 	}
@@ -531,7 +532,7 @@ func TestFishCompletionBehaviour(t *testing.T) {
 		want string
 	}{
 		{"soroauth-explain --network ", "public testnet"},
-		{"soroauth-explain --", "--asset --entry --json --network --strict"},
+		{"soroauth-explain --", "--asset --entry --json --network --rpc --strict"},
 		{"soroauth-explain completions --shell ", "bash fish zsh"},
 		{"soroauth-explain completions --", "--shell"},
 	}
@@ -569,4 +570,168 @@ func TestReadmeUsage(t *testing.T) {
 	if !strings.Contains(string(readme), "```text\n"+strings.Join(want, "\n")+"\n```") {
 		t.Fatalf("README does not contain the CLI synopsis:\n%s", strings.Join(want, "\n"))
 	}
+}
+
+// fakeRPC is a local Soroban RPC serving getLedgerEntries for a set of
+// contracts. Each contract runs a minimal wasm module holding just its spec
+// section, so the code hashes to the instance's wasm hash as a real one
+// does. It counts the requests it serves.
+type fakeRPC struct {
+	entries  map[string]string // base64 ledger key -> base64 ledger entry data
+	requests int
+	fail     bool
+}
+
+func wasmWithSpec(section []byte) []byte {
+	leb := func(n int) []byte {
+		var out []byte
+		for {
+			c := byte(n & 0x7f)
+			n >>= 7
+			if n != 0 {
+				out = append(out, c|0x80)
+				continue
+			}
+			return append(out, c)
+		}
+	}
+	name := "contractspecv0"
+	body := append(append(leb(len(name)), name...), section...)
+	return append(append([]byte("\x00asm\x01\x00\x00\x00\x00"), leb(len(body))...), body...)
+}
+
+func newFakeRPC(t testing.TB, specs map[string]string) *fakeRPC {
+	t.Helper()
+	f := &fakeRPC{entries: map[string]string{}}
+	put := func(k xdr.LedgerKey, d xdr.LedgerEntryData) {
+		kb, err := xdr.MarshalBase64(k)
+		if err != nil {
+			t.Fatal(err)
+		}
+		db, err := xdr.MarshalBase64(d)
+		if err != nil {
+			t.Fatal(err)
+		}
+		f.entries[kb] = db
+	}
+	for c, b64 := range specs {
+		section, err := base64.StdEncoding.DecodeString(b64)
+		if err != nil {
+			t.Fatal(err)
+		}
+		wasm := wasmWithSpec(section)
+		hash := xdr.Hash(sha256.Sum256(wasm))
+		addr, err := soroauth.ParseAddress(c)
+		if err != nil {
+			t.Fatal(err)
+		}
+		inst := xdr.ScContractInstance{Executable: xdr.ContractExecutable{Type: xdr.ContractExecutableTypeContractExecutableWasm, WasmHash: &hash}}
+		key := xdr.ScVal{Type: xdr.ScValTypeScvLedgerKeyContractInstance}
+		put(xdr.LedgerKey{Type: xdr.LedgerEntryTypeContractData, ContractData: &xdr.LedgerKeyContractData{Contract: addr, Key: key, Durability: xdr.ContractDataDurabilityPersistent}},
+			xdr.LedgerEntryData{Type: xdr.LedgerEntryTypeContractData, ContractData: &xdr.ContractDataEntry{Contract: addr, Key: key, Durability: xdr.ContractDataDurabilityPersistent,
+				Val: xdr.ScVal{Type: xdr.ScValTypeScvContractInstance, Instance: &inst}}})
+		put(xdr.LedgerKey{Type: xdr.LedgerEntryTypeContractCode, ContractCode: &xdr.LedgerKeyContractCode{Hash: hash}},
+			xdr.LedgerEntryData{Type: xdr.LedgerEntryTypeContractCode, ContractCode: &xdr.ContractCodeEntry{Hash: hash, Code: wasm}})
+	}
+	return f
+}
+
+func (f *fakeRPC) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	f.requests++
+	if f.fail {
+		http.Error(w, "unavailable", http.StatusServiceUnavailable)
+		return
+	}
+	var req struct {
+		Params struct {
+			Keys []string `json:"keys"`
+		} `json:"params"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || len(req.Params.Keys) != 1 {
+		http.Error(w, "bad request", http.StatusBadRequest)
+		return
+	}
+	var entries []map[string]string
+	if d, ok := f.entries[req.Params.Keys[0]]; ok {
+		entries = append(entries, map[string]string{"xdr": d})
+	}
+	json.NewEncoder(w).Encode(map[string]any{"jsonrpc": "2.0", "id": 1, "result": map[string]any{"entries": entries}})
+}
+
+// TestCLIRPC covers the four rules on --rpc (brief section 6.8).
+func TestCLIRPC(t *testing.T) {
+	e := loadEntry(t, "spec_set_price")
+	named, err := snapshot.Read(snapshotsDir, e.Name, "txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	bare := e
+	bare.Specs = nil
+	offline, err := snapshot.Render(bare)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Run("offline_by_default", func(t *testing.T) {
+		f := newFakeRPC(t, e.Specs)
+		srv := httptest.NewServer(f)
+		defer srv.Close()
+		out, _, code := runCLI(t, "", "--entry", e.EntryXDR, "--network", "testnet")
+		if code != exitOK || out != string(offline["txt"]) || f.requests != 0 {
+			t.Fatalf("code %d, requests %d\n%s", code, f.requests, out)
+		}
+	})
+	t.Run("names_with_rpc", func(t *testing.T) {
+		f := newFakeRPC(t, e.Specs)
+		srv := httptest.NewServer(f)
+		defer srv.Close()
+		out, errOut, code := runCLI(t, "", "--entry", e.EntryXDR, "--network", "testnet", "--rpc", srv.URL)
+		if code != exitOK || out != string(named) || errOut != "" || f.requests == 0 {
+			t.Fatalf("code %d, requests %d, stderr %q\n%s", code, f.requests, errOut, out)
+		}
+	})
+	// A spec-named call is partial, so --strict must still fail on it.
+	t.Run("strict_not_satisfied_by_a_spec", func(t *testing.T) {
+		srv := httptest.NewServer(newFakeRPC(t, e.Specs))
+		defer srv.Close()
+		out, errOut, code := runCLI(t, "", "--entry", e.EntryXDR, "--network", "testnet", "--rpc", srv.URL, "--strict")
+		if code != exitNotDecoded || !strings.Contains(out, "named by the spec") || !strings.Contains(errOut, "partial, not decoded") {
+			t.Fatalf("code %d, stderr %q\n%s", code, errOut, out)
+		}
+	})
+	t.Run("failed_fetch_degrades", func(t *testing.T) {
+		f := newFakeRPC(t, e.Specs)
+		f.fail = true
+		srv := httptest.NewServer(f)
+		defer srv.Close()
+		out, errOut, code := runCLI(t, "", "--entry", e.EntryXDR, "--network", "testnet", "--rpc", srv.URL)
+		if code != exitOK || out != string(offline["txt"]) || !strings.Contains(errOut, "--rpc: no spec for") {
+			t.Fatalf("code %d, stderr %q\n%s", code, errOut, out)
+		}
+	})
+	t.Run("unreachable_degrades", func(t *testing.T) {
+		srv := httptest.NewServer(newFakeRPC(t, e.Specs))
+		url := srv.URL
+		srv.Close()
+		out, _, code := runCLI(t, "", "--entry", e.EntryXDR, "--network", "testnet", "--rpc", url, "--json")
+		if code != exitOK || out != string(offline["json"]) {
+			t.Fatalf("code %d\n%s", code, out)
+		}
+	})
+	t.Run("bad_url_is_usage", func(t *testing.T) {
+		for _, u := range []string{"soroban-testnet.stellar.org", "ftp://x", "https://", "::"} {
+			out, errOut, code := runCLI(t, "", "--entry", e.EntryXDR, "--rpc", u)
+			if code != exitUsage || out != "" || !strings.Contains(errOut, "--rpc") {
+				t.Fatalf("%q: code %d, stdout %q, stderr %q", u, code, out, errOut)
+			}
+		}
+	})
+	t.Run("help_says_it_uses_the_network", func(t *testing.T) {
+		out, _, _ := runCLI(t, "", "--help")
+		for _, want := range []string{"--rpc", "makes network", "requests (getLedgerEntries) to that URL", "Without --rpc, nothing is sent anywhere"} {
+			if !strings.Contains(out, want) {
+				t.Errorf("usage lacks %q", want)
+			}
+		}
+	})
 }

@@ -1,15 +1,20 @@
 package main
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"flag"
 	"fmt"
 	"io"
+	"net/url"
+	"sort"
 	"strings"
+	"time"
 
 	explain "github.com/soroauth/soroauth-explain"
 	"github.com/soroauth/soroauth-explain/render"
+	"github.com/soroauth/soroauth-explain/spec"
 	"github.com/stellar/go-stellar-sdk/network"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
@@ -35,6 +40,18 @@ const (
 	// top of the longest valid base64 input.
 	stdinSlack = 4096
 )
+
+// rpcTimeout bounds all of --rpc's requests for one entry together.
+const rpcTimeout = 30 * time.Second
+
+func sortedContracts(m map[string]error) []string {
+	out := make([]string, 0, len(m))
+	for c := range m {
+		out = append(out, c)
+	}
+	sort.Strings(out)
+	return out
+}
 
 // errDecodeLimit marks an input refused by a decode limit, as distinct from
 // input that is malformed.
@@ -83,6 +100,7 @@ func networkPassphrase(name string) string {
 type explainFlags struct {
 	entry   string
 	network string
+	rpc     string
 	assets  assetList
 	json    bool
 	strict  bool
@@ -125,6 +143,7 @@ func newExplainFlagSet(stderr io.Writer) (*flag.FlagSet, *explainFlags) {
 	fs.StringVar(&f.entry, "entry", "", "the entry as base64 XDR, or - to read it from stdin")
 	fs.StringVar(&f.network, "network", "", "testnet, public, or a network passphrase")
 	fs.Var(&f.assets, "asset", "a candidate asset as CODE:ISSUER; repeat for several")
+	fs.StringVar(&f.rpc, "rpc", "", "a Soroban RPC URL to fetch contract specs from (makes network requests)")
 	fs.BoolVar(&f.json, "json", false, "print the stable JSON rendering instead of text")
 	fs.BoolVar(&f.strict, "strict", false, "exit 3 unless the explanation is decoded")
 	return fs, f
@@ -142,6 +161,13 @@ func runExplain(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "soroauth-explain: unexpected argument %q\n", fs.Arg(0))
 		fs.Usage()
 		return exitUsage
+	}
+	if f.rpc != "" {
+		if u, err := url.Parse(f.rpc); err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" {
+			fmt.Fprintf(stderr, "soroauth-explain: --rpc %q is not an http or https URL\n", f.rpc)
+			fs.Usage()
+			return exitUsage
+		}
 	}
 	if f.entry == "" {
 		fmt.Fprintln(stderr, "soroauth-explain: --entry is required")
@@ -179,6 +205,20 @@ func runExplain(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 	if len(f.assets.assets) > 0 {
 		opts = append(opts, explain.WithAssets(f.assets.assets...))
+	}
+	if f.rpc != "" {
+		// The only network access in this tool, and only when asked for. A
+		// fetch that fails leaves that contract unnamed; it never fails the
+		// command, and it never changes what is decoded.
+		ctx, cancel := context.WithTimeout(context.Background(), rpcTimeout)
+		specs, errs := spec.RPC{URL: f.rpc}.Fetch(ctx, entry)
+		cancel()
+		for _, c := range sortedContracts(errs) {
+			if !errors.Is(errs[c], spec.ErrNotWasm) {
+				fmt.Fprintf(stderr, "soroauth-explain: --rpc: no spec for %s: %v\n", c, errs[c])
+			}
+		}
+		opts = append(opts, explain.WithSpecs(specs))
 	}
 	exp, err := explain.Explain(entry, opts...)
 	if err != nil {
