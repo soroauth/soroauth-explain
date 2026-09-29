@@ -82,7 +82,7 @@ func TestExplainWithSpecNamesArguments(t *testing.T) {
 	if !strings.HasSuffix(a.Summary, "with 3 arguments, named by the spec the contract publishes") {
 		t.Fatalf("summary = %q", a.Summary)
 	}
-	if n := strings.Join(exp.Unexplained, "\n"); !strings.Contains(n, "come from the spec the contract publishes") || strings.Contains(n, "is not interpreted by this library") {
+	if n := strings.Join(exp.Unexplained, "\n"); !strings.Contains(n, "come from the spec the contract publishes") || !strings.Contains(n, "a name may not describe the value beside it") || strings.Contains(n, "is not interpreted by this library") {
 		t.Fatalf("unexplained = %q", exp.Unexplained)
 	}
 

@@ -564,8 +564,8 @@ func scaleDecimal(integer string, places int) string {
 
 // explainNamed explains a call whose arguments are named by the called
 // contract's own spec. The names are the contract's claim about its
-// arguments, so the call is partial at most, and nothing is scaled or
-// labelled from them.
+// function's parameters, not about what it authorized, so the call is
+// partial at most, and nothing is scaled or labelled from them.
 func (w *walker) explainNamed(declared spec.Function, contract, label string, isSAC bool, args []xdr.ScVal, depth int) (Action, []string, error) {
 	fields := []Field{
 		{Name: "contract", Value: contract, Confidence: ConfidenceDecoded},
@@ -596,7 +596,13 @@ func (w *walker) explainNamed(declared spec.Function, contract, label string, is
 			notes = append(notes, fmt.Sprintf("Argument %d of %s on %s: %s", i, declared.Name, contract, n))
 		}
 	}
-	notes = append(notes, fmt.Sprintf("The argument names of %s on %s come from the spec the contract publishes. A name says what an argument is called, not what the contract does with it, so the call is not interpreted.", declared.Name, contract))
+	// The names are the function's declared parameters. An authorization
+	// carries whatever the contract passed to require_auth_for_args, which
+	// "don't have to match the arguments of the contract invocation"
+	// (rs-soroban-sdk soroban-sdk/src/address.rs:243, at 5ad47088), so a
+	// name can sit beside a value it does not describe even when every type
+	// fits. The note says so.
+	notes = append(notes, fmt.Sprintf("The argument names of %s on %s come from the spec the contract publishes. They are the names of the function's parameters; a contract can authorize different arguments from those it is called with, so a name may not describe the value beside it. A name also says nothing about what the contract does with a value, so the call is not interpreted.", declared.Name, contract))
 	return Action{
 		Kind:       ActionInvokeContract,
 		Contract:   contract,

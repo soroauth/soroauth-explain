@@ -43,7 +43,7 @@
   "subject": "GAIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCF6M",
   "unexplained": [
     "Argument 0 of configure on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ has a name in the contract's spec outside A-Z, a-z, 0-9 and underscore, which is not shown.",
-    "The argument names of configure on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ come from the spec the contract publishes. A name says what an argument is called, not what the contract does with it, so the call is not interpreted."
+    "The argument names of configure on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ come from the spec the contract publishes. They are the names of the function's parameters; a contract can authorize different arguments from those it is called with, so a name may not describe the value beside it. A name also says nothing about what the contract does with a value, so the call is not interpreted."
   ],
   "valid_until_ledger": 1000
 }
