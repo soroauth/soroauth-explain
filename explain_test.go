@@ -658,3 +658,17 @@ func TestExplainDeterministic(t *testing.T) {
 		}
 	}
 }
+
+// TestWithAssetsCopiesInput: changing the caller's slice after building the
+// option must not change what Explain derives against.
+func TestWithAssetsCopiesInput(t *testing.T) {
+	usdcA := xdr.MustNewCreditAsset("USDC", usdcIssuerGA5Z)
+	entry := addressEntry(callInvocation(sacAddress(t, usdcA, publicPassphrase), "transfer", transferArgs()))
+	assets := []xdr.Asset{usdcA}
+	opt := WithAssets(assets...)
+	assets[0] = xdr.MustNewNativeAsset()
+	exp := explainChecked(t, entry, WithNetwork(publicPassphrase), opt)
+	if exp.Confidence != ConfidenceDecoded {
+		t.Fatalf("confidence %s: WithAssets kept a reference to the caller's slice", exp.Confidence)
+	}
+}

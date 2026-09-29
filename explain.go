@@ -83,7 +83,9 @@ func WithNetwork(passphrase string) Option {
 // only the native asset can ever be identified, and every issued-asset
 // transfer is partial. Repeated calls accumulate.
 func WithAssets(assets ...xdr.Asset) Option {
-	return func(o *options) { o.assets = append(o.assets, assets...) }
+	// Copied now, so a caller changing its slice afterwards changes nothing.
+	own := append([]xdr.Asset(nil), assets...)
+	return func(o *options) { o.assets = append(o.assets, own...) }
 }
 
 // WithSpecs supplies contract specs, keyed by contract address (as
