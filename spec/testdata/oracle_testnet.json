@@ -1,0 +1,9 @@
+{
+  "contract": "CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC",
+  "network_passphrase": "Test SDF Network ; September 2015",
+  "rpc": "https://soroban-testnet.stellar.org",
+  "fetched": "2026-09-29",
+  "method": "getLedgerEntries: the contract's instance for its wasm hash, then the ContractCode entry for the code",
+  "wasm_file": "oracle_testnet.wasm",
+  "wasm_sha256": "b5512db5ce1f171a35e5b12dd8865ed2ca6efcb3432b11df6d7eaa6566e924bb"
+}
