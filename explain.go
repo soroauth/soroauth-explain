@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/soroauth/soroauth-explain/interfaces"
+	"github.com/soroauth/soroauth-explain/spec"
 	soroauth "github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
@@ -59,6 +60,7 @@ type Option func(*options)
 type options struct {
 	network  string
 	assets   []xdr.Asset
+	specs    map[string]spec.Spec
 	maxDepth int
 	maxNodes int
 }
@@ -82,6 +84,34 @@ func WithNetwork(passphrase string) Option {
 // transfer is partial. Repeated calls accumulate.
 func WithAssets(assets ...xdr.Asset) Option {
 	return func(o *options) { o.assets = append(o.assets, assets...) }
+}
+
+// WithSpecs supplies contract specs, keyed by contract address (as
+// spec.RPC.Fetch returns them), to name the arguments of calls this library
+// cannot otherwise interpret.
+//
+// A spec is the contract's own statement of its functions' argument names
+// and types. It is used only when the call is not a known interface
+// function, the spec declares the function exactly once, and every argument
+// has the type the spec declares. The arguments are then named, and the call
+// is partial: a name says what an argument is called, not what the contract
+// does with it. Nothing in a spec labels a contract, an asset or an amount.
+// Repeated calls accumulate; a later spec for the same contract replaces an
+// earlier one.
+func WithSpecs(specs map[string]spec.Spec) Option {
+	// Copied now, so a caller changing its map afterwards changes nothing.
+	own := make(map[string]spec.Spec, len(specs))
+	for c, s := range specs {
+		own[c] = s
+	}
+	return func(o *options) {
+		if o.specs == nil {
+			o.specs = map[string]spec.Spec{}
+		}
+		for c, s := range own {
+			o.specs[c] = s
+		}
+	}
 }
 
 // WithMaxDepth overrides DefaultMaxDepth. A value below 1 is an error.
@@ -293,6 +323,15 @@ func (w *walker) explainContractFn(fn xdr.InvokeContractArgs, depth int, o optio
 
 	if sig, ok := registry.Lookup(name, fn.Args); ok && fnField.Confidence == ConfidenceDecoded {
 		return w.explainKnown(sig, contract, label, isSAC, fn.Args, depth, o)
+	}
+
+	if s, ok := o.specs[contract]; ok && fnField.Confidence == ConfidenceDecoded {
+		if declared, ok := s.Function(name); ok {
+			if declared.Matches(fn.Args) {
+				return w.explainNamed(declared, contract, label, isSAC, fn.Args, depth)
+			}
+			notes = append(notes, fmt.Sprintf("The spec the contract at %s publishes declares %s with different arguments from this call, so its argument names are not used.", contract, name))
+		}
 	}
 
 	fields := []Field{
@@ -519,4 +558,49 @@ func scaleDecimal(integer string, places int) string {
 		digits = strings.Repeat("0", places-len(digits)+1) + digits
 	}
 	return sign + digits[:len(digits)-places] + "." + digits[len(digits)-places:]
+}
+
+// explainNamed explains a call whose arguments are named by the called
+// contract's own spec. The names are the contract's claim about its
+// arguments, so the call is partial at most, and nothing is scaled or
+// labelled from them.
+func (w *walker) explainNamed(declared spec.Function, contract, label string, isSAC bool, args []xdr.ScVal, depth int) (Action, []string, error) {
+	fields := []Field{
+		{Name: "contract", Value: contract, Confidence: ConfidenceDecoded},
+		{Name: "function", Value: declared.Name, Confidence: ConfidenceDecoded},
+		{Name: "arguments", Value: strconv.Itoa(len(args)), Confidence: ConfidenceDecoded},
+	}
+	template := "Call {function} on {contract} with {arguments} " + pluralArguments(len(args)) + ", named by the spec the contract publishes"
+	if isSAC {
+		fields = append(fields, Field{Name: "asset", Value: label, Confidence: ConfidenceDecoded})
+		template = "Call {function} on {contract}, the Stellar Asset Contract for {asset}, with {arguments} " + pluralArguments(len(args)) + ", named by the spec the contract publishes"
+	}
+	conf := ConfidencePartial
+	var notes []string
+	for i := range args {
+		v, err := w.renderScVal(args[i], depth+1)
+		if err != nil {
+			return Action{}, nil, err
+		}
+		fieldName := "arg[" + strconv.Itoa(i) + "]"
+		if in := declared.Inputs[i].Name; isPlainSymbol(in) {
+			fieldName += ":" + in
+		} else {
+			notes = append(notes, fmt.Sprintf("Argument %d of %s on %s has a name in the contract's spec outside A-Z, a-z, 0-9 and underscore, which is not shown.", i, declared.Name, contract))
+		}
+		fields = append(fields, Field{Name: fieldName, Value: v.text, Confidence: v.conf})
+		conf = Floor(conf, v.conf)
+		for _, n := range v.notes {
+			notes = append(notes, fmt.Sprintf("Argument %d of %s on %s: %s", i, declared.Name, contract, n))
+		}
+	}
+	notes = append(notes, fmt.Sprintf("The argument names of %s on %s come from the spec the contract publishes. A name says what an argument is called, not what the contract does with it, so the call is not interpreted.", declared.Name, contract))
+	return Action{
+		Kind:       ActionInvokeContract,
+		Contract:   contract,
+		Function:   declared.Name,
+		Confidence: conf,
+		Summary:    summarize(template, fields),
+		Fields:     fields,
+	}, notes, nil
 }

@@ -21,6 +21,8 @@ var summaryVocabulary = map[string]bool{
 	"token": true, "at": true, "until": true, "ledger": true, "replacing": true,
 	"any": true, "current": true, "allowance": true, "Transfer": true,
 	"spending": true, "Burn": true,
+	// Spec-named calls (explainNamed).
+	"named": true, "spec": true, "publishes": true,
 }
 
 // checkSummaryAgrees asserts that every value in a.Summary appears in some
