@@ -329,7 +329,7 @@ func (w *walker) explainContractFn(fn xdr.InvokeContractArgs, depth int, o optio
 
 	if s, ok := o.specs[contract]; ok && fnField.Confidence == ConfidenceDecoded {
 		if declared, ok := s.Function(name); ok {
-			if declared.Matches(fn.Args) {
+			if declared.Matches(fn.Args) && namesAny(declared) {
 				return w.explainNamed(declared, contract, label, isSAC, fn.Args, depth)
 			}
 			notes = append(notes, fmt.Sprintf("The spec the contract at %s publishes declares %s with different arguments from this call, so its argument names are not used.", contract, name))
@@ -605,4 +605,17 @@ func (w *walker) explainNamed(declared spec.Function, contract, label string, is
 		Summary:    summarize(template, fields),
 		Fields:     fields,
 	}, notes, nil
+}
+
+// namesAny reports whether a declaration would name at least one argument.
+// A spec that names nothing (no arguments, or only names this library will
+// not show) adds nothing a reader can use, so the call stays opaque rather
+// than claiming to be named.
+func namesAny(f spec.Function) bool {
+	for _, in := range f.Inputs {
+		if isPlainSymbol(in.Name) {
+			return true
+		}
+	}
+	return false
 }

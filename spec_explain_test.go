@@ -136,7 +136,9 @@ func TestExplainWithSpecNeverDecodes(t *testing.T) {
 	misleading := builtSpec(t,
 		specFn("do_thing", specIn("xlm_amount", xdr.ScSpecTypeScSpecTypeI128), specIn("recipient", xdr.ScSpecTypeScSpecTypeAddress)),
 		specFn("transfer", specIn("x", xdr.ScSpecTypeScSpecTypeAddress), specIn("y", xdr.ScSpecTypeScSpecTypeAddress), specIn("z", xdr.ScSpecTypeScSpecTypeI128)),
-		specFn("weird", specIn("a\x1b[31mb", xdr.ScSpecTypeScSpecTypeU32)),
+		specFn("weird", specIn("a\x1b[31mb", xdr.ScSpecTypeScSpecTypeU32), specIn("ok", xdr.ScSpecTypeScSpecTypeU32)),
+		specFn("nameless", specIn("a\x1b[31mb", xdr.ScSpecTypeScSpecTypeU32)),
+		specFn("noargs"),
 	)
 	nativeSAC := sacAddress(t, xdr.MustNewNativeAsset(), testnetPassphrase)
 	sacSpec := builtSpec(t, specFn("mint", specIn("to", xdr.ScSpecTypeScSpecTypeAddress), specIn("amount", xdr.ScSpecTypeScSpecTypeI128)))
@@ -166,9 +168,12 @@ func TestExplainWithSpecNeverDecodes(t *testing.T) {
 		}
 	})
 	t.Run("unplain_name", func(t *testing.T) {
-		exp := explainChecked(t, addressEntry(callInvocation(arbitrary, "weird", []xdr.ScVal{u32Val(1)})), opts...)
+		exp := explainChecked(t, addressEntry(callInvocation(arbitrary, "weird", []xdr.ScVal{u32Val(1), u32Val(2)})), opts...)
 		if _, ok := fieldByName(exp.Actions[0], "arg[0]"); !ok || !strings.Contains(strings.Join(exp.Unexplained, "\n"), "which is not shown") {
 			t.Fatalf("got %+v %q", exp.Actions[0].Fields, exp.Unexplained)
+		}
+		if _, ok := fieldByName(exp.Actions[0], "arg[1]:ok"); !ok {
+			t.Fatalf("the plain name was not applied: %+v", exp.Actions[0].Fields)
 		}
 		for _, f := range exp.Actions[0].Fields {
 			if strings.Contains(f.Name, "\x1b") {
@@ -176,6 +181,15 @@ func TestExplainWithSpecNeverDecodes(t *testing.T) {
 			}
 		}
 	})
+	// A spec that would name nothing does not make a call "named".
+	for name, args := range map[string][]xdr.ScVal{"nameless": {u32Val(1)}, "noargs": nil} {
+		t.Run("names_nothing_"+name, func(t *testing.T) {
+			exp := explainChecked(t, addressEntry(callInvocation(arbitrary, name, args)), opts...)
+			if exp.Confidence != ConfidenceOpaque || strings.Contains(exp.Actions[0].Summary, "named by") {
+				t.Fatalf("got %s %q", exp.Confidence, exp.Actions[0].Summary)
+			}
+		})
+	}
 	t.Run("sac_unknown_function", func(t *testing.T) {
 		exp := explainChecked(t, addressEntry(callInvocation(nativeSAC, "mint", []xdr.ScVal{addrVal(accountAddress(otherKey)), i128Val(10000000)})), opts...)
 		a := exp.Actions[0]
