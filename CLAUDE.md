@@ -550,9 +550,28 @@ call match a known signature, and what does each argument mean"; the caller asse
 
 ```
 soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>] \
-                 [--asset CODE:ISSUER] [--json] [--strict]
+                 [--asset CODE:ISSUER] [--rpc <url>] [--json] [--strict]
 soroauth-explain completions --shell bash|zsh|fish
 ```
+
+`--rpc` is the only thing in this tool that touches the network, and it is entirely
+opt-in. Given, it fetches each contract's published spec and supplies `WithSpecs`, so the
+CLI can name arguments the library can already name. Without it the command is offline and
+behaves exactly as before.
+
+Four rules on it:
+
+- **Offline is the default and stays the default.** No `--rpc` means no network call, no
+  lookup, no change in output.
+- **A failed or missing fetch degrades to the offline rendering and never fails the
+  command**, matching `WithSpecs`. A contract whose spec cannot be read is still explained
+  as far as it can be.
+- **`--strict` must never be satisfied by a spec.** A spec-named call is `partial`; if
+  `--strict` ever exits 0 because a spec named something, that is a bug, and a test should
+  say so.
+- **`--help` states that it makes a network call, and to where.** A command-line tool that
+  reaches the network without saying so is exactly the surprise this project should not
+  produce.
 
 `--asset` is repeatable and supplies `WithAssets`. Without it the CLI can only ever
 identify the native asset, so a USDC transfer the library decodes renders `partial` from
