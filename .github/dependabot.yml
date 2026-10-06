@@ -1,0 +1,46 @@
+version: 2
+updates:
+  # Go modules. This repository has one module, at the root.
+  #
+  # github.com/soroauth/soroauth-go is deliberately NOT updated by Dependabot.
+  #
+  # The pin to v0.1.0 is the build brief's section 0 (CLAUDE.md), not an
+  # accident of when the module was added. Moving it has three preconditions,
+  # checked in order:
+  #
+  #   1. soroauth-go's Drips wave has closed;
+  #   2. a real release tag exists containing the APIs this project would use;
+  #   3. that release does not pull bubbletea, lipgloss or a Vault HTTP client
+  #      into this project's dependency graph (checked with `go list -deps .`).
+  #
+  # An automated bump satisfies none of them. A pseudo-version is never
+  # acceptable either: this library's claim is reproducibility.
+  #
+  # This is not a precaution. In soroauth-go, Dependabot pull requests that
+  # moved deliberately pinned reference-SDK versions were merged without
+  # review: #280 (testdata/gen) and #278 (testdata/differential) bumped
+  # @stellar/stellar-sdk 17.1.0 -> 17.2.0, and the golden-vector generator and
+  # the differential verifier both refused to run, leaving the library's
+  # correctness gate red on main until the bumps were reverted. The merges
+  # were made by the organisation's mergekeeper app, which soroauth-go's
+  # ruleset lists as an always-bypass actor. This repository's ruleset has no
+  # bypass actors, but a bump that passes CI could still be merged, so the
+  # pin is protected here, at the source.
+  #
+  # To move this pin on purpose: check the three preconditions above, record
+  # the output of `go list -m github.com/soroauth/soroauth-go` and
+  # `go list -deps .`, and explain the change in the commit body.
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+    ignore:
+      - dependency-name: "github.com/soroauth/soroauth-go"
+
+  # npm: there is no npm project in this repository (no package.json is
+  # tracked), so there is nothing to configure. If one is added, for example
+  # the JavaScript cross-check in docs/ISSUE_BACKLOG.md, add its directory here
+  # in the same commit, and if it pins a reference SDK exactly, ignore that
+  # dependency with the reason, as soroauth-go does for testdata/gen.
