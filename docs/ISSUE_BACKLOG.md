@@ -995,7 +995,7 @@ Complexity tiers:
 
 **Found:** `TestLiveCheckRegressions` fetched its three transactions (`c2426626…`, `cc265b25…`, `55ea6c0a…`) by hash from RPC. By 2026-10-06 all three had left retention (`getTransaction` returned `NOT_FOUND`, with oldest retained ledgers 4928601 on testnet and 64676162 on public), so the test now skips each case (91c2c5e) and none of them runs anywhere.
 
-**Done when:** The regression test reads envelopes and metas from `testdata/` and needs no network, and CONTRIBUTING.md says a new regression case is recorded when it is found. For the three that aged out, either their envelopes and metas are recovered from a cited archival source and recorded, or each case is retired with the reason written next to the test.
+**Done when:** The regression test reads envelopes and metas from `testdata/` and needs no network. CONTRIBUTING.md requires that a new regression case's envelope and meta are recorded under `testdata/` in the same commit that fixes the check, not as a follow-up: these three were lost because recording was a separate intention, and separate intentions expire. For the three that aged out, either their envelopes and metas are recovered from a cited archival source and recorded, or each case is retired with the reason written next to the test.
 
 **Evidence:** The regression test passing offline; the archival source cited, or the retirement recorded.
 
