@@ -20,14 +20,14 @@ Complexity tiers:
 | Interface families the spec reader now reaches | 5 | 9 | 1 | 15 |
 | Evidence and live checks | 2 | 8 | 4 | 14 |
 | Fixtures and snapshot cases | 0 | 8 | 10 | 18 |
-| Renderers and output | 4 | 7 | 5 | 16 |
+| Renderers and output | 4 | 8 | 5 | 17 |
 | Command-line interface | 2 | 4 | 6 | 12 |
 | Robustness, limits and security | 3 | 6 | 3 | 12 |
 | Internationalization | 2 | 3 | 4 | 9 |
 | Accessibility | 1 | 3 | 4 | 8 |
 | Documentation | 0 | 4 | 6 | 10 |
 | Project infrastructure | 1 | 2 | 5 | 8 |
-| **Total** | **32** | **68** | **56** | **156** |
+| **Total** | **32** | **69** | **56** | **157** |
 
 ## Known interfaces (the registry)
 
@@ -1011,9 +1011,19 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases, including hostile strings.
 
+### 98. Interpret executable tags and external-reference executables, or keep them opaque on purpose
+
+**Tier:** medium
+
+**Found:** `ScvExecutableTag` values and `CONTRACT_EXECUTABLE_EXTERNAL_REF` executables render `opaque` (`scval.go:223-230` and `:314-316`), because v0.1.0 did not read the protocol text that defines them. This was item 8 of the first backlog.
+
+**Done when:** Either they are interpreted with a cited CAP and section, and snapshot cases, or the code comment names the CAP and explains why they stay opaque.
+
+**Evidence:** The cited CAP section; snapshot cases or the recorded decision.
+
 ## Command-line interface
 
-### 98. Read `--entry` from a file
+### 99. Read `--entry` from a file
 
 **Tier:** medium
 
@@ -1023,7 +1033,7 @@ Complexity tiers:
 
 **Evidence:** Tests through `run()`; the completion spec test.
 
-### 99. Explain every entry in a transaction envelope
+### 100. Explain every entry in a transaction envelope
 
 **Tier:** high
 
@@ -1033,7 +1043,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases with real envelopes; the section-0 conditions checked before any re-pin.
 
-### 100. Explain several entries, one per line
+### 101. Explain several entries, one per line
 
 **Tier:** medium
 
@@ -1043,7 +1053,7 @@ Complexity tiers:
 
 **Evidence:** Tests through a real pipe.
 
-### 101. `--version`
+### 102. `--version`
 
 **Tier:** low
 
@@ -1053,7 +1063,7 @@ Complexity tiers:
 
 **Evidence:** A test through `run()`.
 
-### 102. Make `--rpc`'s timeout configurable
+### 103. Make `--rpc`'s timeout configurable
 
 **Tier:** low
 
@@ -1063,7 +1073,7 @@ Complexity tiers:
 
 **Evidence:** The measurement; tests.
 
-### 103. Cache fetched specs between CLI runs
+### 104. Cache fetched specs between CLI runs
 
 **Tier:** medium
 
@@ -1073,7 +1083,7 @@ Complexity tiers:
 
 **Evidence:** Tests counting requests across runs.
 
-### 104. Print which contracts `--rpc` named
+### 105. Print which contracts `--rpc` named
 
 **Tier:** low
 
@@ -1083,7 +1093,7 @@ Complexity tiers:
 
 **Evidence:** Tests.
 
-### 105. Generate a man page
+### 106. Generate a man page
 
 **Tier:** low
 
@@ -1093,7 +1103,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 106. A policy mode that fails on specific kinds, not only on confidence
+### 107. A policy mode that fails on specific kinds, not only on confidence
 
 **Tier:** high
 
@@ -1103,7 +1113,7 @@ Complexity tiers:
 
 **Evidence:** Tests for each rule.
 
-### 107. Test the CLI on Windows line endings end to end
+### 108. Test the CLI on Windows line endings end to end
 
 **Tier:** low
 
@@ -1113,7 +1123,7 @@ Complexity tiers:
 
 **Evidence:** The job's output.
 
-### 108. Completions for `--rpc` values
+### 109. Completions for `--rpc` values
 
 **Tier:** low
 
@@ -1123,7 +1133,7 @@ Complexity tiers:
 
 **Evidence:** The completion behaviour tests for bash and fish.
 
-### 109. Exit codes as a documented, tested table
+### 110. Exit codes as a documented, tested table
 
 **Tier:** medium
 
@@ -1135,7 +1145,7 @@ Complexity tiers:
 
 ## Robustness, limits and security
 
-### 110. Fuzz `Explain`
+### 111. Fuzz `Explain`
 
 **Tier:** high
 
@@ -1145,7 +1155,7 @@ Complexity tiers:
 
 **Evidence:** Seed case names in `go test -v` output (section 11.5).
 
-### 111. Fuzz the CLI's decoder
+### 112. Fuzz the CLI's decoder
 
 **Tier:** high
 
@@ -1155,7 +1165,7 @@ Complexity tiers:
 
 **Evidence:** As above.
 
-### 112. Property test the confidence floor over random trees
+### 113. Property test the confidence floor over random trees
 
 **Tier:** high
 
@@ -1165,7 +1175,7 @@ Complexity tiers:
 
 **Evidence:** The property test and its seed.
 
-### 113. Measure memory use at the limits
+### 114. Measure memory use at the limits
 
 **Tier:** medium
 
@@ -1175,7 +1185,7 @@ Complexity tiers:
 
 **Evidence:** The benchmark output.
 
-### 114. Benchmark rendering
+### 115. Benchmark rendering
 
 **Tier:** medium
 
@@ -1185,7 +1195,7 @@ Complexity tiers:
 
 **Evidence:** The output, recorded with its date.
 
-### 115. Treat RPC responses as hostile, with tests
+### 116. Treat RPC responses as hostile, with tests
 
 **Tier:** medium
 
@@ -1195,7 +1205,7 @@ Complexity tiers:
 
 **Evidence:** A fake RPC returning another contract's instance, caught.
 
-### 116. Refuse redirects to other hosts in `--rpc`
+### 117. Refuse redirects to other hosts in `--rpc`
 
 **Tier:** low
 
@@ -1205,7 +1215,7 @@ Complexity tiers:
 
 **Evidence:** A test with a redirecting server.
 
-### 117. Run `govulncheck` in the advisory workflow
+### 118. Run `govulncheck` in the advisory workflow
 
 **Tier:** medium
 
@@ -1215,7 +1225,7 @@ Complexity tiers:
 
 **Evidence:** Its first output.
 
-### 118. Run `staticcheck`
+### 119. Run `staticcheck`
 
 **Tier:** low
 
@@ -1225,7 +1235,7 @@ Complexity tiers:
 
 **Evidence:** Its output.
 
-### 119. A threat model document
+### 120. A threat model document
 
 **Tier:** medium
 
@@ -1235,7 +1245,7 @@ Complexity tiers:
 
 **Evidence:** Each defence linked to its test.
 
-### 120. Check that no rendering contains a control character
+### 121. Check that no rendering contains a control character
 
 **Tier:** low
 
@@ -1245,7 +1255,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 121. Bound the stderr output of `--rpc` failures
+### 122. Bound the stderr output of `--rpc` failures
 
 **Tier:** medium
 
@@ -1257,7 +1267,7 @@ Complexity tiers:
 
 ## Internationalization
 
-### 122. A message catalogue for all user-facing text
+### 123. A message catalogue for all user-facing text
 
 **Tier:** high
 
@@ -1267,7 +1277,7 @@ Complexity tiers:
 
 **Evidence:** Snapshots in English unchanged; a test that every catalogue key is used.
 
-### 123. A pseudo-locale to find untranslated strings
+### 124. A pseudo-locale to find untranslated strings
 
 **Tier:** medium
 
@@ -1277,7 +1287,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 124. Keep values untranslated
+### 125. Keep values untranslated
 
 **Tier:** medium
 
@@ -1287,7 +1297,7 @@ Complexity tiers:
 
 **Evidence:** The test in the pseudo-locale.
 
-### 125. Document the plain-English style of the notes
+### 126. Document the plain-English style of the notes
 
 **Tier:** low
 
@@ -1297,7 +1307,7 @@ Complexity tiers:
 
 **Evidence:** The guide.
 
-### 126. Right-to-left safety in text output
+### 127. Right-to-left safety in text output
 
 **Tier:** high
 
@@ -1307,7 +1317,7 @@ Complexity tiers:
 
 **Evidence:** The written finding and tests.
 
-### 127. Locale-independent number formatting, tested
+### 128. Locale-independent number formatting, tested
 
 **Tier:** low
 
@@ -1317,7 +1327,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 128. A first translation, as a proof of the catalogue
+### 129. A first translation, as a proof of the catalogue
 
 **Tier:** medium
 
@@ -1327,7 +1337,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases in that language.
 
-### 129. Translate the CLI usage text
+### 130. Translate the CLI usage text
 
 **Tier:** low
 
@@ -1337,7 +1347,7 @@ Complexity tiers:
 
 **Evidence:** Tests.
 
-### 130. Keep translations from weakening the caveats
+### 131. Keep translations from weakening the caveats
 
 **Tier:** low
 
@@ -1349,7 +1359,7 @@ Complexity tiers:
 
 ## Accessibility
 
-### 131. Audit the text rendering with a screen reader
+### 132. Audit the text rendering with a screen reader
 
 **Tier:** high
 
@@ -1359,7 +1369,7 @@ Complexity tiers:
 
 **Evidence:** The audit notes; snapshot changes explained.
 
-### 132. Never convey confidence by position or symbol alone
+### 133. Never convey confidence by position or symbol alone
 
 **Tier:** medium
 
@@ -1369,7 +1379,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 133. An accessible rendering without column alignment
+### 134. An accessible rendering without column alignment
 
 **Tier:** medium
 
@@ -1379,7 +1389,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases.
 
-### 134. Read long addresses in chunks
+### 135. Read long addresses in chunks
 
 **Tier:** low
 
@@ -1389,7 +1399,7 @@ Complexity tiers:
 
 **Evidence:** The written finding.
 
-### 135. Plain-language level of the notes
+### 136. Plain-language level of the notes
 
 **Tier:** medium
 
@@ -1399,7 +1409,7 @@ Complexity tiers:
 
 **Evidence:** The tool's scores before and after.
 
-### 136. Accessible HTML output
+### 137. Accessible HTML output
 
 **Tier:** low
 
@@ -1409,7 +1419,7 @@ Complexity tiers:
 
 **Evidence:** The checker's output.
 
-### 137. Keyboard-only use of the completions
+### 138. Keyboard-only use of the completions
 
 **Tier:** low
 
@@ -1419,7 +1429,7 @@ Complexity tiers:
 
 **Evidence:** The test in CI.
 
-### 138. Contrast and colour guidance for wallets
+### 139. Contrast and colour guidance for wallets
 
 **Tier:** low
 
@@ -1431,7 +1441,7 @@ Complexity tiers:
 
 ## Documentation
 
-### 139. A wallet integration guide
+### 140. A wallet integration guide
 
 **Tier:** medium
 
@@ -1441,7 +1451,7 @@ Complexity tiers:
 
 **Evidence:** Every code sample compiled as an Example.
 
-### 140. "Why is my entry opaque?"
+### 141. "Why is my entry opaque?"
 
 **Tier:** medium
 
@@ -1451,7 +1461,7 @@ Complexity tiers:
 
 **Evidence:** The FAQ.
 
-### 141. A glossary
+### 142. A glossary
 
 **Tier:** low
 
@@ -1461,7 +1471,7 @@ Complexity tiers:
 
 **Evidence:** The glossary.
 
-### 142. Architecture decision records for the honesty rules
+### 143. Architecture decision records for the honesty rules
 
 **Tier:** medium
 
@@ -1471,7 +1481,7 @@ Complexity tiers:
 
 **Evidence:** The ADRs.
 
-### 143. Examples for every exported function
+### 144. Examples for every exported function
 
 **Tier:** low
 
@@ -1481,7 +1491,7 @@ Complexity tiers:
 
 **Evidence:** `go test` running them.
 
-### 144. Document the evidence method for contributors
+### 145. Document the evidence method for contributors
 
 **Tier:** low
 
@@ -1491,7 +1501,7 @@ Complexity tiers:
 
 **Evidence:** The section.
 
-### 145. A comparison with other decoders, with a dated search
+### 146. A comparison with other decoders, with a dated search
 
 **Tier:** medium
 
@@ -1501,7 +1511,7 @@ Complexity tiers:
 
 **Evidence:** The search results, dated.
 
-### 146. A changelog policy for the wire format
+### 147. A changelog policy for the wire format
 
 **Tier:** low
 
@@ -1511,7 +1521,7 @@ Complexity tiers:
 
 **Evidence:** The policy.
 
-### 147. Document `--rpc` endpoints
+### 148. Document `--rpc` endpoints
 
 **Tier:** low
 
@@ -1521,7 +1531,7 @@ Complexity tiers:
 
 **Evidence:** The README section.
 
-### 148. Explain the confidence levels with the live examples
+### 149. Explain the confidence levels with the live examples
 
 **Tier:** low
 
@@ -1533,7 +1543,7 @@ Complexity tiers:
 
 ## Project infrastructure
 
-### 149. Measure test coverage before setting any floor
+### 150. Measure test coverage before setting any floor
 
 **Tier:** medium
 
@@ -1543,7 +1553,7 @@ Complexity tiers:
 
 **Evidence:** The measurement.
 
-### 150. Reproducible release builds
+### 151. Reproducible release builds
 
 **Tier:** high
 
@@ -1553,7 +1563,7 @@ Complexity tiers:
 
 **Evidence:** Two builds producing identical checksums.
 
-### 151. Dependency update policy
+### 152. Dependency update policy
 
 **Tier:** low
 
@@ -1563,7 +1573,7 @@ Complexity tiers:
 
 **Evidence:** The policy.
 
-### 152. A software bill of materials
+### 153. A software bill of materials
 
 **Tier:** low
 
@@ -1573,7 +1583,7 @@ Complexity tiers:
 
 **Evidence:** The SBOM for the next release.
 
-### 153. Pin GitHub Actions by commit
+### 154. Pin GitHub Actions by commit
 
 **Tier:** low
 
@@ -1583,7 +1593,7 @@ Complexity tiers:
 
 **Evidence:** The workflows.
 
-### 154. Keep the live records small
+### 155. Keep the live records small
 
 **Tier:** low
 
@@ -1593,7 +1603,7 @@ Complexity tiers:
 
 **Evidence:** The size before and after, and the evidence test still passing.
 
-### 155. Make the backlog machine-checkable
+### 156. Make the backlog machine-checkable
 
 **Tier:** medium
 
@@ -1603,7 +1613,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 156. Label snapshot changes in pull requests automatically
+### 157. Label snapshot changes in pull requests automatically
 
 **Tier:** low
 
