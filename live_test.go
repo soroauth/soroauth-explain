@@ -675,6 +675,13 @@ func fetchTx(ctx context.Context, t *testing.T, net liveNetwork, hash string) rp
 	if err := rpcCall(ctx, net.rpc, "getTransaction", map[string]any{"hash": hash}, &res); err != nil {
 		t.Fatalf("getTransaction %s: %v", hash, err)
 	}
+	if res.Status == "NOT_FOUND" {
+		// RPCs keep a window of recent ledgers. A transaction that has aged
+		// out cannot be checked here any more; say so instead of failing on
+		// an empty meta. Until these cases are recorded under testdata, this
+		// regression does not run anywhere.
+		t.Skipf("%s is no longer within %s's retention; this regression case cannot run until it is recorded offline", hash, net.rpc)
+	}
 	tx := rpcTx{Status: res.Status, TxHash: hash, Ledger: res.Ledger, EnvelopeXdr: res.EnvelopeXdr, ResultMetaXdr: res.ResultMetaXdr}
 	var meta xdr.TransactionMeta
 	if err := xdr.SafeUnmarshalBase64(res.ResultMetaXdr, &meta); err != nil {
