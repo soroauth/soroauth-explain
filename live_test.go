@@ -351,14 +351,8 @@ func checkOne(ctx context.Context, net liveNetwork, a explain.Action, path, stat
 	}
 	var topic string
 	var parties []string
-	switch a.Kind {
-	case "token_transfer", "token_transfer_from":
-		topic, parties = "transfer", []string{fieldRaw(a, "from"), fieldRaw(a, "to")}
-	case "token_approve":
-		topic, parties = "approve", []string{fieldRaw(a, "from"), fieldRaw(a, "spender")}
-	case "token_burn", "token_burn_from":
-		topic, parties = "burn", []string{fieldRaw(a, "from")}
-	default:
+	topic, parties, ok := sacEventShape(a)
+	if !ok {
 		c.Result, c.Detail = "not-checked", "no event check exists for this kind"
 		return c
 	}
@@ -397,7 +391,7 @@ func checkOne(ctx context.Context, net liveNetwork, a explain.Action, path, stat
 				break
 			}
 		}
-		if !match || eventAmount(body.Data) != amount {
+		if !match || !eventDataMatches(a, body.Data) {
 			continue
 		}
 		// approve's event data also carries live_until_ledger, which the
@@ -423,8 +417,14 @@ func checkOne(ctx context.Context, net liveNetwork, a explain.Action, path, stat
 	// this action's first party, the call did not run and there is nothing to
 	// compare with. An event of this kind for the same party that does not
 	// match is a contradiction.
-	if !emitted(events, a.Contract, topic, parties[0]) {
-		c.Result, c.Detail = "not-executed", fmt.Sprintf("%s emitted no %q event for %s in this transaction; the authorized call did not run", a.Contract, topic, parties[0])
+	// set_admin's event names no argument party (its admin is the
+	// authorizer), so it is identified by topic alone.
+	party := ""
+	if len(parties) > 0 {
+		party = parties[0]
+	}
+	if !emitted(events, a.Contract, topic, party) {
+		c.Result, c.Detail = "not-executed", fmt.Sprintf("%s emitted no %q event for %q in this transaction; the authorized call did not run", a.Contract, topic, party)
 		return c
 	}
 	c.Result, c.Detail = "no-matching-event", fmt.Sprintf("no %q event on %s with parties %v and amount %s", topic, a.Contract, parties, amount)
@@ -635,7 +635,8 @@ func createdInstances(t *testing.T, tx rpcTx) map[string]string {
 }
 
 // emitted reports whether contract emitted an event whose first topic is the
-// given symbol and whose second topic is the given party.
+// given symbol and whose second topic is the given party. An empty party
+// matches on the topic alone.
 func emitted(events []xdr.ContractEvent, contract, topic, party string) bool {
 	for _, ev := range events {
 		if ev.ContractId == nil {
@@ -650,7 +651,13 @@ func emitted(events []xdr.ContractEvent, contract, topic, party string) bool {
 		if !ok || len(body.Topics) == 0 {
 			continue
 		}
-		if sym, ok := body.Topics[0].GetSym(); !ok || string(sym) != topic || len(body.Topics) < 2 {
+		if sym, ok := body.Topics[0].GetSym(); !ok || string(sym) != topic {
+			continue
+		}
+		if party == "" {
+			return true
+		}
+		if len(body.Topics) < 2 {
 			continue
 		}
 		if addr, ok := body.Topics[1].GetAddress(); ok {
@@ -850,4 +857,182 @@ func sum(m map[string]int) int {
 		n += v
 	}
 	return n
+}
+
+// sacEventShape returns the event the host emits for a decoded action on a
+// Stellar Asset Contract: its first topic and the parties in the topics
+// that follow, in order.
+//
+// The shapes follow the host, not CAP-46-6's text, which they no longer
+// match. CAP-67 ("Unified Asset Events", Final; stellar-protocol
+// core/cap-0067.md at 9cd70372, line 207) removed the admin from the mint,
+// clawback and set_authorized topics, and made a transfer from or to the
+// asset's issuer emit mint or burn instead of transfer (line 226). The host
+// implements exactly that: rs-soroban-env
+// soroban-env-host/src/builtin_contracts/stellar_asset_contract/event.rs at
+// f5a9fb79 (changed in 9a24835e, "Non muxed info related SAC changes for
+// CAP-0067"). Do not change these back toward CAP-46-6's documented topics:
+// the public network emits the host's shape (a mint observed in tx
+// cc265b25... had topics mint | to | asset, with no admin).
+func sacEventShape(a explain.Action) (string, []string, bool) {
+	switch a.Kind {
+	case "token_transfer", "token_transfer_from":
+		// transfer and transfer_from both call transfer_maybe_with_issuer
+		// (contract.rs:224, :248), which checks in this order
+		// (event.rs:54-62): from == to is a transfer; from is the issuer is
+		// a mint to `to`; to is the issuer is a burn from `from`; anything
+		// else is a transfer.
+		from, to := fieldRaw(a, "from"), fieldRaw(a, "to")
+		issuer := labelIssuer(field(a, "asset").Value)
+		switch {
+		case from == to:
+		case issuer != "" && from == issuer:
+			return "mint", []string{to}, true // event.rs:122
+		case issuer != "" && to == issuer:
+			return "burn", []string{from}, true // event.rs:164
+		}
+		return "transfer", []string{from, to}, true // event.rs:101-107
+	case "token_approve":
+		return "approve", []string{fieldRaw(a, "from"), fieldRaw(a, "spender")}, true // event.rs:35-41
+	case "token_burn", "token_burn_from":
+		return "burn", []string{fieldRaw(a, "from")}, true // event.rs:164
+	case "sac_mint":
+		return "mint", []string{fieldRaw(a, "to")}, true // event.rs:122
+	case "sac_clawback":
+		return "clawback", []string{fieldRaw(a, "from")}, true // event.rs:131-136
+	case "sac_set_authorized":
+		return "set_authorized", []string{fieldRaw(a, "id")}, true // event.rs:142-147
+	case "sac_set_admin":
+		// The one admin event that still carries the admin (event.rs:153-158):
+		// topics set_admin | admin | asset, data new_admin. The admin is the
+		// entry's authorizer, not an argument, so it is not checked here.
+		return "set_admin", nil, true
+	}
+	return "", nil, false
+}
+
+// labelIssuer returns the issuer in a CODE:ISSUER asset label, or "" for
+// native and unlabelled contracts. The native asset has no issuer, and the
+// host's is_issuer returns false for it (event.rs:22).
+func labelIssuer(label string) string {
+	if _, issuer, ok := strings.Cut(label, ":"); ok {
+		return issuer
+	}
+	return ""
+}
+
+// eventDataMatches compares an event's data with the rendered action, by
+// what each event carries (event.rs at f5a9fb79): set_authorized's data is
+// the authorize bool (:148), set_admin's is the new admin's address (:159),
+// and every other SAC event's is an amount, as an i128 or, for a muxed
+// recipient, a map with an amount key (:67-92).
+func eventDataMatches(a explain.Action, data xdr.ScVal) bool {
+	switch a.Kind {
+	case "sac_set_authorized":
+		b, ok := data.GetB()
+		return ok && fmt.Sprint(b) == field(a, "authorize").Value
+	case "sac_set_admin":
+		addr, ok := data.GetAddress()
+		if !ok {
+			return false
+		}
+		s, err := soroauth.FormatAddress(addr)
+		return err == nil && s == fieldRaw(a, "new_admin")
+	}
+	return eventAmount(data) == fieldRaw(a, "amount")
+}
+
+// TestLiveSACEventShapes runs offline: it builds events in the host's shapes
+// (event.rs at f5a9fb79) and checks the matcher against them. No real
+// issuer transfer or admin call appears in the recorded samples, so these
+// built events are the regression fixtures until one is recorded.
+func TestLiveSACEventShapes(t *testing.T) {
+	const (
+		contract = "CAAL5BZAQ3W2G5CZX4HVLWNQIJISQ62ZNXXYCX2LONG4FFLRRYEYONZC"
+		issuer   = "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+		alice    = "GAEQ5IUNQTW36XMQF6MR2VWKPG3JOF6IKEGAD2JQ6OUNKTUVBAIE5AO3"
+		bob      = "GAHKEAKBDDC467S3PFXPROVU6SBPQXDEWLUUTCPIIGD5MIO3KRRWS5HV"
+		label    = "USDC:" + issuer
+	)
+	addr := func(s string) xdr.ScVal {
+		a, err := soroauth.ParseAddress(s)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return xdr.ScVal{Type: xdr.ScValTypeScvAddress, Address: &a}
+	}
+	sym := func(s string) xdr.ScVal {
+		v := xdr.ScSymbol(s)
+		return xdr.ScVal{Type: xdr.ScValTypeScvSymbol, Sym: &v}
+	}
+	str := func(s string) xdr.ScVal {
+		v := xdr.ScString(s)
+		return xdr.ScVal{Type: xdr.ScValTypeScvString, Str: &v}
+	}
+	i128 := func(n uint64) xdr.ScVal {
+		return xdr.ScVal{Type: xdr.ScValTypeScvI128, I128: &xdr.Int128Parts{Lo: xdr.Uint64(n)}}
+	}
+	boolean := func(b bool) xdr.ScVal { return xdr.ScVal{Type: xdr.ScValTypeScvBool, B: &b} }
+	cid := func() *xdr.ContractId {
+		a, err := soroauth.ParseAddress(contract)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return a.ContractId
+	}
+	event := func(data xdr.ScVal, topics ...xdr.ScVal) xdr.ContractEvent {
+		return xdr.ContractEvent{ContractId: cid(), Type: xdr.ContractEventTypeContract,
+			Body: xdr.ContractEventBody{V: 0, V0: &xdr.ContractEventV0{Topics: topics, Data: data}}}
+	}
+	action := func(kind string, fields ...explain.Field) explain.Action {
+		return explain.Action{Kind: explain.ActionKind(kind), Contract: contract, Confidence: explain.ConfidenceDecoded, Fields: fields}
+	}
+	f := func(name, value string) explain.Field { return explain.Field{Name: name, Value: value} }
+	amount := explain.Field{Name: "amount", Value: "1.0000000", Raw: "10000000"}
+
+	tests := []struct {
+		name   string
+		action explain.Action
+		events []xdr.ContractEvent
+		want   string
+	}{
+		{"transfer", action("token_transfer", f("asset", label), f("from", alice), f("to", bob), amount),
+			[]xdr.ContractEvent{event(i128(10000000), sym("transfer"), addr(alice), addr(bob), str(label))}, "event-match"},
+		// event.rs:56-57: a transfer from the issuer emits mint, not transfer.
+		{"transfer_from_issuer_is_a_mint", action("token_transfer", f("asset", label), f("from", issuer), f("to", bob), amount),
+			[]xdr.ContractEvent{event(i128(10000000), sym("mint"), addr(bob), str(label))}, "event-match"},
+		// event.rs:58-59: a transfer to the issuer emits burn.
+		{"transfer_to_issuer_is_a_burn", action("token_transfer_from", f("asset", label), f("spender", alice), f("from", bob), f("to", issuer), amount),
+			[]xdr.ContractEvent{event(i128(10000000), sym("burn"), addr(bob), str(label))}, "event-match"},
+		// event.rs:54-55: from == to is checked first, so it stays a transfer.
+		{"issuer_to_itself_is_a_transfer", action("token_transfer", f("asset", label), f("from", issuer), f("to", issuer), amount),
+			[]xdr.ContractEvent{event(i128(10000000), sym("transfer"), addr(issuer), addr(issuer), str(label))}, "event-match"},
+		// The native asset has no issuer (event.rs:22).
+		{"native_transfer", action("token_transfer", f("asset", "native"), f("from", alice), f("to", bob), amount),
+			[]xdr.ContractEvent{event(i128(10000000), sym("transfer"), addr(alice), addr(bob), str("native"))}, "event-match"},
+		{"mint", action("sac_mint", f("asset", label), f("to", bob), amount),
+			[]xdr.ContractEvent{event(i128(10000000), sym("mint"), addr(bob), str(label))}, "event-match"},
+		// CAP-46-6's documented shape, with the admin, is not what the host
+		// emits; an event in that shape must not satisfy the check.
+		{"mint_in_cap46_6_shape_does_not_match", action("sac_mint", f("asset", label), f("to", bob), amount),
+			[]xdr.ContractEvent{event(i128(10000000), sym("mint"), addr(issuer), addr(bob), str(label))}, "not-executed"},
+		{"clawback", action("sac_clawback", f("asset", label), f("from", alice), amount),
+			[]xdr.ContractEvent{event(i128(10000000), sym("clawback"), addr(alice), str(label))}, "event-match"},
+		{"set_authorized", action("sac_set_authorized", f("asset", label), f("id", alice), f("authorize", "false")),
+			[]xdr.ContractEvent{event(boolean(false), sym("set_authorized"), addr(alice), str(label))}, "event-match"},
+		{"set_authorized_wrong_value", action("sac_set_authorized", f("asset", label), f("id", alice), f("authorize", "true")),
+			[]xdr.ContractEvent{event(boolean(false), sym("set_authorized"), addr(alice), str(label))}, "no-matching-event"},
+		{"set_admin", action("sac_set_admin", f("asset", label), f("new_admin", bob)),
+			[]xdr.ContractEvent{event(addr(bob), sym("set_admin"), addr(issuer), str(label))}, "event-match"},
+		{"set_admin_wrong_new_admin", action("sac_set_admin", f("asset", label), f("new_admin", bob)),
+			[]xdr.ContractEvent{event(addr(alice), sym("set_admin"), addr(issuer), str(label))}, "no-matching-event"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := checkOne(context.Background(), livePublic, tt.action, "0", "SUCCESS", tt.events, nil)
+			if c.Result != tt.want {
+				t.Fatalf("%s: %s, want %s", c.Result, c.Detail, tt.want)
+			}
+		})
+	}
 }
