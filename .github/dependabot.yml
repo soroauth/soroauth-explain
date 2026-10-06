@@ -38,6 +38,27 @@ updates:
       prefix: "chore"
     ignore:
       - dependency-name: "github.com/soroauth/soroauth-go"
+      # github.com/stellar/go-stellar-sdk is also not updated by Dependabot.
+      # It is the code behind the impostor guard (SACContractID wraps the
+      # SDK's xdr.Asset.ContractID, asset.go) and behind every decode, and
+      # v0.7.3 is the version soroauth-go v0.1.0 itself requires (its go.mod),
+      # so a bump changes the derivation and the decoder beneath both
+      # libraries at once. A bump that passes CI can still change what the
+      # tool claims, so it is a deliberate change: move it on purpose,
+      # re-record the live evidence (docs/EVIDENCE.md), and explain the
+      # change in the commit body.
+      - dependency-name: "github.com/stellar/go-stellar-sdk"
+      # github.com/stellar/go-xdr is not updated by Dependabot either. It is
+      # the XDR decoder underneath every structural claim this library makes:
+      # the SDK's xdr package is built on it (go-stellar-sdk xdr/main.go:16),
+      # and spec/spec.go imports it directly for the bounded spec decode.
+      # This project's decode limits are written against its behaviour: the
+      # default depth cited beside DefaultMaxDepth (xdr3/decode.go:36), and
+      # SafeUnmarshalBase64WithOptions overwriting MaxInputLen, which is why
+      # the CLI checks input length first. A bump that passes CI can still
+      # change what is decoded and what is refused, so move it on purpose,
+      # together with the SDK that requires it, and explain the change.
+      - dependency-name: "github.com/stellar/go-xdr"
 
   # npm: there is no npm project in this repository (no package.json is
   # tracked), so there is nothing to configure. If one is added, for example
