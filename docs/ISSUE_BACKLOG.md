@@ -15,7 +15,7 @@ Complexity tiers:
 
 | Section | High | Medium | Low | Items |
 |---|---:|---:|---:|---:|
-| Known interfaces (the registry) | 10 | 11 | 3 | 24 |
+| Known interfaces (the registry) | 9 | 12 | 3 | 24 |
 | Contract specs | 8 | 13 | 4 | 25 |
 | Interface families the spec reader now reaches | 5 | 9 | 1 | 15 |
 | Evidence and live checks | 2 | 8 | 4 | 14 |
@@ -27,7 +27,7 @@ Complexity tiers:
 | Accessibility | 1 | 3 | 4 | 8 |
 | Documentation | 0 | 4 | 7 | 11 |
 | Project infrastructure | 1 | 2 | 5 | 8 |
-| **Total** | **38** | **80** | **57** | **175** |
+| **Total** | **37** | **81** | **57** | **175** |
 
 ## Known interfaces (the registry)
 
@@ -35,13 +35,23 @@ Complexity tiers:
 
 **Tier:** medium
 
-**Found:** Stellar Asset Contracts are the one kind of contract the spec reader cannot name: every wasm contract in both live samples publishes a spec (56 of 56 on testnet, 29 of 29 on public), and the 13 contracts without one are SACs, which run no wasm. They are also the only contracts whose behaviour this library can derive. CAP-46-6 (stellar-protocol `core/cap-0046-06.md` at 9cd70372, "Semantics: Admin Interface") declares `set_admin`, `set_authorized`, `mint` and `clawback`, and none is registered.
+**Found:** Stellar Asset Contracts are the one kind of contract the spec reader cannot name: every wasm contract in both live samples publishes a spec (56 of 56 on testnet, 29 of 29 on public), and the 13 contracts without one are SACs, which run no wasm. They are also the only contracts whose behaviour this library can derive. CAP-46-6 (stellar-protocol `core/cap-0046-06.md` at 9cd70372, "Semantics: Admin Interface") declares `set_admin`, `set_authorized`, `mint` and `clawback`, and none is registered. Their events are not CAP-46-6's: CAP-67 ("Unified Asset Events", Final, `core/cap-0067.md` line 207) removed the admin from the `mint`, `clawback` and `set_authorized` topics, and the host follows CAP-67 (`event.rs` at f5a9fb79). The live check's `sacEventShape` already encodes the host's shapes and must not be changed back toward CAP-46-6's text.
 
 **Done when:** The admin interface's declarations are committed verbatim as a fixture, with a test comparing every registered parameter's name and type with it, as `TestSEP41MatchesTheSEP` does for SEP-41. Each function's own rendering is its own item below; this item is the shared registry entry and fixture, with every admin call still `partial` until its item lands.
 
 **Evidence:** The fixture and comparison test; the comparison failing on a deliberately swapped parameter.
 
-### 2. Decode Stellar Asset Contract `mint`
+### 2. Say that a Stellar Asset Contract transfer from or to the asset's issuer mints or burns
+
+**Tier:** medium
+
+**Found:** CAP-67 ("Unified Asset Events", Final, `core/cap-0067.md` line 226) says that when the issuer is the sender in a SAC `transfer` the asset is minted, and when the issuer is the recipient it is burned; the host emits `mint` or `burn` for those transfers (rs-soroban-env `event.rs:47-65` at f5a9fb79, for both `transfer` and `transfer_from`). The rendering says "Transfer 1.0000000 CODE:ISSUER from ISSUER to G…", which is what is authorized but does not tell a reader that new units are created. On a derived issued-asset SAC the issuer is in the label, so this is derivable offline.
+
+**Done when:** On a derived issued-asset SAC, a decoded transfer or transfer_from whose sender or recipient is the label's issuer carries a note, citing CAP-67, that it mints or burns. The kind and confidence do not change; the native asset has no issuer and gets no note. The check order follows the host's: sender equal to recipient is an ordinary transfer.
+
+**Evidence:** Snapshot cases for issuer as sender, as recipient, as both, and the native asset; `TestLiveSACEventShapes` already checks the matching events.
+
+### 3. Decode Stellar Asset Contract `mint`
 
 **Tier:** high
 
@@ -49,9 +59,9 @@ Complexity tiers:
 
 **Done when:** On a derived issued-asset SAC, `mint` renders `decoded` ("Mint 1.0000000 CODE:ISSUER to G…"), with the amount scaled by the SAC constant and its raw value kept. On the native SAC it renders with a note citing CAP-46-6 that the native contract has no admin. Elsewhere it is `partial`.
 
-**Evidence:** Snapshot cases on an issued SAC, the native SAC, an impostor and an arbitrary contract; a live check once the event shape is established (see "Establish the real shape of Stellar Asset Contract admin events").
+**Evidence:** Snapshot cases on an issued SAC, the native SAC, an impostor and an arbitrary contract; a live check using the `sacEventShape` matcher in `live_test.go`, which follows the host's event shapes (rs-soroban-env `event.rs` at f5a9fb79, per CAP-67) rather than CAP-46-6's documented topics, which no longer match.
 
-### 3. Decode Stellar Asset Contract `clawback`
+### 4. Decode Stellar Asset Contract `clawback`
 
 **Tier:** high
 
@@ -59,9 +69,9 @@ Complexity tiers:
 
 **Done when:** On a derived issued-asset SAC, `clawback` renders the authorized clawback as decoded from the bytes, with a note that whether the holder's balance is clawback-enabled is not determined offline. The note is required: the rendering must not read as if the clawback is permitted.
 
-**Evidence:** Snapshot cases as for `mint`; a test that the clawback-enabled note is always present.
+**Evidence:** Snapshot cases as for `mint`; a test that the clawback-enabled note is always present; a live check using `sacEventShape`.
 
-### 4. Decode Stellar Asset Contract `set_authorized`
+### 5. Decode Stellar Asset Contract `set_authorized`
 
 **Tier:** medium
 
@@ -69,9 +79,9 @@ Complexity tiers:
 
 **Done when:** On a derived issued-asset SAC, `set_authorized` renders as authorizing or de-authorizing the holder, from the bool in the bytes; a revocation carries a note that whether the issuer may revoke is not determined offline.
 
-**Evidence:** Snapshot cases for true and false; the note tested.
+**Evidence:** Snapshot cases for true and false; the note tested; a live check using `sacEventShape`, which compares the event's bool.
 
-### 5. Decode Stellar Asset Contract `set_admin`
+### 6. Decode Stellar Asset Contract `set_admin`
 
 **Tier:** high
 
@@ -79,17 +89,7 @@ Complexity tiers:
 
 **Done when:** On a derived issued-asset SAC, `set_admin` renders `decoded` as handing the asset contract's admin to the new address, stated plainly and without understatement.
 
-**Evidence:** Snapshot cases; a review of the wording against the CAP text.
-
-### 6. Establish the real shape of Stellar Asset Contract admin events
-
-**Tier:** high
-
-**Found:** The live check compares decoded actions with host events. CAP-46-6 (stellar-protocol `core/cap-0046-06.md` at 9cd70372, "Semantics: Admin Interface") documents the mint event's topics as `["mint", admin, to, sep0011_asset]` (around line 325). The mint event the public network actually emitted in tx `cc265b25…` had three topics, `mint | GBPAV… | 1:GB4P3…`, with no admin topic. The CAP's text and the host's behaviour differ, so checks for the admin functions cannot be written from the CAP alone.
-
-**Done when:** The host source that emits each admin event is read and cited (rs-soroban-env, at a named commit), any later CAP or SEP that changed the shapes is identified, and the live check's matcher for `mint`, `clawback`, `set_authorized` and `set_admin` follows the host, with the CAP divergence recorded in a comment.
-
-**Evidence:** The cited source; a regression case for each event from real traffic, recorded so it runs offline.
+**Evidence:** Snapshot cases; a review of the wording against the CAP text; a live check using `sacEventShape`, which compares the event's new admin.
 
 ### 7. Register SEP-41 read functions, or record why they stay unregistered
 
