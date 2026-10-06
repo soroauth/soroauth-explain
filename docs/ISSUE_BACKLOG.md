@@ -15,33 +15,83 @@ Complexity tiers:
 
 | Section | High | Medium | Low | Items |
 |---|---:|---:|---:|---:|
-| Known interfaces (the registry) | 5 | 7 | 3 | 15 |
-| Contract specs | 7 | 7 | 5 | 19 |
+| Known interfaces (the registry) | 10 | 11 | 3 | 24 |
+| Contract specs | 8 | 13 | 4 | 25 |
 | Interface families the spec reader now reaches | 5 | 9 | 1 | 15 |
 | Evidence and live checks | 2 | 8 | 4 | 14 |
 | Fixtures and snapshot cases | 0 | 8 | 10 | 18 |
-| Renderers and output | 4 | 8 | 5 | 17 |
-| Command-line interface | 2 | 4 | 6 | 12 |
+| Renderers and output | 4 | 8 | 6 | 18 |
+| Command-line interface | 2 | 5 | 6 | 13 |
 | Robustness, limits and security | 3 | 6 | 3 | 12 |
 | Internationalization | 2 | 3 | 4 | 9 |
 | Accessibility | 1 | 3 | 4 | 8 |
-| Documentation | 0 | 4 | 6 | 10 |
+| Documentation | 0 | 4 | 7 | 11 |
 | Project infrastructure | 1 | 2 | 5 | 8 |
-| **Total** | **32** | **69** | **56** | **157** |
+| **Total** | **38** | **80** | **57** | **175** |
 
 ## Known interfaces (the registry)
 
-### 1. Decode the Stellar Asset Contract admin interface
+### 1. Register the Stellar Asset Contract admin interface from CAP-46-6's text
+
+**Tier:** medium
+
+**Found:** Stellar Asset Contracts are the one kind of contract the spec reader cannot name: every wasm contract in both live samples publishes a spec (56 of 56 on testnet, 29 of 29 on public), and the 13 contracts without one are SACs, which run no wasm. They are also the only contracts whose behaviour this library can derive. CAP-46-6 (stellar-protocol `core/cap-0046-06.md` at 9cd70372, "Semantics: Admin Interface") declares `set_admin`, `set_authorized`, `mint` and `clawback`, and none is registered.
+
+**Done when:** The admin interface's declarations are committed verbatim as a fixture, with a test comparing every registered parameter's name and type with it, as `TestSEP41MatchesTheSEP` does for SEP-41. Each function's own rendering is its own item below; this item is the shared registry entry and fixture, with every admin call still `partial` until its item lands.
+
+**Evidence:** The fixture and comparison test; the comparison failing on a deliberately swapped parameter.
+
+### 2. Decode Stellar Asset Contract `mint`
 
 **Tier:** high
 
-**Found:** Stellar Asset Contracts are the one kind of contract the spec reader cannot name: every wasm contract in both live samples publishes a spec (56 of 56 on testnet, 29 of 29 on public), and the 13 contracts without one are SACs, which run no wasm. They are also the only contracts whose behaviour this library can derive. CAP-46-6 ("Semantics: Admin Interface") defines `set_admin(new_admin: Address)`, `set_authorized(id: Address, authorize: bool)`, `mint(to: Address, amount: i128)` and `clawback(from: Address, amount: i128)`, none of which is registered. The public sample already contains an opaque `mint` on a derived SAC (tx `cc265b25…`, auth 1).
+**Found:** CAP-46-6 (stellar-protocol `core/cap-0046-06.md` at 9cd70372, "Semantics: Admin Interface") declares `mint(to: Address, amount: i128)` (line 326). The public sample contains a mint on a derived SAC that renders opaque today (tx `cc265b25…`, auth 1). CAP-46-6 states that no admin is set for the native asset's contract, so any function that checks the admin "will always fail" (lines 121-122 and 376-377).
 
-**Done when:** The four admin functions are registered from CAP-46-6's text, with the same verbatim-fixture test SEP-41 has, and render `decoded` only on a derived SAC (for example "Mint 1.0000000 CODE:ISSUER to G…"), `partial` elsewhere.
+**Done when:** On a derived issued-asset SAC, `mint` renders `decoded` ("Mint 1.0000000 CODE:ISSUER to G…"), with the amount scaled by the SAC constant and its raw value kept. On the native SAC it renders with a note citing CAP-46-6 that the native contract has no admin. Elsewhere it is `partial`.
 
-**Evidence:** Snapshot cases for each function on a derived SAC, on an impostor, and on an arbitrary contract; the SEP-41-style comparison test against the committed CAP text; a live check against the host's `mint`, `clawback` and `set_authorized` events.
+**Evidence:** Snapshot cases on an issued SAC, the native SAC, an impostor and an arbitrary contract; a live check once the event shape is established (see "Establish the real shape of Stellar Asset Contract admin events").
 
-### 2. Register SEP-41 read functions, or record why they stay unregistered
+### 3. Decode Stellar Asset Contract `clawback`
+
+**Tier:** high
+
+**Found:** CAP-46-6 (stellar-protocol `core/cap-0046-06.md` at 9cd70372, "Semantics: Admin Interface") declares `clawback(from: Address, amount: i128)` (line 341). Its "Clawback" section (lines 403-409) says balances can only be clawed back where the trustline has `TRUSTLINE_CLAWBACK_ENABLED_FLAG` set, or, for contract balances, where the issuer had `AUTH_CLAWBACK_ENABLED_FLAG` when the balance was created. Those flags are ledger state, not in the entry. CAP-46-6 states that no admin is set for the native asset's contract, so any function that checks the admin "will always fail" (lines 121-122 and 376-377).
+
+**Done when:** On a derived issued-asset SAC, `clawback` renders the authorized clawback as decoded from the bytes, with a note that whether the holder's balance is clawback-enabled is not determined offline. The note is required: the rendering must not read as if the clawback is permitted.
+
+**Evidence:** Snapshot cases as for `mint`; a test that the clawback-enabled note is always present.
+
+### 4. Decode Stellar Asset Contract `set_authorized`
+
+**Tier:** medium
+
+**Found:** CAP-46-6 (stellar-protocol `core/cap-0046-06.md` at 9cd70372, "Semantics: Admin Interface") declares `set_authorized(id: Address, authorize: bool)` (line 313). Its "Auth Revocable flag" section (lines 399-401) says authorization cannot be revoked if the issuer does not have `AUTH_REVOCABLE_FLAG` set, which is ledger state. CAP-46-6 states that no admin is set for the native asset's contract, so any function that checks the admin "will always fail" (lines 121-122 and 376-377).
+
+**Done when:** On a derived issued-asset SAC, `set_authorized` renders as authorizing or de-authorizing the holder, from the bool in the bytes; a revocation carries a note that whether the issuer may revoke is not determined offline.
+
+**Evidence:** Snapshot cases for true and false; the note tested.
+
+### 5. Decode Stellar Asset Contract `set_admin`
+
+**Tier:** high
+
+**Found:** CAP-46-6 (stellar-protocol `core/cap-0046-06.md` at 9cd70372, "Semantics: Admin Interface") declares `set_admin(new_admin: Address)` (line 292): "the address which will henceforth be the administrator of this token contract". Handing over a token's admin is among the most consequential authorizations an issuer can give, and today it renders as an opaque call. CAP-46-6 states that no admin is set for the native asset's contract, so any function that checks the admin "will always fail" (lines 121-122 and 376-377).
+
+**Done when:** On a derived issued-asset SAC, `set_admin` renders `decoded` as handing the asset contract's admin to the new address, stated plainly and without understatement.
+
+**Evidence:** Snapshot cases; a review of the wording against the CAP text.
+
+### 6. Establish the real shape of Stellar Asset Contract admin events
+
+**Tier:** high
+
+**Found:** The live check compares decoded actions with host events. CAP-46-6 (stellar-protocol `core/cap-0046-06.md` at 9cd70372, "Semantics: Admin Interface") documents the mint event's topics as `["mint", admin, to, sep0011_asset]` (around line 325). The mint event the public network actually emitted in tx `cc265b25…` had three topics, `mint | GBPAV… | 1:GB4P3…`, with no admin topic. The CAP's text and the host's behaviour differ, so checks for the admin functions cannot be written from the CAP alone.
+
+**Done when:** The host source that emits each admin event is read and cited (rs-soroban-env, at a named commit), any later CAP or SEP that changed the shapes is identified, and the live check's matcher for `mint`, `clawback`, `set_authorized` and `set_admin` follows the host, with the CAP divergence recorded in a comment.
+
+**Evidence:** The cited source; a regression case for each event from real traffic, recorded so it runs offline.
+
+### 7. Register SEP-41 read functions, or record why they stay unregistered
 
 **Tier:** medium
 
@@ -51,7 +101,7 @@ Complexity tiers:
 
 **Evidence:** A count from both live records of entries whose calls are SEP-41 reads.
 
-### 3. Render muxed addresses instead of marking them opaque
+### 8. Render muxed addresses instead of marking them opaque
 
 **Tier:** medium
 
@@ -61,17 +111,17 @@ Complexity tiers:
 
 **Evidence:** The brief requires addresses to go through `soroauth.FormatAddress`, so this probably needs a formatter in soroauth-go and a re-pin, which has conditions (brief section 0). Snapshot cases on a derived SAC and on an unidentified contract; a live case checked against the event's `to_muxed_id`.
 
-### 4. Name the admin-interface arguments of issued-asset SACs with `--asset`
+### 9. Show issuers how to review their own admin calls with `--asset`
 
 **Tier:** medium
 
-**Found:** Once item 1 lands, an issued-asset SAC's admin calls are decoded only when its asset is a candidate, exactly as transfers are. The CLI supplies candidates with `--asset`, but nothing documents how an issuer reviewing its own `mint` should run the tool.
+**Found:** Once the admin functions above are decoded, an issued-asset SAC's admin calls are decoded only when its asset is a candidate, exactly as transfers are. The CLI supplies candidates with `--asset`, but nothing documents how an issuer reviewing its own `mint` should run the tool.
 
 **Done when:** The README's CLI section shows reviewing an issuer's `mint` with `--asset`, and a snapshot case pins that rendering.
 
 **Evidence:** A snapshot case with the asset as a candidate and one without.
 
-### 5. Decode `transfer` events' muxed data shape in the live check
+### 10. Decode `transfer` events' muxed data shape in the live check
 
 **Tier:** high
 
@@ -81,7 +131,7 @@ Complexity tiers:
 
 **Evidence:** A regression case in `TestLiveCheckRegressions` with a real muxed transfer, found by sampling.
 
-### 6. Decide whether `approve` with amount 0 should say "revoke"
+### 11. Decide whether `approve` with amount 0 should say "revoke"
 
 **Tier:** medium
 
@@ -91,7 +141,7 @@ Complexity tiers:
 
 **Evidence:** A snapshot case with amount 0.
 
-### 7. Say when an approval's ledger is already in the past
+### 12. Decide whether to say when an approval's ledger has passed (the outcome may be a recorded decision)
 
 **Tier:** medium
 
@@ -101,7 +151,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases with and without the option.
 
-### 8. Pin the SEP-41 fixture to a named SEP version in its test
+### 13. Pin the SEP-41 fixture to a named SEP version in its test
 
 **Tier:** low
 
@@ -111,7 +161,7 @@ Complexity tiers:
 
 **Evidence:** The test failing when either is changed alone.
 
-### 9. Re-read SEP-41 on a schedule and report drift
+### 14. Re-read SEP-41 on a schedule and report drift
 
 **Tier:** high
 
@@ -121,7 +171,7 @@ Complexity tiers:
 
 **Evidence:** The job's first run output; a deliberately stale fixture showing it fails.
 
-### 10. Cover `transfer_from` and `burn_from` in live evidence
+### 15. Cover `transfer_from` and `burn_from` in live evidence
 
 **Tier:** medium
 
@@ -131,7 +181,7 @@ Complexity tiers:
 
 **Evidence:** The live record and the regenerated evidence document.
 
-### 11. Test that every registered template names every argument
+### 16. Test that every registered template names every argument
 
 **Tier:** low
 
@@ -141,7 +191,7 @@ Complexity tiers:
 
 **Evidence:** The test failing on a deliberately incomplete template in a throwaway registry.
 
-### 12. Show which interface a decoded or partial action matched
+### 17. Show which interface a decoded or partial action matched
 
 **Tier:** medium
 
@@ -151,7 +201,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot changes explained per section 7; a CHANGELOG entry if the JSON gains a field.
 
-### 13. List registered functions from the CLI
+### 18. List registered functions from the CLI
 
 **Tier:** low
 
@@ -161,7 +211,7 @@ Complexity tiers:
 
 **Evidence:** A test through `run()`; the completion spec test.
 
-### 14. Registry precedence audit
+### 19. Registry precedence audit
 
 **Tier:** high
 
@@ -171,7 +221,7 @@ Complexity tiers:
 
 **Evidence:** The test failing on a deliberately duplicated signature.
 
-### 15. Explain `create_contract` from an asset when the executable is not `stellar_asset`
+### 20. Explain `create_contract` from an asset with a non-SAC executable from cited host source, or refuse it
 
 **Tier:** high
 
@@ -181,19 +231,49 @@ Complexity tiers:
 
 **Evidence:** The cited host file and line; a snapshot case.
 
+### 21. Label an unidentified Stellar Asset Contract from its own asset info, with `--rpc`
+
+**Tier:** high
+
+**Found:** A USDC transfer renders `partial` unless the caller names USDC with `--asset`. A SAC's instance storage records its asset under `AssetInfo`; `TestSACContractIDMatchesNetwork` already reads it from the recorded fixtures in `testdata/sac` to prove the derivation.
+
+**Done when:** With `--rpc`, the CLI (and `spec.RPC`, or a sibling) reads an unidentified contract's instance; if it is a `stellar_asset` instance, the asset in its `AssetInfo` becomes a candidate, which is still derived and compared, so a contract that is not that asset's SAC earns nothing. The fetched asset is never shown as a label without the derivation.
+
+**Evidence:** Snapshot cases through a fake RPC, including an instance whose `AssetInfo` names an asset it does not derive from; the live opaque/partial/decoded shift measured on the recorded samples.
+
+### 22. Say when the authorizing address is a contract account
+
+**Tier:** medium
+
+**Found:** On testnet, 18 of the 24 address-credential entries in the recorded sample are authorized by a contract address rather than an account (`C…` subjects, counted from `testdata/live/testnet.json`). The rendering names the address but does not say that approval is then decided by that contract's own logic rather than by a key.
+
+**Done when:** The protocol text that defines how a contract address authorizes is found and cited, and an explanation whose subject (or any delegate) is a contract says so in plain words. Confidence does not change.
+
+**Evidence:** The cited text; snapshot cases for an account and a contract subject.
+
+### 23. Explain what a nested sub-invocation authorizes
+
+**Tier:** high
+
+**Found:** Entries such as `v2_sub_invocations` render a tree (`swap` over `approve` over `deep_one` and `deep_two`). The rendering shows the nesting but does not say what being nested means for when each call may run.
+
+**Done when:** The protocol text that defines sub-invocation authorization is read and cited, and the text and JSON renderings state its meaning for nested actions, derived from the tree's shape only.
+
+**Evidence:** The cited text; snapshot changes explained per section 7.
+
+### 24. Say what an expiration ledger of zero means
+
+**Tier:** medium
+
+**Found:** Nine committed snapshots render `valid until ledger: 0` (the unsigned and pre-wrap forms of soroauth-go's vectors, which have no expiration set yet). soroauth-go v0.1.0 `errors.go:90` cites the host's check, `if ledger_seq > *live_until_ledger` in rs-soroban-env, under which a zero expiration has already passed.
+
+**Done when:** The host source is read and cited directly, and an entry with expiration zero carries a note saying so, in words that describe the entry rather than predict a transaction.
+
+**Evidence:** The citation; the nine snapshot changes explained.
+
 ## Contract specs
 
-### 16. Backlog item 2 from v0.1.0: read a contract's spec (done)
-
-**Tier:** low
-
-**Found:** Most real entries were `opaque` because their functions are outside SEP-41.
-
-**Done when:** Done in c446471, 940b519, 803f1d2, 5d219be, 42fca25, b695a5e and b3c36b6: the `spec` package, `WithSpecs`, `--rpc`, and evidence that the opaque share of the recorded samples falls from 89.6% to 4.0% (testnet) and from 98.8% to 0.0% (public) while the decoded share does not change.
-
-**Evidence:** Kept here so the history of the backlog is visible; close it on review.
-
-### 17. Property-test substituted argument lists that fit the declared types
+### 25. Property-test substituted argument lists that fit the declared types
 
 **Tier:** high
 
@@ -203,7 +283,7 @@ Complexity tiers:
 
 **Evidence:** The test's seed corpus from `testdata/live/*.specs.json`; its run output showing how many compatible substitutions exist per spec.
 
-### 18. Detect `require_auth_for_args` from the wasm, and say so
+### 26. Research detecting `require_auth_for_args` from the wasm (the outcome may be a written finding)
 
 **Tier:** high
 
@@ -213,7 +293,7 @@ Complexity tiers:
 
 **Evidence:** A written finding either way, with the wasm evidence for the 13 known cases.
 
-### 19. Name the constructor arguments of `create_contract_v2`
+### 27. Name the constructor arguments of `create_contract_v2`
 
 **Tier:** high
 
@@ -223,7 +303,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases with a recorded constructor spec; a live example.
 
-### 20. Name the fields of user-defined struct arguments
+### 28. Name the fields of user-defined struct arguments
 
 **Tier:** high
 
@@ -233,7 +313,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases with a matching and a non-matching map; the spec entries recorded from a real contract.
 
-### 21. Name enum and union cases
+### 29. Name enum and union cases
 
 **Tier:** medium
 
@@ -243,7 +323,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases; the real spec they come from.
 
-### 22. Name contract error codes
+### 30. Name contract error codes
 
 **Tier:** medium
 
@@ -253,7 +333,7 @@ Complexity tiers:
 
 **Evidence:** A snapshot case with a recorded error enum.
 
-### 23. Deepen the type check for compound types
+### 31. Deepen the type check for compound types
 
 **Tier:** medium
 
@@ -263,7 +343,7 @@ Complexity tiers:
 
 **Evidence:** Table tests per compound type; a live measurement of whether any named call changes.
 
-### 24. Cache specs by wasm hash across entries
+### 32. Cache specs by wasm hash across entries
 
 **Tier:** medium
 
@@ -273,7 +353,7 @@ Complexity tiers:
 
 **Evidence:** A test counting RPC requests with and without the cache.
 
-### 25. Fetch the spec in force at the entry's ledger, or say that it cannot
+### 33. Fetch the spec in force at the entry's ledger, or say that it cannot
 
 **Tier:** high
 
@@ -283,7 +363,7 @@ Complexity tiers:
 
 **Evidence:** A written finding with the RPC documentation cited.
 
-### 26. Report which contracts had no spec, in the explanation
+### 34. Report which contracts had no spec, in the explanation
 
 **Tier:** high
 
@@ -293,7 +373,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases with and without a failed fetch.
 
-### 27. Keep spec doc strings out of renderings, deliberately
+### 35. Keep spec doc strings out of renderings, deliberately
 
 **Tier:** low
 
@@ -303,7 +383,7 @@ Complexity tiers:
 
 **Evidence:** A snapshot case with a spec whose doc strings contain misleading text.
 
-### 28. Fuzz the wasm section walker
+### 36. Fuzz the wasm section walker
 
 **Tier:** medium
 
@@ -313,7 +393,7 @@ Complexity tiers:
 
 **Evidence:** The seed corpus read by `go test -v` (case names in the output, section 11.5).
 
-### 29. Fuzz the spec XDR parser
+### 37. Fuzz the spec XDR parser
 
 **Tier:** medium
 
@@ -323,7 +403,7 @@ Complexity tiers:
 
 **Evidence:** As for the walker.
 
-### 30. Record the contract's SDK version from `contractmetav0`
+### 38. Record the contract's SDK version from `contractmetav0`
 
 **Tier:** low
 
@@ -333,7 +413,7 @@ Complexity tiers:
 
 **Evidence:** The decision recorded in `spec`'s doc.
 
-### 31. Expose the parsed spec for inspection
+### 39. Expose the parsed spec for inspection
 
 **Tier:** low
 
@@ -343,7 +423,7 @@ Complexity tiers:
 
 **Evidence:** A test through `run()`.
 
-### 32. Name arguments of calls on contracts deployed in the same entry
+### 40. Name arguments of calls on contracts deployed in the same entry
 
 **Tier:** high
 
@@ -353,7 +433,7 @@ Complexity tiers:
 
 **Evidence:** A built snapshot case; a live example if one exists.
 
-### 33. Bound the total bytes `--rpc` downloads per entry
+### 41. Bound the total bytes `--rpc` downloads per entry
 
 **Tier:** medium
 
@@ -363,7 +443,7 @@ Complexity tiers:
 
 **Evidence:** The measured distribution of total bytes per entry in the live samples.
 
-### 34. Test the spec reader against a second implementation
+### 42. Test the spec reader against a second implementation
 
 **Tier:** low
 
@@ -373,9 +453,79 @@ Complexity tiers:
 
 **Evidence:** The check's output over all recorded sections.
 
+### 43. Say when a called contract publishes no spec
+
+**Tier:** medium
+
+**Found:** `spec.FromWasm` returns `ErrNoSpec` for wasm with no `contractspecv0` section. In the recorded samples every wasm contract had one, so the path is untested against real code, and with `--rpc` such a contract renders exactly as without `--rpc`.
+
+**Done when:** With `--rpc`, a contract whose wasm has no spec is reported distinctly (on stderr in the CLI, and as a reason in the library's fetch result) from a contract that could not be fetched. The explanation itself does not change unless the item "Report which contracts had no spec, in the explanation" decides otherwise.
+
+**Evidence:** A fake-RPC test serving spec-less wasm; the stderr line.
+
+### 44. Say when a called contract's spec is unreadable
+
+**Tier:** medium
+
+**Found:** `spec.Parse` returns `ErrMalformed` for spec bytes it cannot decode, and `spec.Section` for broken wasm. These are reported to stderr with the same wording as a network failure.
+
+**Done when:** Unreadable specs are reported distinctly from absent ones and from fetch failures, with the decode error kept, and the evidence document counts each reason separately.
+
+**Evidence:** A fake-RPC test with malformed spec bytes; the evidence document's reason table.
+
+### 45. Show the declared signature beside a call that does not match it
+
+**Tier:** medium
+
+**Found:** 13 testnet actions on contracts with readable specs were not named, because the authorized argument list differed from the declaration (for example `create_and_try_fill_with_fee` declares nine parameters and authorizes four values). The rendering says the spec "declares … with different arguments" but not what it declares, so a reviewer cannot see the difference.
+
+**Done when:** The note shows the declared parameter types (and names, clearly as the declaration, not as labels for the values beside them) and the call's argument types. The call stays opaque.
+
+**Evidence:** Snapshot changes for `spec_type_mismatch` explained; the 13 live cases rendered.
+
+### 46. Carry the code that named a call in the explanation
+
+**Tier:** high
+
+**Found:** A spec-named call depends on which wasm the spec came from. Neither the text nor the JSON rendering records the wasm hash, so a rendering made with `--rpc` cannot be traced to the code that named it, and a later re-run may name differently without any visible reason.
+
+**Done when:** Each spec-named action records the SHA-256 of the wasm whose spec named it, in the JSON (a wire-format addition with a CHANGELOG entry) and the text.
+
+**Evidence:** Snapshot changes explained; the CHANGELOG entry.
+
+### 47. Detect spec drift between the recorded specs and the network
+
+**Tier:** medium
+
+**Found:** `testdata/live/*.specs.json` record each contract's wasm hash as fetched on 2026-09-29. Nothing checks later whether those contracts still run that code, so the evidence document cannot say whether its spec pass still describes the network.
+
+**Done when:** An advisory job re-fetches the recorded contracts' instances and reports which now run a different wasm hash, without changing the records.
+
+**Evidence:** The job's first report.
+
+### 48. Replay recorded specs offline in the CLI
+
+**Tier:** medium
+
+**Found:** An explanation made with `--rpc` depends on what the RPC returned at that moment, so it cannot be reproduced byte for byte later. The library takes specs as data (`WithSpecs`), but the CLI can only fetch them.
+
+**Done when:** A flag supplies spec sections from a file (in the `testdata/live/*.specs.json` shape or a simpler one), so a named explanation can be reproduced offline. It is wired through usage and completions, and `--strict` is still never satisfied by it.
+
+**Evidence:** Tests through `run()` producing the same output as `--rpc` against the fake RPC.
+
+### 49. Let a caller pin the code it expects a contract to run
+
+**Tier:** medium
+
+**Found:** A reviewer who has checked a contract's code may want names only from that code. Today any wasm the RPC returns, whose hash matches the instance, can name arguments.
+
+**Done when:** An option and flag take expected wasm hashes per contract; if the fetched code differs, its spec is not used and the reason is reported. Pinning can only remove names, never add confidence.
+
+**Evidence:** Tests with matching and mismatching hashes.
+
 ## Interface families the spec reader now reaches
 
-### 35. Price-oracle writes
+### 50. Price-oracle writes: a registry entry if a published standard exists, otherwise a recorded decision
 
 **Tier:** high
 
@@ -385,7 +535,7 @@ Complexity tiers:
 
 **Evidence:** The written finding with links; if a registry entry results, snapshot cases for the decoded, partial and impostor paths and a live check that runs against the host's own events.
 
-### 36. AMM and router swaps
+### 51. AMM and router swaps: a registry entry if a published standard exists, otherwise a recorded decision
 
 **Tier:** high
 
@@ -395,7 +545,7 @@ Complexity tiers:
 
 **Evidence:** The written finding with links; if a registry entry results, snapshot cases for the decoded, partial and impostor paths and a live check that runs against the host's own events.
 
-### 37. Lending markets
+### 52. Lending markets: a registry entry if a published standard exists, otherwise a recorded decision
 
 **Tier:** high
 
@@ -405,7 +555,7 @@ Complexity tiers:
 
 **Evidence:** The written finding with links; if a registry entry results, snapshot cases for the decoded, partial and impostor paths and a live check that runs against the host's own events.
 
-### 38. Concentrated-liquidity positions
+### 53. Concentrated-liquidity positions: a registry entry if a published standard exists, otherwise a recorded decision
 
 **Tier:** medium
 
@@ -415,7 +565,7 @@ Complexity tiers:
 
 **Evidence:** The written finding with links; if a registry entry results, snapshot cases for the decoded, partial and impostor paths and a live check that runs against the host's own events.
 
-### 39. Order books and vault orders
+### 54. Order books and vault orders: a registry entry if a published standard exists, otherwise a recorded decision
 
 **Tier:** medium
 
@@ -425,7 +575,7 @@ Complexity tiers:
 
 **Evidence:** The written finding with links; if a registry entry results, snapshot cases for the decoded, partial and impostor paths and a live check that runs against the host's own events.
 
-### 40. Batched and relayed execution
+### 55. Batched and relayed execution: a registry entry if a published standard exists, otherwise a recorded decision
 
 **Tier:** high
 
@@ -435,7 +585,7 @@ Complexity tiers:
 
 **Evidence:** The written finding with links; if a registry entry results, snapshot cases for the decoded, partial and impostor paths and a live check that runs against the host's own events.
 
-### 41. Proof-of-work farming (KALE)
+### 56. Proof-of-work farming (KALE): a registry entry if a published standard exists, otherwise a recorded decision
 
 **Tier:** medium
 
@@ -445,7 +595,7 @@ Complexity tiers:
 
 **Evidence:** The written finding with links; if a registry entry results, snapshot cases for the decoded, partial and impostor paths and a live check that runs against the host's own events.
 
-### 42. Payments and instalments
+### 57. Payments and instalments: a registry entry if a published standard exists, otherwise a recorded decision
 
 **Tier:** medium
 
@@ -455,7 +605,7 @@ Complexity tiers:
 
 **Evidence:** The written finding with links; if a registry entry results, snapshot cases for the decoded, partial and impostor paths and a live check that runs against the host's own events.
 
-### 43. Claims, disputes and escrow
+### 58. Claims, disputes and escrow: a registry entry if a published standard exists, otherwise a recorded decision
 
 **Tier:** medium
 
@@ -465,7 +615,7 @@ Complexity tiers:
 
 **Evidence:** The written finding with links; if a registry entry results, snapshot cases for the decoded, partial and impostor paths and a live check that runs against the host's own events.
 
-### 44. Reporting and rate publication
+### 59. Reporting and rate publication: a registry entry if a published standard exists, otherwise a recorded decision
 
 **Tier:** medium
 
@@ -475,7 +625,7 @@ Complexity tiers:
 
 **Evidence:** The written finding with links; if a registry entry results, snapshot cases for the decoded, partial and impostor paths and a live check that runs against the host's own events.
 
-### 45. Replacement and batch updates
+### 60. Replacement and batch updates: a registry entry if a published standard exists, otherwise a recorded decision
 
 **Tier:** medium
 
@@ -485,7 +635,7 @@ Complexity tiers:
 
 **Evidence:** The written finding with links; if a registry entry results, snapshot cases for the decoded, partial and impostor paths and a live check that runs against the host's own events.
 
-### 46. Contract upgrades and migrations deserve a warning, derived from the bytes only
+### 61. Contract upgrades: decode them if the host makes them visible, otherwise record why a function name is not evidence
 
 **Tier:** high
 
@@ -495,7 +645,7 @@ Complexity tiers:
 
 **Evidence:** The cited host or CAP text; snapshot cases.
 
-### 47. Administrative and circuit-breaker functions
+### 62. Administrative and circuit-breaker functions: a recorded decision unless a published standard defines them
 
 **Tier:** medium
 
@@ -505,7 +655,7 @@ Complexity tiers:
 
 **Evidence:** The written finding.
 
-### 48. Classify the remaining one-off functions
+### 63. Classify the remaining one-off functions
 
 **Tier:** low
 
@@ -515,7 +665,7 @@ Complexity tiers:
 
 **Evidence:** The table, regenerated from the live records rather than written by hand.
 
-### 49. Measure how often named calls carry another call as an argument
+### 64. Measure how often named calls carry another call as an argument
 
 **Tier:** medium
 
@@ -527,7 +677,7 @@ Complexity tiers:
 
 ## Evidence and live checks
 
-### 50. Check decoded actions from failed transactions in-repo
+### 65. Check decoded actions from failed transactions in-repo
 
 **Tier:** high
 
@@ -537,7 +687,7 @@ Complexity tiers:
 
 **Evidence:** Its output for both records; a deliberately corrupted amount and label caught, as at CP4.
 
-### 51. Check SAC deployments against ledger state
+### 66. Check SAC deployments against ledger state
 
 **Tier:** medium
 
@@ -547,7 +697,7 @@ Complexity tiers:
 
 **Evidence:** A regression case with a real deployment, if sampling finds one.
 
-### 52. Record a futurenet run
+### 67. Record a futurenet run
 
 **Tier:** medium
 
@@ -557,7 +707,7 @@ Complexity tiers:
 
 **Evidence:** The record and the regenerated evidence document; if no RPC is available, a note saying so.
 
-### 53. Refresh the recorded runs on a schedule
+### 68. Refresh the recorded runs on a schedule
 
 **Tier:** medium
 
@@ -567,7 +717,7 @@ Complexity tiers:
 
 **Evidence:** The first refreshed run, with the diff in the evidence document explained.
 
-### 54. Report the confidence distribution by credential type
+### 69. Report the confidence distribution by credential type
 
 **Tier:** medium
 
@@ -577,7 +727,7 @@ Complexity tiers:
 
 **Evidence:** Generated from the records.
 
-### 55. Report sample diversity next to the rates
+### 70. Report sample diversity next to the rates
 
 **Tier:** low
 
@@ -587,7 +737,7 @@ Complexity tiers:
 
 **Evidence:** Generated from the records.
 
-### 56. Grow the samples to a size that supports the percentages quoted
+### 71. Grow the samples to a size that supports the percentages quoted
 
 **Tier:** high
 
@@ -597,7 +747,7 @@ Complexity tiers:
 
 **Evidence:** The calculation and the runs.
 
-### 57. Record which spec-named actions the substitution caveat is known to apply to
+### 72. Record which spec-named actions the substitution caveat is known to apply to
 
 **Tier:** medium
 
@@ -607,7 +757,7 @@ Complexity tiers:
 
 **Evidence:** Generated from the records and the recorded specs.
 
-### 58. Make the live check's categories a documented enum
+### 73. Make the live check's categories a documented enum
 
 **Tier:** low
 
@@ -617,7 +767,7 @@ Complexity tiers:
 
 **Evidence:** The evidence document's explanation generated from that list.
 
-### 59. Check approvals that were authorized but not executed
+### 74. Check approvals that were authorized but not executed
 
 **Tier:** medium
 
@@ -627,7 +777,7 @@ Complexity tiers:
 
 **Evidence:** Cases in `TestLiveCheckRegressions`.
 
-### 60. Alert on advisory live failures
+### 75. Alert on advisory live failures
 
 **Tier:** medium
 
@@ -637,7 +787,7 @@ Complexity tiers:
 
 **Evidence:** The chosen mechanism working once.
 
-### 61. Record RPC versions in live runs
+### 76. Record RPC versions in live runs
 
 **Tier:** low
 
@@ -647,7 +797,7 @@ Complexity tiers:
 
 **Evidence:** A record with the field.
 
-### 62. Measure the time `--rpc` adds
+### 77. Measure the time `--rpc` adds
 
 **Tier:** medium
 
@@ -657,7 +807,7 @@ Complexity tiers:
 
 **Evidence:** The measurement.
 
-### 63. Keep the evidence document's check description in step with the checks
+### 78. Keep the evidence document's check description in step with the checks
 
 **Tier:** low
 
@@ -669,7 +819,7 @@ Complexity tiers:
 
 ## Fixtures and snapshot cases
 
-### 64. A real decoded `transfer_from` fixture
+### 79. A real decoded `transfer_from` fixture
 
 **Tier:** medium
 
@@ -679,7 +829,7 @@ Complexity tiers:
 
 **Evidence:** The snapshot, explained in the commit.
 
-### 65. A real decoded `burn_from` fixture
+### 80. A real decoded `burn_from` fixture
 
 **Tier:** medium
 
@@ -689,7 +839,7 @@ Complexity tiers:
 
 **Evidence:** As above.
 
-### 66. An alphanumeric-12 asset label fixture
+### 81. An alphanumeric-12 asset label fixture
 
 **Tier:** low
 
@@ -699,7 +849,7 @@ Complexity tiers:
 
 **Evidence:** The snapshot.
 
-### 67. An asset code with characters outside A-Z, a-z and 0-9
+### 82. An asset code with characters outside A-Z, a-z and 0-9
 
 **Tier:** low
 
@@ -709,7 +859,7 @@ Complexity tiers:
 
 **Evidence:** The snapshot.
 
-### 68. Numeric asset codes
+### 83. Numeric asset codes
 
 **Tier:** low
 
@@ -719,7 +869,7 @@ Complexity tiers:
 
 **Evidence:** The snapshot.
 
-### 69. A delegate entry with a spec-named call
+### 84. A delegate entry with a spec-named call
 
 **Tier:** medium
 
@@ -729,7 +879,7 @@ Complexity tiers:
 
 **Evidence:** The snapshot.
 
-### 70. Every ScVal type as a spec-named argument
+### 85. Every ScVal type as a spec-named argument
 
 **Tier:** low
 
@@ -739,7 +889,7 @@ Complexity tiers:
 
 **Evidence:** The snapshot.
 
-### 71. A V2 creation with constructor arguments from real traffic
+### 86. A V2 creation with constructor arguments from real traffic
 
 **Tier:** medium
 
@@ -749,7 +899,7 @@ Complexity tiers:
 
 **Evidence:** The snapshot.
 
-### 72. An entry exactly at the decode depth limit
+### 87. An entry exactly at the decode depth limit
 
 **Tier:** low
 
@@ -759,7 +909,7 @@ Complexity tiers:
 
 **Evidence:** The snapshots.
 
-### 73. An entry exactly at the node limit
+### 88. An entry exactly at the node limit
 
 **Tier:** low
 
@@ -769,7 +919,7 @@ Complexity tiers:
 
 **Evidence:** The snapshots, one of them a refusal.
 
-### 74. A real public-network `plant` entry with its recorded spec
+### 89. A real public-network `plant` entry with its recorded spec
 
 **Tier:** medium
 
@@ -779,7 +929,7 @@ Complexity tiers:
 
 **Evidence:** The snapshot.
 
-### 75. A real public-network `swap` entry with its recorded spec
+### 90. A real public-network `swap` entry with its recorded spec
 
 **Tier:** medium
 
@@ -789,7 +939,7 @@ Complexity tiers:
 
 **Evidence:** As above.
 
-### 76. A spec that declares the same function twice
+### 91. A spec that declares the same function twice
 
 **Tier:** low
 
@@ -799,7 +949,7 @@ Complexity tiers:
 
 **Evidence:** The snapshot.
 
-### 77. A spec whose function takes an Option
+### 92. A spec whose function takes an Option
 
 **Tier:** low
 
@@ -809,7 +959,7 @@ Complexity tiers:
 
 **Evidence:** The snapshots.
 
-### 78. Fixtures from soroauth-go's later vectors, once re-pinned
+### 93. Fixtures from soroauth-go's later vectors, once re-pinned
 
 **Tier:** medium
 
@@ -819,7 +969,7 @@ Complexity tiers:
 
 **Evidence:** The generator run on the new version.
 
-### 79. A signed entry with a real signature in every arm
+### 94. A signed entry with a real signature in every arm
 
 **Tier:** low
 
@@ -829,7 +979,7 @@ Complexity tiers:
 
 **Evidence:** The snapshot.
 
-### 80. Name every snapshot case in one table
+### 95. Name every snapshot case in one table
 
 **Tier:** low
 
@@ -839,7 +989,7 @@ Complexity tiers:
 
 **Evidence:** Generated by `cmd/gensnapshots`, checked by the drift job.
 
-### 81. Record the live entries that produced each finding as fixtures
+### 96. Record the live entries that produced each finding as fixtures
 
 **Tier:** medium
 
@@ -851,7 +1001,7 @@ Complexity tiers:
 
 ## Renderers and output
 
-### 82. Machine-readable reason codes for everything in `Unexplained`
+### 97. Machine-readable reason codes for everything in `Unexplained`
 
 **Tier:** high
 
@@ -861,7 +1011,7 @@ Complexity tiers:
 
 **Evidence:** A wire-format change with a CHANGELOG entry; snapshot changes explained; a test that every sentence the library can produce has a code.
 
-### 83. Publish a JSON Schema for the wire format
+### 98. Publish a JSON Schema for the wire format
 
 **Tier:** high
 
@@ -871,7 +1021,7 @@ Complexity tiers:
 
 **Evidence:** The test; a snapshot deliberately altered to break the schema, caught.
 
-### 84. Add a format version to the JSON
+### 99. Add a format version to the JSON
 
 **Tier:** medium
 
@@ -881,7 +1031,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot changes explained; CHANGELOG entry.
 
-### 85. Say in the JSON where each name and label came from
+### 100. Say in the JSON where each name and label came from
 
 **Tier:** high
 
@@ -891,7 +1041,7 @@ Complexity tiers:
 
 **Evidence:** Wire-format change; snapshots; CHANGELOG.
 
-### 86. A one-line summary for constrained displays
+### 101. A one-line summary for constrained displays
 
 **Tier:** medium
 
@@ -901,7 +1051,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases in a third format.
 
-### 87. A Markdown renderer
+### 102. A Markdown renderer
 
 **Tier:** medium
 
@@ -911,7 +1061,7 @@ Complexity tiers:
 
 **Evidence:** The new snapshot format.
 
-### 88. Show full addresses with visual grouping
+### 103. Show full addresses with visual grouping
 
 **Tier:** low
 
@@ -921,7 +1071,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases.
 
-### 89. Group thousands in scaled amounts, locale-free
+### 104. Group thousands in scaled amounts, locale-free
 
 **Tier:** medium
 
@@ -931,7 +1081,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases; a test that output does not change with `LANG`.
 
-### 90. Avoid repeating the action tree for each delegate in text
+### 105. Avoid repeating the action tree for each delegate in text
 
 **Tier:** low
 
@@ -941,7 +1091,7 @@ Complexity tiers:
 
 **Evidence:** The decision recorded; CHANGELOG if it changes.
 
-### 91. Render timepoints and durations with their unit, not a date
+### 106. Render timepoints and durations with their unit, not a date
 
 **Tier:** medium
 
@@ -951,7 +1101,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases.
 
-### 92. Colour-free by default, colour only on request
+### 107. Colour-free by default, colour only on request
 
 **Tier:** low
 
@@ -961,7 +1111,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 93. Stable ordering rules, written down
+### 108. Stable ordering rules, written down
 
 **Tier:** medium
 
@@ -971,7 +1121,7 @@ Complexity tiers:
 
 **Evidence:** The doc and the tests it cites.
 
-### 94. Escape rules, written down
+### 109. Escape rules, written down
 
 **Tier:** low
 
@@ -981,7 +1131,7 @@ Complexity tiers:
 
 **Evidence:** The tests.
 
-### 95. Render byte strings that are addresses or hashes more usefully
+### 110. Decide whether byte strings can be rendered more usefully (the outcome may be no change)
 
 **Tier:** medium
 
@@ -991,7 +1141,7 @@ Complexity tiers:
 
 **Evidence:** A written decision; snapshot cases if anything changes.
 
-### 96. Show the argument count in named calls' field list consistently
+### 111. Show the argument count in named calls' field list consistently
 
 **Tier:** low
 
@@ -1001,7 +1151,7 @@ Complexity tiers:
 
 **Evidence:** Snapshots.
 
-### 97. An HTML fragment renderer for wallet webviews
+### 112. An HTML fragment renderer for wallet webviews
 
 **Tier:** high
 
@@ -1011,7 +1161,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases, including hostile strings.
 
-### 98. Interpret executable tags and external-reference executables, or keep them opaque on purpose
+### 113. Interpret executable tags and external-reference executables, or keep them opaque on purpose
 
 **Tier:** medium
 
@@ -1021,9 +1171,19 @@ Complexity tiers:
 
 **Evidence:** The cited CAP section; snapshot cases or the recorded decision.
 
+### 114. Do not repeat identical notes in one explanation
+
+**Tier:** low
+
+**Found:** 10 testnet entries in the recorded sample repeat a "Not determined" sentence, up to three times (for example tx `b494dd37…`, three identical `create_order` notes), because the same call appears more than once in the tree.
+
+**Done when:** Identical sentences appear once, in first-occurrence order, with the deduplication rule documented; the Summary/Fields and invariant tests still pass.
+
+**Evidence:** Snapshot and evidence changes explained.
+
 ## Command-line interface
 
-### 99. Read `--entry` from a file
+### 115. Read `--entry` from a file
 
 **Tier:** medium
 
@@ -1033,7 +1193,7 @@ Complexity tiers:
 
 **Evidence:** Tests through `run()`; the completion spec test.
 
-### 100. Explain every entry in a transaction envelope
+### 116. Explain every entry in a transaction envelope
 
 **Tier:** high
 
@@ -1043,7 +1203,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases with real envelopes; the section-0 conditions checked before any re-pin.
 
-### 101. Explain several entries, one per line
+### 117. Explain several entries, one per line
 
 **Tier:** medium
 
@@ -1053,7 +1213,7 @@ Complexity tiers:
 
 **Evidence:** Tests through a real pipe.
 
-### 102. `--version`
+### 118. `--version`
 
 **Tier:** low
 
@@ -1063,7 +1223,7 @@ Complexity tiers:
 
 **Evidence:** A test through `run()`.
 
-### 103. Make `--rpc`'s timeout configurable
+### 119. Make `--rpc`'s timeout configurable
 
 **Tier:** low
 
@@ -1073,7 +1233,7 @@ Complexity tiers:
 
 **Evidence:** The measurement; tests.
 
-### 104. Cache fetched specs between CLI runs
+### 120. Cache fetched specs between CLI runs
 
 **Tier:** medium
 
@@ -1083,7 +1243,7 @@ Complexity tiers:
 
 **Evidence:** Tests counting requests across runs.
 
-### 105. Print which contracts `--rpc` named
+### 121. Print which contracts `--rpc` named
 
 **Tier:** low
 
@@ -1093,7 +1253,7 @@ Complexity tiers:
 
 **Evidence:** Tests.
 
-### 106. Generate a man page
+### 122. Generate a man page
 
 **Tier:** low
 
@@ -1103,7 +1263,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 107. A policy mode that fails on specific kinds, not only on confidence
+### 123. A policy mode that fails on specific kinds, not only on confidence
 
 **Tier:** high
 
@@ -1113,7 +1273,7 @@ Complexity tiers:
 
 **Evidence:** Tests for each rule.
 
-### 108. Test the CLI on Windows line endings end to end
+### 124. Test the CLI on Windows line endings end to end
 
 **Tier:** low
 
@@ -1123,7 +1283,7 @@ Complexity tiers:
 
 **Evidence:** The job's output.
 
-### 109. Completions for `--rpc` values
+### 125. Completions for `--rpc` values
 
 **Tier:** low
 
@@ -1133,7 +1293,7 @@ Complexity tiers:
 
 **Evidence:** The completion behaviour tests for bash and fish.
 
-### 110. Exit codes as a documented, tested table
+### 126. Exit codes as a documented, tested table
 
 **Tier:** medium
 
@@ -1143,9 +1303,19 @@ Complexity tiers:
 
 **Evidence:** The test.
 
+### 127. Require https for `--rpc`, except to a local address
+
+**Tier:** medium
+
+**Found:** `--rpc` accepts `http://` URLs (`cmd/soroauth-explain/explain.go:166`). Over plain HTTP, anyone on the path can return any spec, and the code-hash check in `spec.RPC.Wasm` only proves the code matches the instance the same response supplied.
+
+**Done when:** `--rpc` refuses `http://` except to loopback addresses, with a usage error that says why; tests keep using local servers.
+
+**Evidence:** Tests for refused and accepted URLs.
+
 ## Robustness, limits and security
 
-### 111. Fuzz `Explain`
+### 128. Fuzz `Explain`
 
 **Tier:** high
 
@@ -1155,7 +1325,7 @@ Complexity tiers:
 
 **Evidence:** Seed case names in `go test -v` output (section 11.5).
 
-### 112. Fuzz the CLI's decoder
+### 129. Fuzz the CLI's decoder
 
 **Tier:** high
 
@@ -1165,7 +1335,7 @@ Complexity tiers:
 
 **Evidence:** As above.
 
-### 113. Property test the confidence floor over random trees
+### 130. Property test the confidence floor over random trees
 
 **Tier:** high
 
@@ -1175,7 +1345,7 @@ Complexity tiers:
 
 **Evidence:** The property test and its seed.
 
-### 114. Measure memory use at the limits
+### 131. Measure memory use at the limits
 
 **Tier:** medium
 
@@ -1185,7 +1355,7 @@ Complexity tiers:
 
 **Evidence:** The benchmark output.
 
-### 115. Benchmark rendering
+### 132. Benchmark rendering
 
 **Tier:** medium
 
@@ -1195,7 +1365,7 @@ Complexity tiers:
 
 **Evidence:** The output, recorded with its date.
 
-### 116. Treat RPC responses as hostile, with tests
+### 133. Treat RPC responses as hostile, with tests
 
 **Tier:** medium
 
@@ -1205,7 +1375,7 @@ Complexity tiers:
 
 **Evidence:** A fake RPC returning another contract's instance, caught.
 
-### 117. Refuse redirects to other hosts in `--rpc`
+### 134. Refuse redirects to other hosts in `--rpc`
 
 **Tier:** low
 
@@ -1215,7 +1385,7 @@ Complexity tiers:
 
 **Evidence:** A test with a redirecting server.
 
-### 118. Run `govulncheck` in the advisory workflow
+### 135. Run `govulncheck` in the advisory workflow
 
 **Tier:** medium
 
@@ -1225,7 +1395,7 @@ Complexity tiers:
 
 **Evidence:** Its first output.
 
-### 119. Run `staticcheck`
+### 136. Run `staticcheck`
 
 **Tier:** low
 
@@ -1235,7 +1405,7 @@ Complexity tiers:
 
 **Evidence:** Its output.
 
-### 120. A threat model document
+### 137. A threat model document
 
 **Tier:** medium
 
@@ -1245,7 +1415,7 @@ Complexity tiers:
 
 **Evidence:** Each defence linked to its test.
 
-### 121. Check that no rendering contains a control character
+### 138. Check that no rendering contains a control character
 
 **Tier:** low
 
@@ -1255,7 +1425,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 122. Bound the stderr output of `--rpc` failures
+### 139. Bound the stderr output of `--rpc` failures
 
 **Tier:** medium
 
@@ -1267,7 +1437,7 @@ Complexity tiers:
 
 ## Internationalization
 
-### 123. A message catalogue for all user-facing text
+### 140. A message catalogue for all user-facing text
 
 **Tier:** high
 
@@ -1277,7 +1447,7 @@ Complexity tiers:
 
 **Evidence:** Snapshots in English unchanged; a test that every catalogue key is used.
 
-### 124. A pseudo-locale to find untranslated strings
+### 141. A pseudo-locale to find untranslated strings
 
 **Tier:** medium
 
@@ -1287,7 +1457,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 125. Keep values untranslated
+### 142. Keep values untranslated
 
 **Tier:** medium
 
@@ -1297,7 +1467,7 @@ Complexity tiers:
 
 **Evidence:** The test in the pseudo-locale.
 
-### 126. Document the plain-English style of the notes
+### 143. Document the plain-English style of the notes
 
 **Tier:** low
 
@@ -1307,7 +1477,7 @@ Complexity tiers:
 
 **Evidence:** The guide.
 
-### 127. Right-to-left safety in text output
+### 144. Right-to-left safety in text output: research, document, then test
 
 **Tier:** high
 
@@ -1317,7 +1487,7 @@ Complexity tiers:
 
 **Evidence:** The written finding and tests.
 
-### 128. Locale-independent number formatting, tested
+### 145. Locale-independent number formatting, tested
 
 **Tier:** low
 
@@ -1327,7 +1497,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 129. A first translation, as a proof of the catalogue
+### 146. A first translation, as a proof of the catalogue
 
 **Tier:** medium
 
@@ -1337,7 +1507,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases in that language.
 
-### 130. Translate the CLI usage text
+### 147. Translate the CLI usage text
 
 **Tier:** low
 
@@ -1347,7 +1517,7 @@ Complexity tiers:
 
 **Evidence:** Tests.
 
-### 131. Keep translations from weakening the caveats
+### 148. Keep translations from weakening the caveats
 
 **Tier:** low
 
@@ -1359,7 +1529,7 @@ Complexity tiers:
 
 ## Accessibility
 
-### 132. Audit the text rendering with a screen reader
+### 149. Audit the text rendering with a screen reader
 
 **Tier:** high
 
@@ -1369,7 +1539,7 @@ Complexity tiers:
 
 **Evidence:** The audit notes; snapshot changes explained.
 
-### 133. Never convey confidence by position or symbol alone
+### 150. Never convey confidence by position or symbol alone
 
 **Tier:** medium
 
@@ -1379,7 +1549,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 134. An accessible rendering without column alignment
+### 151. An accessible rendering without column alignment
 
 **Tier:** medium
 
@@ -1389,7 +1559,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases.
 
-### 135. Read long addresses in chunks
+### 152. Research how screen readers read long addresses (the outcome is a recommendation)
 
 **Tier:** low
 
@@ -1399,7 +1569,7 @@ Complexity tiers:
 
 **Evidence:** The written finding.
 
-### 136. Plain-language level of the notes
+### 153. Plain-language level of the notes
 
 **Tier:** medium
 
@@ -1409,7 +1579,7 @@ Complexity tiers:
 
 **Evidence:** The tool's scores before and after.
 
-### 137. Accessible HTML output
+### 154. Accessible HTML output
 
 **Tier:** low
 
@@ -1419,7 +1589,7 @@ Complexity tiers:
 
 **Evidence:** The checker's output.
 
-### 138. Keyboard-only use of the completions
+### 155. Keyboard-only use of the completions
 
 **Tier:** low
 
@@ -1429,7 +1599,7 @@ Complexity tiers:
 
 **Evidence:** The test in CI.
 
-### 139. Contrast and colour guidance for wallets
+### 156. Contrast and colour guidance for wallets
 
 **Tier:** low
 
@@ -1441,7 +1611,7 @@ Complexity tiers:
 
 ## Documentation
 
-### 140. A wallet integration guide
+### 157. A wallet integration guide
 
 **Tier:** medium
 
@@ -1451,7 +1621,7 @@ Complexity tiers:
 
 **Evidence:** Every code sample compiled as an Example.
 
-### 141. "Why is my entry opaque?"
+### 158. "Why is my entry opaque?"
 
 **Tier:** medium
 
@@ -1461,7 +1631,7 @@ Complexity tiers:
 
 **Evidence:** The FAQ.
 
-### 142. A glossary
+### 159. A glossary
 
 **Tier:** low
 
@@ -1471,7 +1641,7 @@ Complexity tiers:
 
 **Evidence:** The glossary.
 
-### 143. Architecture decision records for the honesty rules
+### 160. Architecture decision records for the honesty rules
 
 **Tier:** medium
 
@@ -1481,7 +1651,7 @@ Complexity tiers:
 
 **Evidence:** The ADRs.
 
-### 144. Examples for every exported function
+### 161. Examples for every exported function
 
 **Tier:** low
 
@@ -1491,7 +1661,7 @@ Complexity tiers:
 
 **Evidence:** `go test` running them.
 
-### 145. Document the evidence method for contributors
+### 162. Document the evidence method for contributors
 
 **Tier:** low
 
@@ -1501,7 +1671,7 @@ Complexity tiers:
 
 **Evidence:** The section.
 
-### 146. A comparison with other decoders, with a dated search
+### 163. A comparison with other decoders, with a dated search
 
 **Tier:** medium
 
@@ -1511,7 +1681,7 @@ Complexity tiers:
 
 **Evidence:** The search results, dated.
 
-### 147. A changelog policy for the wire format
+### 164. A changelog policy for the wire format
 
 **Tier:** low
 
@@ -1521,7 +1691,7 @@ Complexity tiers:
 
 **Evidence:** The policy.
 
-### 148. Document `--rpc` endpoints
+### 165. Document `--rpc` endpoints
 
 **Tier:** low
 
@@ -1531,7 +1701,7 @@ Complexity tiers:
 
 **Evidence:** The README section.
 
-### 149. Explain the confidence levels with the live examples
+### 166. Explain the confidence levels with the live examples
 
 **Tier:** low
 
@@ -1541,9 +1711,19 @@ Complexity tiers:
 
 **Evidence:** The links, checked by the README test.
 
+### 167. Document what `--rpc` reveals to the RPC operator
+
+**Tier:** low
+
+**Found:** With `--rpc`, the RPC operator learns which contracts the user is examining, and when. The README and `--help` say the flag makes network requests, but not what they disclose.
+
+**Done when:** The README and SECURITY.md say what is sent and to whom, and suggest running one's own RPC for sensitive reviews.
+
+**Evidence:** The text.
+
 ## Project infrastructure
 
-### 150. Measure test coverage before setting any floor
+### 168. Measure test coverage before setting any floor
 
 **Tier:** medium
 
@@ -1553,7 +1733,7 @@ Complexity tiers:
 
 **Evidence:** The measurement.
 
-### 151. Reproducible release builds
+### 169. Reproducible release builds
 
 **Tier:** high
 
@@ -1563,7 +1743,7 @@ Complexity tiers:
 
 **Evidence:** Two builds producing identical checksums.
 
-### 152. Dependency update policy
+### 170. Dependency update policy
 
 **Tier:** low
 
@@ -1573,7 +1753,7 @@ Complexity tiers:
 
 **Evidence:** The policy.
 
-### 153. A software bill of materials
+### 171. A software bill of materials
 
 **Tier:** low
 
@@ -1583,7 +1763,7 @@ Complexity tiers:
 
 **Evidence:** The SBOM for the next release.
 
-### 154. Pin GitHub Actions by commit
+### 172. Pin GitHub Actions by commit
 
 **Tier:** low
 
@@ -1593,7 +1773,7 @@ Complexity tiers:
 
 **Evidence:** The workflows.
 
-### 155. Keep the live records small
+### 173. Keep the live records small
 
 **Tier:** low
 
@@ -1603,7 +1783,7 @@ Complexity tiers:
 
 **Evidence:** The size before and after, and the evidence test still passing.
 
-### 156. Make the backlog machine-checkable
+### 174. Make the backlog machine-checkable
 
 **Tier:** medium
 
@@ -1613,7 +1793,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 157. Label snapshot changes in pull requests automatically
+### 175. Label snapshot changes in pull requests automatically
 
 **Tier:** low
 
