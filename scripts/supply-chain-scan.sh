@@ -236,7 +236,16 @@ else
   for f in $wf; do
     c="$(show "$f")" || continue
     printf '%s' "$c" | grep -q 'pull_request_target' && { block "$f: pull_request_target gives a fork PR access to secrets"; hits=$((hits+1)); }
-    printf '%s' "$c" | grep -qE '\$\{\{ *github\.event\.(pull_request|issue|comment|head_ref|workflow_run)' && { block "$f: untrusted event data interpolated into a script (injection)"; hits=$((hits+1)); }
+    # Only an expression that lands in a `run:` block is an injection.
+    # Routing the same value through `env:` is the documented mitigation, so
+    # flagging that too would flag the fix alongside the bug.
+    inj="$(printf '%s' "$c" | python3 "$HERE/lib/workflow_injection.py" 2>/dev/null)"
+    case "$inj" in
+      UNAVAILABLE*) warn "$f: injection check skipped — $inj"; hits=$((hits+1));;
+      ?*) block "$f: untrusted event data interpolated into a run: block (injection)"
+          printf '%s\n' "$inj" | while IFS= read -r l; do [ -n "$l" ] && detail "$l"; done
+          hits=$((hits+1));;
+    esac
     printf '%s' "$c" | grep -qE '(echo|printf|curl)[^|]*secrets\.|secrets\.[A-Z_]+[^}]*\|[[:space:]]*(curl|nc|wget)' && { block "$f: a secret may be printed or sent off-box"; hits=$((hits+1)); }
     printf '%s' "$c" | grep -qE 'uses: *[^@#]+@(v?[0-9]+(\.[0-9]+)*|main|master|HEAD)[[:space:]]*(#.*)?$' && { warn "$f: an action is pinned to a mutable ref, not a commit SHA"; hits=$((hits+1)); }
   done
