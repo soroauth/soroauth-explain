@@ -9,6 +9,63 @@ permissions:
   contents: read
 
 jobs:
+  # Every pull request, with no paths filter. A paths-filtered workflow
+  # produces no check row at all when it does not match, so a filtered scan
+  # would be silently absent from exactly the pull request that needed it.
+  #
+  # It needs no secrets and no write permission, so it is safe on a fork pull
+  # request, and the scan reads the diff rather than executing anything from
+  # it. The script is kept in step with soroauth-go's copy; check 11's path
+  # list is the only part that differs, because it names this repository's own
+  # packages.
+  supply-chain:
+    name: supply chain scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # The scan diffs against the merge base, so it needs both sides.
+          fetch-depth: 0
+
+      - name: resolve the base revision
+        id: base
+        env:
+          # From the event payload, never interpolated into the shell: a branch
+          # name is attacker-controlled on a fork pull request.
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ -n "${BASE_REF:-}" ] && git cat-file -e "$BASE_REF" 2>/dev/null; then
+            echo "sha=$BASE_REF" >> "$GITHUB_OUTPUT"
+          else
+            git fetch -q origin main
+            echo "sha=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: scan the changed files
+        run: ./scripts/supply-chain-scan.sh "${{ steps.base.outputs.sha }}" "$GITHUB_SHA"
+
+      - name: explain a failure in the job summary
+        if: failure()
+        run: |
+          {
+            echo "## Supply chain scan found blocking issues"
+            echo
+            echo "The scan reports a pattern with no legitimate use in this repository."
+            echo "Read the step log above: each finding names the file, the line and what matched."
+            echo
+            echo "Run it locally against your branch:"
+            echo
+            echo '```sh'
+            echo './scripts/supply-chain-scan.sh origin/main HEAD'
+            echo '```'
+            echo
+            echo "A finding is not automatically malicious — but it has to be explained"
+            echo "in the pull request before the change can merge."
+          } >> "$GITHUB_STEP_SUMMARY"
+
   build:
     name: vet and test
     runs-on: ubuntu-latest
