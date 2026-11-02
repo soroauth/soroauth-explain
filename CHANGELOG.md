@@ -10,6 +10,11 @@ a breaking change and is listed here as one.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-02
+
+Unaudited. No breaking changes: every v0.1.0 field and flag is unchanged, and all 31 snapshot cases
+v0.1.0 shipped (62 files) are byte-identical.
+
 ### Added
 
 - Package `spec` reads a contract's own interface spec from its wasm (`FromWasm`, `Parse`, `Section`),
@@ -110,4 +115,5 @@ First release. Unaudited.
 - `github.com/soroauth/soroauth-go` v0.1.0
 - `github.com/stellar/go-stellar-sdk` v0.7.3
 
+[0.2.0]: https://github.com/soroauth/soroauth-explain/releases/tag/v0.2.0
 [0.1.0]: https://github.com/soroauth/soroauth-explain/releases/tag/v0.1.0
