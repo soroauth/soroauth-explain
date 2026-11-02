@@ -1,7 +1,7 @@
 # soroauth-explain
 
-soroauth-explain is a Go library and CLI that reads a Soroban authorization entry and gives an account of
-what it authorizes. Where it cannot tell, it says so, and does not guess.
+soroauth-explain is a Go library and CLI that reads a Soroban authorization entry, or a whole transaction
+envelope, and gives an account of what it authorizes. Where it cannot tell, it says so, and does not guess.
 
 It is the sibling of [soroauth-go](https://github.com/soroauth/soroauth-go), which makes sure the right
 bytes get signed. This project describes what those bytes authorize. It never signs anything and holds no
@@ -162,6 +162,59 @@ Not determined:
   - The function do_thing on CBCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEIRCEJ5HZ is not interpreted by this library; its 3 arguments are shown as raw values.
 ```
 
+### A whole transaction
+
+`--envelope` takes a transaction envelope instead of one entry. It lists the transaction's own fields,
+then for each operation what it invokes and what each of its authorization entries authorizes. This is a
+real public-network transaction, `d118280c…0d71`, a fee-bumped USDC transfer, explained with USDC as a
+candidate:
+
+```sh
+soroauth-explain --envelope "$ENVELOPE" --network public \
+  --asset USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+```
+
+<!-- snapshot: envelope_public_fee_bump_transfer_with_asset.txt -->
+```text
+Transaction envelope [decoded]
+  envelope     = fee bump transaction [decoded]
+  fee_source   = GBVVWAJ7BQOQW3R3NL4HXRRZ5VR2BVTMRIF57SK3UYN6RNW3S2S5GT34 [decoded]
+  fee_bump_fee = 253505 stroops [decoded]
+  source       = GBPKKSAOZKE6JSUPWVLXOZ3QUAYQ5FIT3M475HXRRLYI3FG2AW5CHRCL [decoded]
+  fee          = 153505 stroops [decoded]
+  sequence     = 262679143261405231 [decoded]
+  time_bounds  = 0..1793572761 (unix seconds) [decoded]
+  Shown: the transaction's fields, what each operation invokes, and what each
+  authorization entry authorizes. Not shown: Soroban resource limits and footprint.
+
+Operation 0: InvokeHostFunction [decoded]
+  Invokes:
+    [decoded] Transfer 4.2500000 USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN from GBPKKSAOZKE6JSUPWVLXOZ3QUAYQ5FIT3M475HXRRLYI3FG2AW5CHRCL to CD3EM4X6J4SWNAYYF7KDY3H35326DUGNBFTEGAGH2JLGGPKGYLKN22OZ
+        contract = CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75 [decoded]
+        function = transfer [decoded]
+        asset    = USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN [decoded]
+        from     = GBPKKSAOZKE6JSUPWVLXOZ3QUAYQ5FIT3M475HXRRLYI3FG2AW5CHRCL [decoded]
+        to       = CD3EM4X6J4SWNAYYF7KDY3H35326DUGNBFTEGAGH2JLGGPKGYLKN22OZ [decoded]
+        amount   = 4.2500000 (raw 42500000) [decoded]
+
+  Entry 0:
+    Authorization entry: source_account credentials, authenticated by the transaction's envelope signature [decoded]
+      The entry carries no address, nonce, expiration or signature of its own.
+
+    Authorizes:
+      [decoded] Transfer 4.2500000 USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN from GBPKKSAOZKE6JSUPWVLXOZ3QUAYQ5FIT3M475HXRRLYI3FG2AW5CHRCL to CD3EM4X6J4SWNAYYF7KDY3H35326DUGNBFTEGAGH2JLGGPKGYLKN22OZ
+          contract = CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75 [decoded]
+          function = transfer [decoded]
+          asset    = USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN [decoded]
+          from     = GBPKKSAOZKE6JSUPWVLXOZ3QUAYQ5FIT3M475HXRRLYI3FG2AW5CHRCL [decoded]
+          to       = CD3EM4X6J4SWNAYYF7KDY3H35326DUGNBFTEGAGH2JLGGPKGYLKN22OZ [decoded]
+          amount   = 4.2500000 (raw 42500000) [decoded]
+```
+
+The call the transaction makes counts as much as its entries do. An envelope whose entries are all decoded
+is still opaque if the call it invokes is opaque. Any operation the library does not interpret, such as a
+classic payment, is listed and marked opaque, never left out.
+
 ## The impostor guard
 
 The failure this project exists to avoid is telling someone "100 XLM" about a contract that is not the
@@ -247,32 +300,74 @@ exp, err := explain.Explain(entry, explain.WithNetwork(network.TestNetworkPassph
 ```
 
 A contract whose spec cannot be fetched or read is left out, and its calls render as they would with no
-spec. A spec-named call is at most `partial`. `render.Text` and `render.JSON` (package `render`) produce the two output formats. The JSON field
+spec. A spec-named call is at most `partial`. `render.Text` and `render.JSON` (package `render`) produce the two output formats,
+and `render.EnvelopeText` and `render.EnvelopeJSON` do the same for an envelope. The JSON field
 names are a wire format: renaming one is a breaking change.
 
+To explain a whole transaction, decode the envelope with the same bounds and call `ExplainEnvelope`:
+
+<!-- example: ExampleExplainEnvelope -->
+```go
+if len(envelopeXDR) > base64.StdEncoding.EncodedLen(1<<20) {
+	fmt.Println("envelope too large")
+	return
+}
+var env xdr.TransactionEnvelope
+if err := xdr.SafeUnmarshalBase64WithOptions(envelopeXDR, &env, xdr.DecodeOptions{MaxDepth: 64}); err != nil {
+	fmt.Println("decode:", err)
+	return
+}
+
+// USDC is named only because this candidate derives to the contract the
+// transaction calls, on this network.
+usdc := xdr.MustNewCreditAsset("USDC", "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
+exp, err := explain.ExplainEnvelope(env,
+	explain.WithNetwork(network.PublicNetworkPassphrase), explain.WithAssets(usdc))
+if err != nil {
+	fmt.Println("explain:", err)
+	return
+}
+fmt.Println(exp.Confidence)
+for _, op := range exp.Operations {
+	// Only an InvokeHostFunction operation has an invocation; any other
+	// operation is listed, opaque, with a reason in Unexplained.
+	if op.Invocation != nil {
+		fmt.Println(op.Type, "invokes:", op.Invocation.Summary)
+	}
+	fmt.Println(len(op.Entries), "authorization entry")
+}
+for _, reason := range exp.Unexplained {
+	fmt.Println("not determined:", reason)
+}
+```
+
 Limits, all exported with their reasons: `explain.DefaultMaxDepth` (32) and `explain.DefaultMaxNodes`
-(1024) bound the walk over an entry, and a limit hit is an error, never a truncated explanation.
+(1024) bound the walk over an entry, and over a whole envelope with `ExplainEnvelope`. A limit hit is an
+error, never a truncated explanation.
 
 ## The CLI
 
 ```text
-soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>]
+soroauth-explain (--entry | --envelope) <base64|->
+                 [--network testnet|public|<passphrase>]
                  [--asset CODE:ISSUER] [--rpc <url>] [--json] [--strict]
 soroauth-explain completions --shell bash|zsh|fish
 ```
 
-- `--entry -` reads the entry from stdin and trims surrounding whitespace, so it composes with other tools'
+- `--entry` takes one authorization entry and `--envelope` a whole transaction envelope (v0, v1 or fee
+  bump). Give exactly one.
+- `-` reads the input from stdin and trims surrounding whitespace, so it composes with other tools'
   output.
 - `--asset` is repeatable. `native` is always a candidate. A value that is not `CODE:ISSUER` is a usage
   error.
 - `--rpc <url>` is the only thing that makes the tool use the network, and only when given. It fetches
-  the published spec of each contract the entry calls from that Soroban RPC and names their arguments.
-  Named calls stay `partial`, so `--strict` still fails on them. If a fetch fails, the entry is explained
+  the published spec of each contract the input calls from that Soroban RPC and names their arguments.
+  Named calls stay `partial`, so `--strict` still fails on them. If a fetch fails, the input is explained
   as it would be without `--rpc`, with a note on stderr.
 - `--strict` exits 3 unless the explanation is `decoded`, for use in a policy check. The rendering is
   still printed.
 - Results go to stdout and diagnostics to stderr. On failure stdout is empty. Exit codes: 0 success,
-  1 the entry could not be read, decoded or explained, 2 usage error, 3 `--strict` and not decoded.
+  1 the input could not be read, decoded or explained, 2 usage error, 3 `--strict` and not decoded.
 - Input is decoded with this tool's own limits: at most 1 MiB decoded, checked before any base64 or XDR
   work, and a nesting depth of 64.
 
@@ -290,9 +385,11 @@ second way, so the two cannot disagree about the same entry. It depends on soroa
 
 ## What it does not do
 
-It explains what an entry authorizes. It does not predict what a transaction will do or cost, simulate
-it, sign it, or look anything up about a contract. An explanation is `decoded`, `partial` or `opaque`,
-and nothing more.
+It explains what an entry authorizes, and what a transaction's operations invoke. It does not predict what
+a transaction will do or cost, simulate it, or sign it. It does not show a transaction's Soroban resource
+limits or footprint. It looks nothing up unless asked to: only `--rpc` (or `spec.RPC` in the library)
+reaches the network, and only to read a contract's published spec. An explanation is `decoded`,
+`partial` or `opaque`, and nothing more.
 
 ## Contributing
 

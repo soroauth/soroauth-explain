@@ -1,14 +1,16 @@
 // Command soroauth-explain explains what a Soroban authorization entry
-// authorizes, and says what it could not determine.
+// authorizes, or what a transaction envelope's operations invoke and its
+// entries authorize, and says what it could not determine.
 //
-//	soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>]
+//	soroauth-explain (--entry | --envelope) <base64|->
+//	                 [--network testnet|public|<passphrase>]
 //	                 [--asset CODE:ISSUER] [--rpc <url>] [--json] [--strict]
 //	soroauth-explain completions --shell bash|zsh|fish
 //
 // Results go to stdout and diagnostics to stderr, so stdout only ever carries
 // a result: a rendering, or nothing.
 //
-// Exit status: 0 success; 1 the entry could not be read, decoded or
+// Exit status: 0 success; 1 the input could not be read, decoded or
 // explained; 2 usage error; 3 --strict was given and the explanation is not
 // decoded (the rendering is still printed).
 package main
@@ -27,16 +29,20 @@ const (
 )
 
 const usageText = `usage:
-  soroauth-explain --entry <base64|-> [--network testnet|public|<passphrase>]
+  soroauth-explain (--entry | --envelope) <base64|->
+                   [--network testnet|public|<passphrase>]
                    [--asset CODE:ISSUER] [--rpc <url>] [--json] [--strict]
   soroauth-explain completions --shell bash|zsh|fish
 
-Explains what a Soroban authorization entry authorizes. Every node is marked
-decoded, partial or opaque; anything not decoded is listed under
-"Not determined".
+Explains what a Soroban authorization entry authorizes, or what each
+operation in a transaction envelope invokes and each of its authorization
+entries authorizes. Every node is marked decoded, partial or opaque; anything
+not decoded is listed under "Not determined".
 
 flags:
   --entry     the entry as base64 XDR, or - to read it from stdin
+  --envelope  a transaction envelope as base64 XDR, or - to read it from
+              stdin; give exactly one of --entry and --envelope
   --network   testnet, public, or a network passphrase; without it no
               contract is labelled with an asset
   --asset     a candidate asset as CODE:ISSUER, repeatable. A contract is
@@ -44,7 +50,7 @@ flags:
               Asset Contract on --network. native needs no flag.
   --rpc       a Soroban RPC URL. When given, this command makes network
               requests (getLedgerEntries) to that URL to fetch the published
-              spec of each contract the entry calls, and uses it to name
+              spec of each contract the input calls, and uses it to name
               arguments. Named calls stay partial; --strict still fails on
               them. If a fetch fails, the rest is explained as without --rpc.
               Without --rpc, nothing is sent anywhere.

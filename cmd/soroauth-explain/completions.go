@@ -21,6 +21,7 @@ type flagSpec struct {
 // TestCompletionSpecMatchesFlags enforces both directions.
 var completionFlags = []flagSpec{
 	{name: "entry", desc: "the entry as base64 XDR, or - to read it from stdin"},
+	{name: "envelope", desc: "a transaction envelope as base64 XDR, or - to read it from stdin"},
 	{name: "network", desc: "testnet, public, or a network passphrase", values: []string{"testnet", "public"}},
 	{name: "asset", desc: "a candidate asset as CODE:ISSUER; repeat for several"},
 	{name: "rpc", desc: "a Soroban RPC URL to fetch contract specs from (makes network requests)"},
