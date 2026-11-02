@@ -1,0 +1,137 @@
+{
+  "confidence": "decoded",
+  "operations": [
+    {
+      "confidence": "decoded",
+      "entries": [
+        {
+          "actions": [
+            {
+              "confidence": "decoded",
+              "contract": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "transfer"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "asset",
+                  "value": "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "from",
+                  "value": "GBPKKSAOZKE6JSUPWVLXOZ3QUAYQ5FIT3M475HXRRLYI3FG2AW5CHRCL"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "to",
+                  "value": "CD3EM4X6J4SWNAYYF7KDY3H35326DUGNBFTEGAGH2JLGGPKGYLKN22OZ"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "amount",
+                  "raw": "42500000",
+                  "value": "4.2500000"
+                }
+              ],
+              "function": "transfer",
+              "kind": "token_transfer",
+              "summary": "Transfer 4.2500000 USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN from GBPKKSAOZKE6JSUPWVLXOZ3QUAYQ5FIT3M475HXRRLYI3FG2AW5CHRCL to CD3EM4X6J4SWNAYYF7KDY3H35326DUGNBFTEGAGH2JLGGPKGYLKN22OZ"
+            }
+          ],
+          "address_bound": false,
+          "confidence": "decoded",
+          "credential_type": "source_account",
+          "signed": false
+        }
+      ],
+      "index": 0,
+      "invocation": {
+        "confidence": "decoded",
+        "contract": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75",
+        "fields": [
+          {
+            "confidence": "decoded",
+            "name": "contract",
+            "value": "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75"
+          },
+          {
+            "confidence": "decoded",
+            "name": "function",
+            "value": "transfer"
+          },
+          {
+            "confidence": "decoded",
+            "name": "asset",
+            "value": "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+          },
+          {
+            "confidence": "decoded",
+            "name": "from",
+            "value": "GBPKKSAOZKE6JSUPWVLXOZ3QUAYQ5FIT3M475HXRRLYI3FG2AW5CHRCL"
+          },
+          {
+            "confidence": "decoded",
+            "name": "to",
+            "value": "CD3EM4X6J4SWNAYYF7KDY3H35326DUGNBFTEGAGH2JLGGPKGYLKN22OZ"
+          },
+          {
+            "confidence": "decoded",
+            "name": "amount",
+            "raw": "42500000",
+            "value": "4.2500000"
+          }
+        ],
+        "function": "transfer",
+        "kind": "token_transfer",
+        "summary": "Transfer 4.2500000 USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN from GBPKKSAOZKE6JSUPWVLXOZ3QUAYQ5FIT3M475HXRRLYI3FG2AW5CHRCL to CD3EM4X6J4SWNAYYF7KDY3H35326DUGNBFTEGAGH2JLGGPKGYLKN22OZ"
+      },
+      "type": "InvokeHostFunction"
+    }
+  ],
+  "transaction": [
+    {
+      "confidence": "decoded",
+      "name": "envelope",
+      "value": "fee bump transaction"
+    },
+    {
+      "confidence": "decoded",
+      "name": "fee_source",
+      "value": "GBVVWAJ7BQOQW3R3NL4HXRRZ5VR2BVTMRIF57SK3UYN6RNW3S2S5GT34"
+    },
+    {
+      "confidence": "decoded",
+      "name": "fee_bump_fee",
+      "value": "253505 stroops"
+    },
+    {
+      "confidence": "decoded",
+      "name": "source",
+      "value": "GBPKKSAOZKE6JSUPWVLXOZ3QUAYQ5FIT3M475HXRRLYI3FG2AW5CHRCL"
+    },
+    {
+      "confidence": "decoded",
+      "name": "fee",
+      "value": "153505 stroops"
+    },
+    {
+      "confidence": "decoded",
+      "name": "sequence",
+      "value": "262679143261405231"
+    },
+    {
+      "confidence": "decoded",
+      "name": "time_bounds",
+      "value": "0..1793572761 (unix seconds)"
+    }
+  ]
+}

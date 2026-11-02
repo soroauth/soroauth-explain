@@ -1,0 +1,136 @@
+{
+  "confidence": "partial",
+  "operations": [
+    {
+      "confidence": "partial",
+      "entries": [
+        {
+          "actions": [
+            {
+              "confidence": "partial",
+              "contract": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "transfer"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "from",
+                  "value": "GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "to",
+                  "value": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+                },
+                {
+                  "confidence": "partial",
+                  "name": "amount",
+                  "value": "100000"
+                }
+              ],
+              "function": "transfer",
+              "kind": "token_transfer",
+              "summary": "Transfer 100000 units of the token at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA from GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD to CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+            }
+          ],
+          "address_bound": false,
+          "confidence": "partial",
+          "credential_type": "source_account",
+          "signed": false,
+          "unexplained": [
+            "The token at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA is not identified on this network, so its asset and decimal places are unknown; amounts are shown as raw integers in its smallest unit.",
+            "The call matches the SEP-41 transfer signature, but a matching signature does not show that the contract at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA behaves as SEP-41 describes."
+          ]
+        }
+      ],
+      "index": 0,
+      "invocation": {
+        "confidence": "partial",
+        "contract": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA",
+        "fields": [
+          {
+            "confidence": "decoded",
+            "name": "contract",
+            "value": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+          },
+          {
+            "confidence": "decoded",
+            "name": "function",
+            "value": "transfer"
+          },
+          {
+            "confidence": "decoded",
+            "name": "from",
+            "value": "GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD"
+          },
+          {
+            "confidence": "decoded",
+            "name": "to",
+            "value": "CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+          },
+          {
+            "confidence": "partial",
+            "name": "amount",
+            "value": "100000"
+          }
+        ],
+        "function": "transfer",
+        "kind": "token_transfer",
+        "summary": "Transfer 100000 units of the token at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA from GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD to CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA"
+      },
+      "source": "GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD",
+      "type": "InvokeHostFunction"
+    }
+  ],
+  "transaction": [
+    {
+      "confidence": "decoded",
+      "name": "envelope",
+      "value": "fee bump transaction"
+    },
+    {
+      "confidence": "decoded",
+      "name": "fee_source",
+      "value": "GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD"
+    },
+    {
+      "confidence": "decoded",
+      "name": "fee_bump_fee",
+      "value": "1991444 stroops"
+    },
+    {
+      "confidence": "decoded",
+      "name": "source",
+      "value": "GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD"
+    },
+    {
+      "confidence": "decoded",
+      "name": "fee",
+      "value": "695722 stroops"
+    },
+    {
+      "confidence": "decoded",
+      "name": "sequence",
+      "value": "3994319597530"
+    },
+    {
+      "confidence": "decoded",
+      "name": "time_bounds",
+      "value": "0..1793581901 (unix seconds)"
+    }
+  ],
+  "unexplained": [
+    "Operation 0: invocation: The token at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA is not identified on this network, so its asset and decimal places are unknown; amounts are shown as raw integers in its smallest unit.",
+    "Operation 0: invocation: The call matches the SEP-41 transfer signature, but a matching signature does not show that the contract at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA behaves as SEP-41 describes.",
+    "Operation 0: entry 0: The token at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA is not identified on this network, so its asset and decimal places are unknown; amounts are shown as raw integers in its smallest unit.",
+    "Operation 0: entry 0: The call matches the SEP-41 transfer signature, but a matching signature does not show that the contract at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA behaves as SEP-41 describes."
+  ]
+}

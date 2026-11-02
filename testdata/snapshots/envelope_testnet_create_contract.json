@@ -1,0 +1,95 @@
+{
+  "confidence": "decoded",
+  "operations": [
+    {
+      "confidence": "decoded",
+      "entries": [
+        {
+          "actions": [
+            {
+              "confidence": "decoded",
+              "contract": "",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "executable",
+                  "value": "wasm 6464745ba7eb96c77a59f724d29d8f7ed6f378a77e1d2bff4fc08663e315078b"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "deployer",
+                  "value": "GBLPAJ2GVSFUWCUIFMEV4EOV2XIOEWMJRIQ3LOM2Z42TNIY3J6ACB7UA"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "salt",
+                  "value": "d48f4ea92818f60753236e89ac211716ece4b35358cd7a3e5f439df26ee97b0b"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arguments",
+                  "value": "0"
+                }
+              ],
+              "function": "",
+              "kind": "create_contract",
+              "summary": "Create a contract running wasm 6464745ba7eb96c77a59f724d29d8f7ed6f378a77e1d2bff4fc08663e315078b, deployed by GBLPAJ2GVSFUWCUIFMEV4EOV2XIOEWMJRIQ3LOM2Z42TNIY3J6ACB7UA with salt d48f4ea92818f60753236e89ac211716ece4b35358cd7a3e5f439df26ee97b0b, with 0 constructor arguments"
+            }
+          ],
+          "address_bound": false,
+          "confidence": "decoded",
+          "credential_type": "source_account",
+          "signed": false
+        }
+      ],
+      "index": 0,
+      "invocation": {
+        "confidence": "decoded",
+        "contract": "",
+        "fields": [
+          {
+            "confidence": "decoded",
+            "name": "executable",
+            "value": "wasm 6464745ba7eb96c77a59f724d29d8f7ed6f378a77e1d2bff4fc08663e315078b"
+          },
+          {
+            "confidence": "decoded",
+            "name": "deployer",
+            "value": "GBLPAJ2GVSFUWCUIFMEV4EOV2XIOEWMJRIQ3LOM2Z42TNIY3J6ACB7UA"
+          },
+          {
+            "confidence": "decoded",
+            "name": "salt",
+            "value": "d48f4ea92818f60753236e89ac211716ece4b35358cd7a3e5f439df26ee97b0b"
+          }
+        ],
+        "function": "",
+        "kind": "create_contract",
+        "summary": "Create a contract running wasm 6464745ba7eb96c77a59f724d29d8f7ed6f378a77e1d2bff4fc08663e315078b, deployed by GBLPAJ2GVSFUWCUIFMEV4EOV2XIOEWMJRIQ3LOM2Z42TNIY3J6ACB7UA with salt d48f4ea92818f60753236e89ac211716ece4b35358cd7a3e5f439df26ee97b0b"
+      },
+      "type": "InvokeHostFunction"
+    }
+  ],
+  "transaction": [
+    {
+      "confidence": "decoded",
+      "name": "envelope",
+      "value": "transaction"
+    },
+    {
+      "confidence": "decoded",
+      "name": "source",
+      "value": "GBLPAJ2GVSFUWCUIFMEV4EOV2XIOEWMJRIQ3LOM2Z42TNIY3J6ACB7UA"
+    },
+    {
+      "confidence": "decoded",
+      "name": "fee",
+      "value": "21460 stroops"
+    },
+    {
+      "confidence": "decoded",
+      "name": "sequence",
+      "value": "23670737294327835"
+    }
+  ]
+}

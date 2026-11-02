@@ -1,0 +1,13 @@
+Transaction envelope [decoded]
+  envelope = transaction [decoded]
+  source   = GBLPAJ2GVSFUWCUIFMEV4EOV2XIOEWMJRIQ3LOM2Z42TNIY3J6ACB7UA [decoded]
+  fee      = 19932512 stroops [decoded]
+  sequence = 23670737294327840 [decoded]
+  Shown: the transaction's fields, what each operation invokes, and what each
+  authorization entry authorizes. Not shown: Soroban resource limits and footprint.
+
+Operation 0: InvokeHostFunction [decoded]
+  Invokes:
+    [decoded] Upload 22590 bytes of contract code with hash 3ab03fa1ee0cd13b871174f9478def5e34df599932358ba457ece80b6e295000
+        size   = 22590 [decoded]
+        sha256 = 3ab03fa1ee0cd13b871174f9478def5e34df599932358ba457ece80b6e295000 [decoded]

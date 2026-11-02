@@ -1,0 +1,56 @@
+Transaction envelope [opaque]
+  envelope    = transaction [decoded]
+  source      = GAPRRJ235E6FE4RJW3WVWUUNHUEKISJLALVPOAMBV6BUCC5TXYAHKNSK [decoded]
+  fee         = 1000691192 stroops [decoded]
+  sequence    = 16730607014908342 [decoded]
+  time_bounds = 0..0 (unix seconds) [decoded]
+  Shown: the transaction's fields, what each operation invokes, and what each
+  authorization entry authorizes. Not shown: Soroban resource limits and footprint.
+
+Operation 0: InvokeHostFunction [opaque]
+  Invokes:
+    [opaque] Call transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO with 1 argument
+        contract  = CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO [decoded]
+        function  = transact [decoded]
+        arguments = 1 [decoded]
+        arg[0]    = {sym(create): [[bytes[65](0468f2ad470e37f6b994a43a291a15030f9f7874b25506dc9a536c334b684d6a7031504afb625074ad08989ce72699d0b7a85009773d85a770b2cde5250bd193cf), i128(1500000)], [bytes[65](0488acc15b089c6890110fd95f56393222bef8d9be2cb95296f7b3eabc85b222587c41a630b9054b85f3575598230a6056cafd4408ac55302d919e5eba3e21eedb), i128(75000000)], [bytes[65](045291d0984d8177d6f86789f10f4544cae5f9854e2694529a21d4462e163e9be48244d655ad29a98931fe9a8d9367c85a1848837e7d1aa5fd9b72af42b132b97c), i128(2175800000)], [bytes[65](04df046a7cfcc45efe54093151cd7f530ce6536b90a10cab8195e4fcec41b9bc5550fd85e0af5a78ce16342b04ece7f302f74a6fc05c7608e4f4f1cfd4c8434dc7), i128(617900000)]], sym(deposit): [[GDRKOXTR4QVH65KIBHZQRLMCLVK3GRPJSFW5VVQIDBJVMNDANWIDNQSF, i128(618400000), [[sym(Create), bytes[65](04df046a7cfcc45efe54093151cd7f530ce6536b90a10cab8195e4fcec41b9bc5550fd85e0af5a78ce16342b04ece7f302f74a6fc05c7608e4f4f1cfd4c8434dc7), i128(617900000)]]]], sym(spend): [[bytes[65](04e9b7d06cff7736d241b4947917802fee3378b42e6e460fd2e676b9aa7db9468d35f489449fe801dd15a7186e1fd2f88e03d0e5eca77807fa2a76658849051089), [[sym(Create), bytes[65](0488acc15b089c6890110fd95f56393222bef8d9be2cb95296f7b3eabc85b222587c41a630b9054b85f3575598230a6056cafd4408ac55302d919e5eba3e21eedb), i128(75000000)], [sym(Create), bytes[65](045291d0984d8177d6f86789f10f4544cae5f9854e2694529a21d4462e163e9be48244d655ad29a98931fe9a8d9367c85a1848837e7d1aa5fd9b72af42b132b97c), i128(2175800000)]]]], sym(withdraw): []} [decoded]
+
+  Entry 0:
+    Authorization entry: address credentials for GDRKOXTR4QVH65KIBHZQRLMCLVK3GRPJSFW5VVQIDBJVMNDANWIDNQSF [opaque]
+      nonce:              5560880537371348364
+      valid until ledger: 5512280
+      address-bound:      no
+      signed:             yes
+
+    Authorizes:
+      [opaque] Call transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO with 1 argument
+          contract  = CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO [decoded]
+          function  = transact [decoded]
+          arguments = 1 [decoded]
+          arg[0]    = [[sym(Create), bytes[65](04df046a7cfcc45efe54093151cd7f530ce6536b90a10cab8195e4fcec41b9bc5550fd85e0af5a78ce16342b04ece7f302f74a6fc05c7608e4f4f1cfd4c8434dc7), i128(617900000)]] [decoded]
+        [decoded] Transfer 61.8400000 native from GDRKOXTR4QVH65KIBHZQRLMCLVK3GRPJSFW5VVQIDBJVMNDANWIDNQSF to CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO
+            contract = CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC [decoded]
+            function = transfer [decoded]
+            asset    = native [decoded]
+            from     = GDRKOXTR4QVH65KIBHZQRLMCLVK3GRPJSFW5VVQIDBJVMNDANWIDNQSF [decoded]
+            to       = CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO [decoded]
+            amount   = 61.8400000 (raw 618400000) [decoded]
+
+  Entry 1:
+    Authorization entry: address credentials for CAYSTROTCGSVW7L6WWC5TEMLCUJB7M7SIGGJRDZL3I2YV3UD3GMBNGCP [opaque]
+      nonce:              4485014757450618665
+      valid until ledger: 5512377
+      address-bound:      no
+      signed:             yes
+
+    Authorizes:
+      [opaque] Call transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO with 1 argument
+          contract  = CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO [decoded]
+          function  = transact [decoded]
+          arguments = 1 [decoded]
+          arg[0]    = [{[sym(P256), bytes[65](04e9b7d06cff7736d241b4947917802fee3378b42e6e460fd2e676b9aa7db9468d35f489449fe801dd15a7186e1fd2f88e03d0e5eca77807fa2a76658849051089)]: [[sym(Create), bytes[65](0488acc15b089c6890110fd95f56393222bef8d9be2cb95296f7b3eabc85b222587c41a630b9054b85f3575598230a6056cafd4408ac55302d919e5eba3e21eedb), i128(75000000)], [sym(Create), bytes[65](045291d0984d8177d6f86789f10f4544cae5f9854e2694529a21d4462e163e9be48244d655ad29a98931fe9a8d9367c85a1848837e7d1aa5fd9b72af42b132b97c), i128(2175800000)]]}] [decoded]
+
+Not determined:
+  - Operation 0: invocation: The function transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO is not interpreted by this library; its 1 argument is shown as a raw value.
+  - Operation 0: entry 0: The function transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO is not interpreted by this library; its 1 argument is shown as a raw value.
+  - Operation 0: entry 1: The function transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO is not interpreted by this library; its 1 argument is shown as a raw value.

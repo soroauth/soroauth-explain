@@ -1,0 +1,201 @@
+{
+  "confidence": "opaque",
+  "operations": [
+    {
+      "confidence": "opaque",
+      "entries": [
+        {
+          "actions": [
+            {
+              "confidence": "opaque",
+              "contract": "CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "transact"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arguments",
+                  "value": "1"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[0]",
+                  "value": "[[sym(Create), bytes[65](04df046a7cfcc45efe54093151cd7f530ce6536b90a10cab8195e4fcec41b9bc5550fd85e0af5a78ce16342b04ece7f302f74a6fc05c7608e4f4f1cfd4c8434dc7), i128(617900000)]]"
+                }
+              ],
+              "function": "transact",
+              "kind": "invoke_contract",
+              "sub": [
+                {
+                  "confidence": "decoded",
+                  "contract": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+                  "fields": [
+                    {
+                      "confidence": "decoded",
+                      "name": "contract",
+                      "value": "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "function",
+                      "value": "transfer"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "asset",
+                      "value": "native"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "from",
+                      "value": "GDRKOXTR4QVH65KIBHZQRLMCLVK3GRPJSFW5VVQIDBJVMNDANWIDNQSF"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "to",
+                      "value": "CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO"
+                    },
+                    {
+                      "confidence": "decoded",
+                      "name": "amount",
+                      "raw": "618400000",
+                      "value": "61.8400000"
+                    }
+                  ],
+                  "function": "transfer",
+                  "kind": "token_transfer",
+                  "summary": "Transfer 61.8400000 native from GDRKOXTR4QVH65KIBHZQRLMCLVK3GRPJSFW5VVQIDBJVMNDANWIDNQSF to CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO"
+                }
+              ],
+              "summary": "Call transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO with 1 argument"
+            }
+          ],
+          "address_bound": false,
+          "confidence": "opaque",
+          "credential_type": "address",
+          "nonce": 5560880537371348364,
+          "signed": true,
+          "subject": "GDRKOXTR4QVH65KIBHZQRLMCLVK3GRPJSFW5VVQIDBJVMNDANWIDNQSF",
+          "unexplained": [
+            "The function transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO is not interpreted by this library; its 1 argument is shown as a raw value."
+          ],
+          "valid_until_ledger": 5512280
+        },
+        {
+          "actions": [
+            {
+              "confidence": "opaque",
+              "contract": "CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO",
+              "fields": [
+                {
+                  "confidence": "decoded",
+                  "name": "contract",
+                  "value": "CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "function",
+                  "value": "transact"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arguments",
+                  "value": "1"
+                },
+                {
+                  "confidence": "decoded",
+                  "name": "arg[0]",
+                  "value": "[{[sym(P256), bytes[65](04e9b7d06cff7736d241b4947917802fee3378b42e6e460fd2e676b9aa7db9468d35f489449fe801dd15a7186e1fd2f88e03d0e5eca77807fa2a76658849051089)]: [[sym(Create), bytes[65](0488acc15b089c6890110fd95f56393222bef8d9be2cb95296f7b3eabc85b222587c41a630b9054b85f3575598230a6056cafd4408ac55302d919e5eba3e21eedb), i128(75000000)], [sym(Create), bytes[65](045291d0984d8177d6f86789f10f4544cae5f9854e2694529a21d4462e163e9be48244d655ad29a98931fe9a8d9367c85a1848837e7d1aa5fd9b72af42b132b97c), i128(2175800000)]]}]"
+                }
+              ],
+              "function": "transact",
+              "kind": "invoke_contract",
+              "summary": "Call transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO with 1 argument"
+            }
+          ],
+          "address_bound": false,
+          "confidence": "opaque",
+          "credential_type": "address",
+          "nonce": 4485014757450618665,
+          "signed": true,
+          "subject": "CAYSTROTCGSVW7L6WWC5TEMLCUJB7M7SIGGJRDZL3I2YV3UD3GMBNGCP",
+          "unexplained": [
+            "The function transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO is not interpreted by this library; its 1 argument is shown as a raw value."
+          ],
+          "valid_until_ledger": 5512377
+        }
+      ],
+      "index": 0,
+      "invocation": {
+        "confidence": "opaque",
+        "contract": "CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO",
+        "fields": [
+          {
+            "confidence": "decoded",
+            "name": "contract",
+            "value": "CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO"
+          },
+          {
+            "confidence": "decoded",
+            "name": "function",
+            "value": "transact"
+          },
+          {
+            "confidence": "decoded",
+            "name": "arguments",
+            "value": "1"
+          },
+          {
+            "confidence": "decoded",
+            "name": "arg[0]",
+            "value": "{sym(create): [[bytes[65](0468f2ad470e37f6b994a43a291a15030f9f7874b25506dc9a536c334b684d6a7031504afb625074ad08989ce72699d0b7a85009773d85a770b2cde5250bd193cf), i128(1500000)], [bytes[65](0488acc15b089c6890110fd95f56393222bef8d9be2cb95296f7b3eabc85b222587c41a630b9054b85f3575598230a6056cafd4408ac55302d919e5eba3e21eedb), i128(75000000)], [bytes[65](045291d0984d8177d6f86789f10f4544cae5f9854e2694529a21d4462e163e9be48244d655ad29a98931fe9a8d9367c85a1848837e7d1aa5fd9b72af42b132b97c), i128(2175800000)], [bytes[65](04df046a7cfcc45efe54093151cd7f530ce6536b90a10cab8195e4fcec41b9bc5550fd85e0af5a78ce16342b04ece7f302f74a6fc05c7608e4f4f1cfd4c8434dc7), i128(617900000)]], sym(deposit): [[GDRKOXTR4QVH65KIBHZQRLMCLVK3GRPJSFW5VVQIDBJVMNDANWIDNQSF, i128(618400000), [[sym(Create), bytes[65](04df046a7cfcc45efe54093151cd7f530ce6536b90a10cab8195e4fcec41b9bc5550fd85e0af5a78ce16342b04ece7f302f74a6fc05c7608e4f4f1cfd4c8434dc7), i128(617900000)]]]], sym(spend): [[bytes[65](04e9b7d06cff7736d241b4947917802fee3378b42e6e460fd2e676b9aa7db9468d35f489449fe801dd15a7186e1fd2f88e03d0e5eca77807fa2a76658849051089), [[sym(Create), bytes[65](0488acc15b089c6890110fd95f56393222bef8d9be2cb95296f7b3eabc85b222587c41a630b9054b85f3575598230a6056cafd4408ac55302d919e5eba3e21eedb), i128(75000000)], [sym(Create), bytes[65](045291d0984d8177d6f86789f10f4544cae5f9854e2694529a21d4462e163e9be48244d655ad29a98931fe9a8d9367c85a1848837e7d1aa5fd9b72af42b132b97c), i128(2175800000)]]]], sym(withdraw): []}"
+          }
+        ],
+        "function": "transact",
+        "kind": "invoke_contract",
+        "summary": "Call transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO with 1 argument"
+      },
+      "type": "InvokeHostFunction"
+    }
+  ],
+  "transaction": [
+    {
+      "confidence": "decoded",
+      "name": "envelope",
+      "value": "transaction"
+    },
+    {
+      "confidence": "decoded",
+      "name": "source",
+      "value": "GAPRRJ235E6FE4RJW3WVWUUNHUEKISJLALVPOAMBV6BUCC5TXYAHKNSK"
+    },
+    {
+      "confidence": "decoded",
+      "name": "fee",
+      "value": "1000691192 stroops"
+    },
+    {
+      "confidence": "decoded",
+      "name": "sequence",
+      "value": "16730607014908342"
+    },
+    {
+      "confidence": "decoded",
+      "name": "time_bounds",
+      "value": "0..0 (unix seconds)"
+    }
+  ],
+  "unexplained": [
+    "Operation 0: invocation: The function transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO is not interpreted by this library; its 1 argument is shown as a raw value.",
+    "Operation 0: entry 0: The function transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO is not interpreted by this library; its 1 argument is shown as a raw value.",
+    "Operation 0: entry 1: The function transact on CBUBTYSGT5BLMFBM6LRJ5ZZO2PLEPDSPU4URNTJCRWKNLDPJMSM2LQFO is not interpreted by this library; its 1 argument is shown as a raw value."
+  ]
+}

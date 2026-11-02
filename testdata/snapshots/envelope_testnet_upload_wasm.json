@@ -1,0 +1,51 @@
+{
+  "confidence": "decoded",
+  "operations": [
+    {
+      "confidence": "decoded",
+      "index": 0,
+      "invocation": {
+        "confidence": "decoded",
+        "contract": "",
+        "fields": [
+          {
+            "confidence": "decoded",
+            "name": "size",
+            "value": "22590"
+          },
+          {
+            "confidence": "decoded",
+            "name": "sha256",
+            "value": "3ab03fa1ee0cd13b871174f9478def5e34df599932358ba457ece80b6e295000"
+          }
+        ],
+        "function": "",
+        "kind": "upload_wasm",
+        "summary": "Upload 22590 bytes of contract code with hash 3ab03fa1ee0cd13b871174f9478def5e34df599932358ba457ece80b6e295000"
+      },
+      "type": "InvokeHostFunction"
+    }
+  ],
+  "transaction": [
+    {
+      "confidence": "decoded",
+      "name": "envelope",
+      "value": "transaction"
+    },
+    {
+      "confidence": "decoded",
+      "name": "source",
+      "value": "GBLPAJ2GVSFUWCUIFMEV4EOV2XIOEWMJRIQ3LOM2Z42TNIY3J6ACB7UA"
+    },
+    {
+      "confidence": "decoded",
+      "name": "fee",
+      "value": "19932512 stroops"
+    },
+    {
+      "confidence": "decoded",
+      "name": "sequence",
+      "value": "23670737294327840"
+    }
+  ]
+}
