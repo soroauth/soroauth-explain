@@ -2,8 +2,9 @@
 
 Drafted for review before any of these become GitHub issues. Twenty have been filed, as
 [#4](https://github.com/soroauth/soroauth-explain/issues/4) to
-[#23](https://github.com/soroauth/soroauth-explain/issues/23); each filed item links its issue. Items
-that have been done are removed. Each item comes from
+[#23](https://github.com/soroauth/soroauth-explain/issues/23); each filed item links its issue, and each
+issue cites its item's number. Numbers never change: an item that is done stays where it is, marked
+**Done**, so no issue's reference moves. Each item comes from
 a gap found while building this project, and says where it was found, what done looks like, and what
 evidence the change needs. The rules in [CONTRIBUTING.md](../CONTRIBUTING.md) apply to all of them; in
 particular, any change that makes the tool claim more is a snapshot diff that must be explained, and
@@ -24,13 +25,13 @@ Complexity tiers:
 | Evidence and live checks | 2 | 8 | 4 | 14 |
 | Fixtures and snapshot cases | 0 | 8 | 10 | 18 |
 | Renderers and output | 4 | 8 | 6 | 18 |
-| Command-line interface | 1 | 5 | 6 | 12 |
+| Command-line interface | 2 | 5 | 6 | 13 |
 | Robustness, limits and security | 3 | 6 | 3 | 12 |
 | Internationalization | 2 | 3 | 4 | 9 |
 | Accessibility | 1 | 3 | 4 | 8 |
 | Documentation | 0 | 4 | 7 | 11 |
 | Project infrastructure | 1 | 2 | 5 | 8 |
-| **Total** | **36** | **81** | **57** | **174** |
+| **Total** | **37** | **81** | **57** | **175** |
 
 ## Known interfaces (the registry)
 
@@ -1216,7 +1217,19 @@ Complexity tiers:
 
 **Evidence:** Tests through `run()`; the completion spec test.
 
-### 116. Explain several entries, one per line
+### 116. Explain every entry in a transaction envelope
+
+**Done:** `ExplainEnvelope` and `--envelope`; see CHANGELOG.md, Unreleased.
+
+**Tier:** high
+
+**Found:** The CLI takes one authorization entry. Users usually have a whole transaction. soroauth-go's `InspectEnvelope` and `EnvelopeEntries` are post-v0.1.0 (brief section 0).
+
+**Done when:** An envelope input that decodes a transaction with this tool's own limits and explains each entry. Whether to use soroauth-go's functions depends on a re-pin, which has conditions.
+
+**Evidence:** Snapshot cases with real envelopes; the section-0 conditions checked before any re-pin.
+
+### 117. Explain several entries, one per line
 
 **Tier:** medium
 
@@ -1226,7 +1239,7 @@ Complexity tiers:
 
 **Evidence:** Tests through a real pipe.
 
-### 117. `--version`
+### 118. `--version`
 
 **Filed:** [#14](https://github.com/soroauth/soroauth-explain/issues/14)
 
@@ -1238,7 +1251,7 @@ Complexity tiers:
 
 **Evidence:** A test through `run()`.
 
-### 118. Make `--rpc`'s timeout configurable
+### 119. Make `--rpc`'s timeout configurable
 
 **Tier:** low
 
@@ -1248,7 +1261,7 @@ Complexity tiers:
 
 **Evidence:** The measurement; tests.
 
-### 119. Cache fetched specs between CLI runs
+### 120. Cache fetched specs between CLI runs
 
 **Tier:** medium
 
@@ -1258,7 +1271,7 @@ Complexity tiers:
 
 **Evidence:** Tests counting requests across runs.
 
-### 120. Print which contracts `--rpc` named
+### 121. Print which contracts `--rpc` named
 
 **Tier:** low
 
@@ -1268,7 +1281,7 @@ Complexity tiers:
 
 **Evidence:** Tests.
 
-### 121. Generate a man page
+### 122. Generate a man page
 
 **Tier:** low
 
@@ -1278,7 +1291,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 122. A policy mode that fails on specific kinds, not only on confidence
+### 123. A policy mode that fails on specific kinds, not only on confidence
 
 **Tier:** high
 
@@ -1288,7 +1301,7 @@ Complexity tiers:
 
 **Evidence:** Tests for each rule.
 
-### 123. Test the CLI on Windows line endings end to end
+### 124. Test the CLI on Windows line endings end to end
 
 **Tier:** low
 
@@ -1298,7 +1311,7 @@ Complexity tiers:
 
 **Evidence:** The job's output.
 
-### 124. Completions for `--rpc` values
+### 125. Completions for `--rpc` values
 
 **Tier:** low
 
@@ -1308,7 +1321,7 @@ Complexity tiers:
 
 **Evidence:** The completion behaviour tests for bash and fish.
 
-### 125. Exit codes as a documented, tested table
+### 126. Exit codes as a documented, tested table
 
 **Filed:** [#15](https://github.com/soroauth/soroauth-explain/issues/15)
 
@@ -1320,7 +1333,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 126. Require https for `--rpc`, except to a local address
+### 127. Require https for `--rpc`, except to a local address
 
 **Filed:** [#16](https://github.com/soroauth/soroauth-explain/issues/16)
 
@@ -1334,7 +1347,7 @@ Complexity tiers:
 
 ## Robustness, limits and security
 
-### 127. Fuzz `Explain`
+### 128. Fuzz `Explain`
 
 **Filed:** [#17](https://github.com/soroauth/soroauth-explain/issues/17)
 
@@ -1346,7 +1359,7 @@ Complexity tiers:
 
 **Evidence:** Seed case names in `go test -v` output (section 11.5).
 
-### 128. Fuzz the CLI's decoder
+### 129. Fuzz the CLI's decoder
 
 **Filed:** [#18](https://github.com/soroauth/soroauth-explain/issues/18)
 
@@ -1358,7 +1371,7 @@ Complexity tiers:
 
 **Evidence:** As above.
 
-### 129. Property test the confidence floor over random trees
+### 130. Property test the confidence floor over random trees
 
 **Filed:** [#19](https://github.com/soroauth/soroauth-explain/issues/19)
 
@@ -1370,7 +1383,7 @@ Complexity tiers:
 
 **Evidence:** The property test and its seed.
 
-### 130. Measure memory use at the limits
+### 131. Measure memory use at the limits
 
 **Tier:** medium
 
@@ -1380,7 +1393,7 @@ Complexity tiers:
 
 **Evidence:** The benchmark output.
 
-### 131. Benchmark rendering
+### 132. Benchmark rendering
 
 **Tier:** medium
 
@@ -1390,7 +1403,7 @@ Complexity tiers:
 
 **Evidence:** The output, recorded with its date.
 
-### 132. Treat RPC responses as hostile, with tests
+### 133. Treat RPC responses as hostile, with tests
 
 **Tier:** medium
 
@@ -1400,7 +1413,7 @@ Complexity tiers:
 
 **Evidence:** A fake RPC returning another contract's instance, caught.
 
-### 133. Refuse redirects to other hosts in `--rpc`
+### 134. Refuse redirects to other hosts in `--rpc`
 
 **Tier:** low
 
@@ -1410,7 +1423,7 @@ Complexity tiers:
 
 **Evidence:** A test with a redirecting server.
 
-### 134. Run `govulncheck` in the advisory workflow
+### 135. Run `govulncheck` in the advisory workflow
 
 **Tier:** medium
 
@@ -1420,7 +1433,7 @@ Complexity tiers:
 
 **Evidence:** Its first output.
 
-### 135. Run `staticcheck`
+### 136. Run `staticcheck`
 
 **Tier:** low
 
@@ -1430,7 +1443,7 @@ Complexity tiers:
 
 **Evidence:** Its output.
 
-### 136. A threat model document
+### 137. A threat model document
 
 **Tier:** medium
 
@@ -1440,7 +1453,7 @@ Complexity tiers:
 
 **Evidence:** Each defence linked to its test.
 
-### 137. Check that no rendering contains a control character
+### 138. Check that no rendering contains a control character
 
 **Filed:** [#20](https://github.com/soroauth/soroauth-explain/issues/20)
 
@@ -1452,7 +1465,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 138. Bound the stderr output of `--rpc` failures
+### 139. Bound the stderr output of `--rpc` failures
 
 **Tier:** medium
 
@@ -1464,7 +1477,7 @@ Complexity tiers:
 
 ## Internationalization
 
-### 139. A message catalogue for all user-facing text
+### 140. A message catalogue for all user-facing text
 
 **Tier:** high
 
@@ -1474,7 +1487,7 @@ Complexity tiers:
 
 **Evidence:** Snapshots in English unchanged; a test that every catalogue key is used.
 
-### 140. A pseudo-locale to find untranslated strings
+### 141. A pseudo-locale to find untranslated strings
 
 **Tier:** medium
 
@@ -1484,7 +1497,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 141. Keep values untranslated
+### 142. Keep values untranslated
 
 **Tier:** medium
 
@@ -1494,7 +1507,7 @@ Complexity tiers:
 
 **Evidence:** The test in the pseudo-locale.
 
-### 142. Document the plain-English style of the notes
+### 143. Document the plain-English style of the notes
 
 **Tier:** low
 
@@ -1504,7 +1517,7 @@ Complexity tiers:
 
 **Evidence:** The guide.
 
-### 143. Right-to-left safety in text output: research, document, then test
+### 144. Right-to-left safety in text output: research, document, then test
 
 **Tier:** high
 
@@ -1514,7 +1527,7 @@ Complexity tiers:
 
 **Evidence:** The written finding and tests.
 
-### 144. Locale-independent number formatting, tested
+### 145. Locale-independent number formatting, tested
 
 **Tier:** low
 
@@ -1524,7 +1537,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 145. A first translation, as a proof of the catalogue
+### 146. A first translation, as a proof of the catalogue
 
 **Tier:** medium
 
@@ -1534,7 +1547,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases in that language.
 
-### 146. Translate the CLI usage text
+### 147. Translate the CLI usage text
 
 **Tier:** low
 
@@ -1544,7 +1557,7 @@ Complexity tiers:
 
 **Evidence:** Tests.
 
-### 147. Keep translations from weakening the caveats
+### 148. Keep translations from weakening the caveats
 
 **Tier:** low
 
@@ -1556,7 +1569,7 @@ Complexity tiers:
 
 ## Accessibility
 
-### 148. Audit the text rendering with a screen reader
+### 149. Audit the text rendering with a screen reader
 
 **Tier:** high
 
@@ -1566,7 +1579,7 @@ Complexity tiers:
 
 **Evidence:** The audit notes; snapshot changes explained.
 
-### 149. Never convey confidence by position or symbol alone
+### 150. Never convey confidence by position or symbol alone
 
 **Tier:** medium
 
@@ -1576,7 +1589,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 150. An accessible rendering without column alignment
+### 151. An accessible rendering without column alignment
 
 **Tier:** medium
 
@@ -1586,7 +1599,7 @@ Complexity tiers:
 
 **Evidence:** Snapshot cases.
 
-### 151. Research how screen readers read long addresses (the outcome is a recommendation)
+### 152. Research how screen readers read long addresses (the outcome is a recommendation)
 
 **Tier:** low
 
@@ -1596,7 +1609,7 @@ Complexity tiers:
 
 **Evidence:** The written finding.
 
-### 152. Plain-language level of the notes
+### 153. Plain-language level of the notes
 
 **Tier:** medium
 
@@ -1606,7 +1619,7 @@ Complexity tiers:
 
 **Evidence:** The tool's scores before and after.
 
-### 153. Accessible HTML output
+### 154. Accessible HTML output
 
 **Tier:** low
 
@@ -1616,7 +1629,7 @@ Complexity tiers:
 
 **Evidence:** The checker's output.
 
-### 154. Keyboard-only use of the completions
+### 155. Keyboard-only use of the completions
 
 **Tier:** low
 
@@ -1626,7 +1639,7 @@ Complexity tiers:
 
 **Evidence:** The test in CI.
 
-### 155. Contrast and colour guidance for wallets
+### 156. Contrast and colour guidance for wallets
 
 **Tier:** low
 
@@ -1638,7 +1651,7 @@ Complexity tiers:
 
 ## Documentation
 
-### 156. A wallet integration guide
+### 157. A wallet integration guide
 
 **Tier:** medium
 
@@ -1648,7 +1661,7 @@ Complexity tiers:
 
 **Evidence:** Every code sample compiled as an Example.
 
-### 157. "Why is my entry opaque?"
+### 158. "Why is my entry opaque?"
 
 **Filed:** [#21](https://github.com/soroauth/soroauth-explain/issues/21)
 
@@ -1660,7 +1673,7 @@ Complexity tiers:
 
 **Evidence:** The FAQ.
 
-### 158. A glossary
+### 159. A glossary
 
 **Filed:** [#22](https://github.com/soroauth/soroauth-explain/issues/22)
 
@@ -1672,7 +1685,7 @@ Complexity tiers:
 
 **Evidence:** The glossary.
 
-### 159. Architecture decision records for the honesty rules
+### 160. Architecture decision records for the honesty rules
 
 **Tier:** medium
 
@@ -1682,7 +1695,7 @@ Complexity tiers:
 
 **Evidence:** The ADRs.
 
-### 160. Examples for every exported function
+### 161. Examples for every exported function
 
 **Tier:** low
 
@@ -1692,7 +1705,7 @@ Complexity tiers:
 
 **Evidence:** `go test` running them.
 
-### 161. Document the evidence method for contributors
+### 162. Document the evidence method for contributors
 
 **Tier:** low
 
@@ -1702,7 +1715,7 @@ Complexity tiers:
 
 **Evidence:** The section.
 
-### 162. A comparison with other decoders, with a dated search
+### 163. A comparison with other decoders, with a dated search
 
 **Tier:** medium
 
@@ -1712,7 +1725,7 @@ Complexity tiers:
 
 **Evidence:** The search results, dated.
 
-### 163. A changelog policy for the wire format
+### 164. A changelog policy for the wire format
 
 **Tier:** low
 
@@ -1722,7 +1735,7 @@ Complexity tiers:
 
 **Evidence:** The policy.
 
-### 164. Document `--rpc` endpoints
+### 165. Document `--rpc` endpoints
 
 **Tier:** low
 
@@ -1732,7 +1745,7 @@ Complexity tiers:
 
 **Evidence:** The README section.
 
-### 165. Explain the confidence levels with the live examples
+### 166. Explain the confidence levels with the live examples
 
 **Tier:** low
 
@@ -1742,7 +1755,7 @@ Complexity tiers:
 
 **Evidence:** The links, checked by the README test.
 
-### 166. Document what `--rpc` reveals to the RPC operator
+### 167. Document what `--rpc` reveals to the RPC operator
 
 **Filed:** [#23](https://github.com/soroauth/soroauth-explain/issues/23)
 
@@ -1756,7 +1769,7 @@ Complexity tiers:
 
 ## Project infrastructure
 
-### 167. Measure test coverage before setting any floor
+### 168. Measure test coverage before setting any floor
 
 **Tier:** medium
 
@@ -1766,7 +1779,7 @@ Complexity tiers:
 
 **Evidence:** The measurement.
 
-### 168. Reproducible release builds
+### 169. Reproducible release builds
 
 **Tier:** high
 
@@ -1776,7 +1789,7 @@ Complexity tiers:
 
 **Evidence:** Two builds producing identical checksums.
 
-### 169. Dependency update policy
+### 170. Dependency update policy
 
 **Tier:** low
 
@@ -1786,7 +1799,7 @@ Complexity tiers:
 
 **Evidence:** The policy.
 
-### 170. A software bill of materials
+### 171. A software bill of materials
 
 **Tier:** low
 
@@ -1796,7 +1809,7 @@ Complexity tiers:
 
 **Evidence:** The SBOM for the next release.
 
-### 171. Pin GitHub Actions by commit
+### 172. Pin GitHub Actions by commit
 
 **Tier:** low
 
@@ -1806,7 +1819,7 @@ Complexity tiers:
 
 **Evidence:** The workflows.
 
-### 172. Keep the live records small
+### 173. Keep the live records small
 
 **Tier:** low
 
@@ -1816,7 +1829,7 @@ Complexity tiers:
 
 **Evidence:** The size before and after, and the evidence test still passing.
 
-### 173. Make the backlog machine-checkable
+### 174. Make the backlog machine-checkable
 
 **Tier:** medium
 
@@ -1826,7 +1839,7 @@ Complexity tiers:
 
 **Evidence:** The test.
 
-### 174. Label snapshot changes in pull requests automatically
+### 175. Label snapshot changes in pull requests automatically
 
 **Tier:** low
 
