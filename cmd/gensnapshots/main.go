@@ -4,10 +4,12 @@
 // with a dirty working tree, so a regeneration can only ever change what the
 // code change behind it changed, and nothing smuggled in beside it.
 //
-// Inputs come from two places. Every entry in soroauth-go's golden vectors is
+// Inputs come from three places. Every entry in soroauth-go's golden vectors is
 // copied from the soroauth-go module at the exact version go.mod pins, read
 // from the module cache, whose contents go.sum verifies. The cases those
 // vectors lack are built here, deterministically, by the functions below.
+// Transaction envelopes are real transactions recorded in
+// testdata/live/envelopes.json, whose hashes TestEnvelopeFixtures checks.
 // Snapshots are then rendered for every input through internal/snapshot, the
 // same code the gate in snapshot_test.go uses.
 package main
@@ -66,6 +68,11 @@ func run() error {
 		return err
 	}
 	entries = append(entries, specCases...)
+	envelopes, err := envelopeEntries()
+	if err != nil {
+		return err
+	}
+	entries = append(entries, envelopes...)
 
 	// Rewrite both directories from scratch so a removed case leaves no
 	// orphaned file behind.
@@ -471,4 +478,74 @@ func specEntries() ([]snapshot.Entry, error) {
 func ptrSym(s string) *xdr.ScSymbol {
 	sym := xdr.ScSymbol(s)
 	return &sym
+}
+
+// envelopeCases names the recorded envelopes that become snapshot cases, and
+// says which are explained with their transaction's event assets as
+// candidates. The same transfer appears with and without candidates, so the
+// difference a candidate makes, and that it is the only difference, is
+// visible in the snapshots.
+var envelopeCases = []struct {
+	name       string
+	hash       string
+	withAssets bool
+}{
+	{"envelope_testnet_upload_wasm", "7a3331dd3ff3cd32958fdb12454e1c79ed3b251c5eb40a3baf4b1f1046350c82", false},
+	{"envelope_testnet_create_contract", "c839b160d008b8500626e012a8c54bf6766a77124ce8bf3a1462948eb22ddb7a", false},
+	{"envelope_testnet_create_contract_v2", "2fc3446fd4ee8327b24ee95ea8caf9fbc13cbb76b7e6657bb211279b14d4ce05", false},
+	{"envelope_testnet_fee_bump_transfer_with_asset", "d0cfc979388c97a24be8d96be693b63c741be5a84eae7a480d4854bc7d4b185b", true},
+	{"envelope_testnet_fee_bump_transfer_without_asset", "d0cfc979388c97a24be8d96be693b63c741be5a84eae7a480d4854bc7d4b185b", false},
+	{"envelope_testnet_two_address_entries", "639c9a8e53b7434ea31969dd91da0429fdc11ed849ccbced5ef177167da37c5f", false},
+	{"envelope_public_fee_bump_transfer_with_asset", "d118280cea8b794f0558e078b0485d8a63c81b9b9262da4d74781418fcb90d71", true},
+}
+
+// envelopeEntries builds the envelope cases from the recorded transactions.
+func envelopeEntries() ([]snapshot.Entry, error) {
+	raw, err := os.ReadFile("testdata/live/envelopes.json")
+	if err != nil {
+		return nil, err
+	}
+	var file struct {
+		Fetched string `json:"fetched"`
+		Records []struct {
+			Network     string   `json:"network"`
+			Passphrase  string   `json:"network_passphrase"`
+			TxHash      string   `json:"tx_hash"`
+			Ledger      uint32   `json:"ledger"`
+			EventAssets []string `json:"event_assets"`
+			EnvelopeXDR string   `json:"envelope_xdr"`
+		} `json:"records"`
+	}
+	if err := json.Unmarshal(raw, &file); err != nil {
+		return nil, fmt.Errorf("envelopes.json: %w", err)
+	}
+	var out []snapshot.Entry
+	for _, c := range envelopeCases {
+		found := false
+		for _, r := range file.Records {
+			if r.TxHash != c.hash {
+				continue
+			}
+			found = true
+			e := snapshot.Entry{
+				Name: c.name,
+				Source: fmt.Sprintf("%s tx %s at ledger %d, fetched %s, from testdata/live/envelopes.json",
+					r.Network, r.TxHash, r.Ledger, file.Fetched),
+				NetworkPassphrase: r.Passphrase,
+				EnvelopeXDR:       r.EnvelopeXDR,
+			}
+			if c.withAssets {
+				if len(r.EventAssets) == 0 {
+					return nil, fmt.Errorf("%s: tx %s recorded no event assets", c.name, c.hash)
+				}
+				e.Assets = r.EventAssets
+				e.Source += "; candidate assets are the transaction's own SAC event topics"
+			}
+			out = append(out, e)
+		}
+		if !found {
+			return nil, fmt.Errorf("%s: tx %s is not in testdata/live/envelopes.json", c.name, c.hash)
+		}
+	}
+	return out, nil
 }
