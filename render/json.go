@@ -16,7 +16,18 @@ import (
 // format: once released, renaming a field is a breaking change and needs a
 // CHANGELOG entry that says so.
 func JSON(exp explain.Explanation) ([]byte, error) {
-	raw, err := json.Marshal(exp)
+	return sortedJSON(exp)
+}
+
+// EnvelopeJSON renders an EnvelopeExplanation in the same stable format as
+// JSON: sorted keys, two-space indent, exact integers, a trailing newline.
+// Each entry inside it has exactly the shape JSON gives a lone entry.
+func EnvelopeJSON(env explain.EnvelopeExplanation) ([]byte, error) {
+	return sortedJSON(env)
+}
+
+func sortedJSON(v any) ([]byte, error) {
+	raw, err := json.Marshal(v)
 	if err != nil {
 		return nil, fmt.Errorf("render: json: %w", err)
 	}
