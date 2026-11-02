@@ -7,7 +7,7 @@ It is the sibling of [soroauth-go](https://github.com/soroauth/soroauth-go), whi
 bytes get signed. This project describes what those bytes authorize. It never signs anything and holds no
 keys.
 
-Status: **v0.1.0, unaudited.**
+Status: **v0.2.0, unaudited.**
 
 ## Confidence: the one thing to understand first
 
@@ -58,13 +58,13 @@ host could not confirm them. The samples are shown as they came, dominated on te
 ## Install
 
 ```sh
-go install github.com/soroauth/soroauth-explain/cmd/soroauth-explain@v0.1.0
+go install github.com/soroauth/soroauth-explain/cmd/soroauth-explain@v0.2.0
 ```
 
 As a library:
 
 ```sh
-go get github.com/soroauth/soroauth-explain@v0.1.0
+go get github.com/soroauth/soroauth-explain@v0.2.0
 ```
 
 ## Worked examples
