@@ -59,8 +59,20 @@ go run ./cmd/gensnapshots
 The generator refuses to run with a dirty working tree, so a regeneration cannot carry unrelated changes.
 Commit your code change first, run the generator, then add the regenerated files to that same commit
 before you push it. The generator also rewrites `testdata/entries/`: inputs copied from soroauth-go's
-golden vectors at the version `go.mod` pins, and the built cases defined in `cmd/gensnapshots/main.go`.
+golden vectors at the version `go.mod` pins, the built cases defined in `cmd/gensnapshots/main.go`, and
+real transaction envelopes recorded in `testdata/live/envelopes.json` and listed in `envelopeCases`.
 To add a case, add it there, not as a hand-written file.
+
+To add a real envelope, add its hash to `liveEnvelopeHashes` in `live_envelope_test.go`, record it, and
+list it in `envelopeCases`:
+
+```sh
+SOROAUTH_LIVE_RECORD=1 go test -tags live -run TestLiveEnvelopes -v -count=1 .
+```
+
+`TestEnvelopeFixtures` recomputes every recorded transaction's hash from its envelope, offline, so a
+fixture cannot be edited by hand. The live run also checks every decoded action in the envelope against
+the host's own events or ledger state.
 
 **A pull request that changes a snapshot must say in its body what changed in the rendering and why.** A
 snapshot diff with no explanation cannot be reviewed and will be closed. Changing a case from `opaque` to

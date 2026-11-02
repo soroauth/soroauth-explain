@@ -21,6 +21,17 @@ a breaking change and is listed here as one.
   opaque share falls from 89.6% to 4.0%, and on the public sample from 98.8% to 0.0%; the decoded share
   does not change.
 
+- `explain.ExplainEnvelope` explains a whole transaction envelope (v0, v1 or fee bump): the transaction's
+  own fields, what each operation invokes, and what each authorization entry authorizes. The call the
+  transaction makes floors the confidence like the entries do, and an operation the library does not
+  interpret is listed as opaque, never dropped. Soroban resource limits and footprint are not shown, and
+  the renderings say so. The node limit covers the whole envelope. `render.EnvelopeText` and
+  `render.EnvelopeJSON` render it; `explain.ActionUploadWasm` is the new action kind for a wasm upload.
+- CLI `--envelope <base64|->`, the envelope counterpart of `--entry`, with the same decode limits.
+- Seven snapshot cases from real testnet and public-network transactions, recorded in
+  `testdata/live/envelopes.json`. Each transaction hash is recomputed from its envelope offline, and the
+  live run checks every decoded action against the host's events or ledger state.
+
 - CLI `--rpc <url>`: fetches the published spec of each contract an entry calls and names its arguments.
   It is the only network access in the tool and happens only when given. A failed fetch degrades to the
   offline rendering, and `--strict` still fails on a spec-named call.
