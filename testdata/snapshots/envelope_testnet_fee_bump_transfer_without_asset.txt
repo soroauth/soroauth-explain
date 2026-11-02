@@ -1,0 +1,38 @@
+Transaction envelope [partial]
+  envelope     = fee bump transaction [decoded]
+  fee_source   = GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD [decoded]
+  fee_bump_fee = 1991444 stroops [decoded]
+  source       = GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD [decoded]
+  fee          = 695722 stroops [decoded]
+  sequence     = 3994319597530 [decoded]
+  time_bounds  = 0..1793581901 (unix seconds) [decoded]
+  Shown: the transaction's fields, what each operation invokes, and what each
+  authorization entry authorizes. Not shown: Soroban resource limits and footprint.
+
+Operation 0: InvokeHostFunction [partial]
+  operation source: GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD
+  Invokes:
+    [partial] Transfer 100000 units of the token at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA from GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD to CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA
+        contract = CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA [decoded]
+        function = transfer [decoded]
+        from     = GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD [decoded]
+        to       = CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA [decoded]
+        amount   = 100000 [partial]
+
+  Entry 0:
+    Authorization entry: source_account credentials, authenticated by the transaction's envelope signature [partial]
+      The entry carries no address, nonce, expiration or signature of its own.
+
+    Authorizes:
+      [partial] Transfer 100000 units of the token at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA from GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD to CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA
+          contract = CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA [decoded]
+          function = transfer [decoded]
+          from     = GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD [decoded]
+          to       = CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA [decoded]
+          amount   = 100000 [partial]
+
+Not determined:
+  - Operation 0: invocation: The token at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA is not identified on this network, so its asset and decimal places are unknown; amounts are shown as raw integers in its smallest unit.
+  - Operation 0: invocation: The call matches the SEP-41 transfer signature, but a matching signature does not show that the contract at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA behaves as SEP-41 describes.
+  - Operation 0: entry 0: The token at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA is not identified on this network, so its asset and decimal places are unknown; amounts are shown as raw integers in its smallest unit.
+  - Operation 0: entry 0: The call matches the SEP-41 transfer signature, but a matching signature does not show that the contract at CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA behaves as SEP-41 describes.

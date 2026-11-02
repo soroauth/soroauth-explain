@@ -1,0 +1,34 @@
+Transaction envelope [decoded]
+  envelope     = fee bump transaction [decoded]
+  fee_source   = GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD [decoded]
+  fee_bump_fee = 1991444 stroops [decoded]
+  source       = GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD [decoded]
+  fee          = 695722 stroops [decoded]
+  sequence     = 3994319597530 [decoded]
+  time_bounds  = 0..1793581901 (unix seconds) [decoded]
+  Shown: the transaction's fields, what each operation invokes, and what each
+  authorization entry authorizes. Not shown: Soroban resource limits and footprint.
+
+Operation 0: InvokeHostFunction [decoded]
+  operation source: GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD
+  Invokes:
+    [decoded] Transfer 0.0100000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD to CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA
+        contract = CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA [decoded]
+        function = transfer [decoded]
+        asset    = USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 [decoded]
+        from     = GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD [decoded]
+        to       = CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA [decoded]
+        amount   = 0.0100000 (raw 100000) [decoded]
+
+  Entry 0:
+    Authorization entry: source_account credentials, authenticated by the transaction's envelope signature [decoded]
+      The entry carries no address, nonce, expiration or signature of its own.
+
+    Authorizes:
+      [decoded] Transfer 0.0100000 USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 from GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD to CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA
+          contract = CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA [decoded]
+          function = transfer [decoded]
+          asset    = USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5 [decoded]
+          from     = GBKJAUNVUZCSBFRXYZKURV5FKHMWWCSNJ7LB2ZUOBVJGJALBUI7ACLHD [decoded]
+          to       = CBIELTK6YBZJU5UP2WWQEUCYKLPU6AUNZ2BQ4WWFEIE3USCIHMXQDAMA [decoded]
+          amount   = 0.0100000 (raw 100000) [decoded]

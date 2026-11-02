@@ -21,7 +21,54 @@ import (
 // "Not determined" section lists every sentence in Unexplained.
 func Text(exp explain.Explanation) string {
 	var b strings.Builder
-	writeExplanation(&b, exp)
+	writeExplanation(&b, exp, true)
+	return b.String()
+}
+
+// EnvelopeText renders an EnvelopeExplanation for a person to read.
+//
+// The transaction's fields come first, then every operation in order: what
+// it invokes, and each authorization entry it carries, rendered as Text
+// renders an entry. An operation this library does not interpret is listed
+// with its type and marked opaque, never left out. Every reason, from the
+// envelope and from each entry, is listed once under "Not determined",
+// saying which operation and entry it belongs to.
+func EnvelopeText(env explain.EnvelopeExplanation) string {
+	var b strings.Builder
+	b.WriteString("Transaction envelope " + tag(env.Confidence) + "\n")
+	writeFields(&b, env.Transaction, "  ")
+	b.WriteString("  Shown: the transaction's fields, what each operation invokes, and what each\n")
+	b.WriteString("  authorization entry authorizes. Not shown: Soroban resource limits and footprint.\n")
+
+	for _, op := range env.Operations {
+		b.WriteString("\nOperation " + strconv.Itoa(op.Index) + ": " + op.Type + " " + tag(op.Confidence) + "\n")
+		if op.Source != "" {
+			b.WriteString("  operation source: " + op.Source + "\n")
+		}
+		if op.Invocation != nil {
+			b.WriteString("  Invokes:\n")
+			writeAction(&b, *op.Invocation, 2)
+		}
+		for i, e := range op.Entries {
+			b.WriteString("\n  Entry " + strconv.Itoa(i) + ":\n")
+			var eb strings.Builder
+			writeExplanation(&eb, e, false)
+			for _, line := range strings.SplitAfter(eb.String(), "\n") {
+				if strings.TrimSpace(line) == "" {
+					b.WriteString(line)
+					continue
+				}
+				b.WriteString("    " + line)
+			}
+		}
+	}
+
+	if len(env.Unexplained) > 0 {
+		b.WriteString("\nNot determined:\n")
+		for _, s := range env.Unexplained {
+			b.WriteString("  - " + s + "\n")
+		}
+	}
 	return b.String()
 }
 
@@ -36,7 +83,9 @@ func tag(c explain.Confidence) string {
 	return "[" + string(c) + "]"
 }
 
-func writeExplanation(b *strings.Builder, exp explain.Explanation) {
+// writeExplanation renders one entry. notes is false inside an envelope,
+// whose own list already carries the entry's reasons.
+func writeExplanation(b *strings.Builder, exp explain.Explanation, notes bool) {
 	if exp.CredentialType == soroauth.CredentialTypeSourceAccount {
 		// Who authorizes differs; what is authorized is rendered below
 		// exactly as for any other entry.
@@ -60,7 +109,7 @@ func writeExplanation(b *strings.Builder, exp explain.Explanation) {
 		writeDelegates(b, exp.Delegates, 1)
 	}
 
-	if len(exp.Unexplained) > 0 {
+	if notes && len(exp.Unexplained) > 0 {
 		b.WriteString("\nNot determined:\n")
 		for _, s := range exp.Unexplained {
 			b.WriteString("  - " + s + "\n")
@@ -71,21 +120,25 @@ func writeExplanation(b *strings.Builder, exp explain.Explanation) {
 func writeAction(b *strings.Builder, a explain.Action, depth int) {
 	indent := strings.Repeat("  ", depth)
 	b.WriteString(indent + tag(a.Confidence) + " " + a.Summary + "\n")
+	writeFields(b, a.Fields, indent+"    ")
+	for i := range a.Sub {
+		writeAction(b, a.Sub[i], depth+1)
+	}
+}
+
+func writeFields(b *strings.Builder, fields []explain.Field, indent string) {
 	width := 0
-	for _, f := range a.Fields {
+	for _, f := range fields {
 		if len(f.Name) > width {
 			width = len(f.Name)
 		}
 	}
-	for _, f := range a.Fields {
-		line := indent + "    " + f.Name + strings.Repeat(" ", width-len(f.Name)) + " = " + f.Value
+	for _, f := range fields {
+		line := indent + f.Name + strings.Repeat(" ", width-len(f.Name)) + " = " + f.Value
 		if f.Raw != "" {
 			line += " (raw " + f.Raw + ")"
 		}
 		b.WriteString(line + " " + tag(f.Confidence) + "\n")
-	}
-	for i := range a.Sub {
-		writeAction(b, a.Sub[i], depth+1)
 	}
 }
 

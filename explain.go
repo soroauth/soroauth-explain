@@ -140,17 +140,32 @@ func WithMaxNodes(n int) Option {
 // across those actions. Leaving the tree out would show a reader an entry
 // with nothing in it, while it authorizes calls they were never shown.
 func Explain(entry xdr.SorobanAuthorizationEntry, opts ...Option) (Explanation, error) {
+	o, err := resolveOptions(opts)
+	if err != nil {
+		return Explanation{}, fmt.Errorf("explain: explain entry: %w", err)
+	}
+	return explainEntry(entry, o, newWalker(o.maxDepth, o.maxNodes))
+}
+
+// resolveOptions applies opts over the defaults and rejects limits below 1.
+func resolveOptions(opts []Option) (options, error) {
 	o := options{maxDepth: DefaultMaxDepth, maxNodes: DefaultMaxNodes}
 	for _, opt := range opts {
 		opt(&o)
 	}
 	if o.maxDepth < 1 {
-		return Explanation{}, fmt.Errorf("explain: explain entry: max depth %d is below 1", o.maxDepth)
+		return options{}, fmt.Errorf("max depth %d is below 1", o.maxDepth)
 	}
 	if o.maxNodes < 1 {
-		return Explanation{}, fmt.Errorf("explain: explain entry: max nodes %d is below 1", o.maxNodes)
+		return options{}, fmt.Errorf("max nodes %d is below 1", o.maxNodes)
 	}
+	return o, nil
+}
 
+// explainEntry is Explain with the options resolved and the budget supplied,
+// so that ExplainEnvelope can charge every entry of a transaction to one
+// budget.
+func explainEntry(entry xdr.SorobanAuthorizationEntry, o options, w *walker) (Explanation, error) {
 	info, err := soroauth.Inspect(entry)
 	if err != nil {
 		if errors.Is(err, soroauth.ErrUnsupportedCredentials) {
@@ -169,7 +184,6 @@ func Explain(entry xdr.SorobanAuthorizationEntry, opts ...Option) (Explanation, 
 		Signed:           info.TopLevelSigned,
 		Actions:          []Action{},
 	}
-	w := newWalker(o.maxDepth, o.maxNodes)
 	root, notes, err := w.explainInvocation(entry.RootInvocation, 1, o)
 	if err != nil {
 		return Explanation{}, fmt.Errorf("explain: explain entry: %w", err)

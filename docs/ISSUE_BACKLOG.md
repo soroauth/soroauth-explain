@@ -1,6 +1,10 @@
 # Contributor issue backlog (draft)
 
-Drafted for review before any of these become GitHub issues. **None has been filed.** Each item comes from
+Drafted for review before any of these become GitHub issues. Twenty have been filed, as
+[#4](https://github.com/soroauth/soroauth-explain/issues/4) to
+[#23](https://github.com/soroauth/soroauth-explain/issues/23); each filed item links its issue, and each
+issue cites its item's number. Numbers never change: an item that is done stays where it is, marked
+**Done**, so no issue's reference moves. Each item comes from
 a gap found while building this project, and says where it was found, what done looks like, and what
 evidence the change needs. The rules in [CONTRIBUTING.md](../CONTRIBUTING.md) apply to all of them; in
 particular, any change that makes the tool claim more is a snapshot diff that must be explained, and
@@ -33,6 +37,8 @@ Complexity tiers:
 
 ### 1. Register the Stellar Asset Contract admin interface from CAP-46-6's text
 
+**Filed:** [#4](https://github.com/soroauth/soroauth-explain/issues/4)
+
 **Tier:** medium
 
 **Found:** Stellar Asset Contracts are the one kind of contract the spec reader cannot name: every wasm contract in both live samples publishes a spec (56 of 56 on testnet, 29 of 29 on public), and the 13 contracts without one are SACs, which run no wasm. They are also the only contracts whose behaviour this library can derive. CAP-46-6 (stellar-protocol `core/cap-0046-06.md` at 9cd70372, "Semantics: Admin Interface") declares `set_admin`, `set_authorized`, `mint` and `clawback`, and none is registered. Their events are not CAP-46-6's: CAP-67 ("Unified Asset Events", Final, `core/cap-0067.md` line 207) removed the admin from the `mint`, `clawback` and `set_authorized` topics, and the host follows CAP-67 (`event.rs` at f5a9fb79). The live check's `sacEventShape` already encodes the host's shapes and must not be changed back toward CAP-46-6's text.
@@ -42,6 +48,8 @@ Complexity tiers:
 **Evidence:** The fixture and comparison test; the comparison failing on a deliberately swapped parameter.
 
 ### 2. Say that a Stellar Asset Contract transfer from or to the asset's issuer mints or burns
+
+**Filed:** [#5](https://github.com/soroauth/soroauth-explain/issues/5)
 
 **Tier:** medium
 
@@ -263,6 +271,8 @@ Complexity tiers:
 
 ### 24. Say what an expiration ledger of zero means
 
+**Filed:** [#6](https://github.com/soroauth/soroauth-explain/issues/6)
+
 **Tier:** medium
 
 **Found:** Nine committed snapshots render `valid until ledger: 0` (the unsigned and pre-wrap forms of soroauth-go's vectors, which have no expiration set yet). soroauth-go v0.1.0 `errors.go:90` cites the host's check, `if ledger_seq > *live_until_ledger` in rs-soroban-env, under which a zero expiration has already passed.
@@ -274,6 +284,8 @@ Complexity tiers:
 ## Contract specs
 
 ### 25. Property-test substituted argument lists that fit the declared types
+
+**Filed:** [#7](https://github.com/soroauth/soroauth-explain/issues/7)
 
 **Tier:** high
 
@@ -385,6 +397,8 @@ Complexity tiers:
 
 ### 36. Fuzz the wasm section walker
 
+**Filed:** [#8](https://github.com/soroauth/soroauth-explain/issues/8)
+
 **Tier:** medium
 
 **Found:** `spec.Section` walks attacker-supplied wasm. It has table tests for twelve hostile shapes but no fuzzing.
@@ -455,6 +469,8 @@ Complexity tiers:
 
 ### 43. Say when a called contract publishes no spec
 
+**Filed:** [#9](https://github.com/soroauth/soroauth-explain/issues/9)
+
 **Tier:** medium
 
 **Found:** `spec.FromWasm` returns `ErrNoSpec` for wasm with no `contractspecv0` section. In the recorded samples every wasm contract had one, so the path is untested against real code, and with `--rpc` such a contract renders exactly as without `--rpc`.
@@ -464,6 +480,8 @@ Complexity tiers:
 **Evidence:** A fake-RPC test serving spec-less wasm; the stderr line.
 
 ### 44. Say when a called contract's spec is unreadable
+
+**Filed:** [#10](https://github.com/soroauth/soroauth-explain/issues/10)
 
 **Tier:** medium
 
@@ -841,6 +859,8 @@ Complexity tiers:
 
 ### 81. An alphanumeric-12 asset label fixture
 
+**Filed:** [#11](https://github.com/soroauth/soroauth-explain/issues/11)
+
 **Tier:** low
 
 **Found:** Every issued-asset label in the snapshots uses a code of four characters or fewer.
@@ -900,6 +920,8 @@ Complexity tiers:
 **Evidence:** The snapshot.
 
 ### 87. An entry exactly at the decode depth limit
+
+**Filed:** [#12](https://github.com/soroauth/soroauth-explain/issues/12)
 
 **Tier:** low
 
@@ -980,6 +1002,8 @@ Complexity tiers:
 **Evidence:** The snapshot.
 
 ### 95. Name every snapshot case in one table
+
+**Filed:** [#13](https://github.com/soroauth/soroauth-explain/issues/13)
 
 **Tier:** low
 
@@ -1195,6 +1219,8 @@ Complexity tiers:
 
 ### 116. Explain every entry in a transaction envelope
 
+**Done:** `ExplainEnvelope` and `--envelope`; see CHANGELOG.md, Unreleased.
+
 **Tier:** high
 
 **Found:** The CLI takes one authorization entry. Users usually have a whole transaction. soroauth-go's `InspectEnvelope` and `EnvelopeEntries` are post-v0.1.0 (brief section 0).
@@ -1214,6 +1240,8 @@ Complexity tiers:
 **Evidence:** Tests through a real pipe.
 
 ### 118. `--version`
+
+**Filed:** [#14](https://github.com/soroauth/soroauth-explain/issues/14)
 
 **Tier:** low
 
@@ -1295,6 +1323,8 @@ Complexity tiers:
 
 ### 126. Exit codes as a documented, tested table
 
+**Filed:** [#15](https://github.com/soroauth/soroauth-explain/issues/15)
+
 **Tier:** medium
 
 **Found:** Exit codes 0 to 3 are documented in `main.go` and the README.
@@ -1304,6 +1334,8 @@ Complexity tiers:
 **Evidence:** The test.
 
 ### 127. Require https for `--rpc`, except to a local address
+
+**Filed:** [#16](https://github.com/soroauth/soroauth-explain/issues/16)
 
 **Tier:** medium
 
@@ -1317,6 +1349,8 @@ Complexity tiers:
 
 ### 128. Fuzz `Explain`
 
+**Filed:** [#17](https://github.com/soroauth/soroauth-explain/issues/17)
+
 **Tier:** high
 
 **Found:** `Explain` walks attacker-controlled entries. It has table tests and limit tests, but no fuzzing. This was item 3 of the first backlog.
@@ -1327,6 +1361,8 @@ Complexity tiers:
 
 ### 129. Fuzz the CLI's decoder
 
+**Filed:** [#18](https://github.com/soroauth/soroauth-explain/issues/18)
+
 **Tier:** high
 
 **Found:** `decodeEntry` is the first code to see hostile input.
@@ -1336,6 +1372,8 @@ Complexity tiers:
 **Evidence:** As above.
 
 ### 130. Property test the confidence floor over random trees
+
+**Filed:** [#19](https://github.com/soroauth/soroauth-explain/issues/19)
 
 **Tier:** high
 
@@ -1416,6 +1454,8 @@ Complexity tiers:
 **Evidence:** Each defence linked to its test.
 
 ### 138. Check that no rendering contains a control character
+
+**Filed:** [#20](https://github.com/soroauth/soroauth-explain/issues/20)
 
 **Tier:** low
 
@@ -1623,6 +1663,8 @@ Complexity tiers:
 
 ### 158. "Why is my entry opaque?"
 
+**Filed:** [#21](https://github.com/soroauth/soroauth-explain/issues/21)
+
 **Tier:** medium
 
 **Found:** The most common question a user will have. The answer (outside the known interfaces; try `--rpc`; SACs have no spec) is spread across documents.
@@ -1632,6 +1674,8 @@ Complexity tiers:
 **Evidence:** The FAQ.
 
 ### 159. A glossary
+
+**Filed:** [#22](https://github.com/soroauth/soroauth-explain/issues/22)
 
 **Tier:** low
 
@@ -1712,6 +1756,8 @@ Complexity tiers:
 **Evidence:** The links, checked by the README test.
 
 ### 167. Document what `--rpc` reveals to the RPC operator
+
+**Filed:** [#23](https://github.com/soroauth/soroauth-explain/issues/23)
 
 **Tier:** low
 

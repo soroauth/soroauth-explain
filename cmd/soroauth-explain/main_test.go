@@ -72,6 +72,9 @@ func TestCLIMatchesSnapshots(t *testing.T) {
 				t.Fatal(err)
 			}
 			base := []string{"--entry", e.EntryXDR, "--network", e.NetworkPassphrase}
+			if e.EnvelopeXDR != "" {
+				base = []string{"--envelope", e.EnvelopeXDR, "--network", e.NetworkPassphrase}
+			}
 			// An entry with recorded specs is explained through the real
 			// --rpc path, against a local RPC serving exactly those specs.
 			if len(e.Specs) > 0 {
@@ -500,11 +503,12 @@ func TestBashCompletionBehaviour(t *testing.T) {
 		cword int
 		want  string
 	}{
-		{`soroauth-explain ""`, 1, "--entry --network --asset --rpc --json --strict completions help"},
+		{`soroauth-explain ""`, 1, "--entry --envelope --network --asset --rpc --json --strict completions help"},
 		{`soroauth-explain --network ""`, 2, "testnet public"},
 		{`soroauth-explain --network t`, 2, "testnet"},
 		{`soroauth-explain --entry ""`, 2, ""},
-		{`soroauth-explain --json ""`, 2, "--entry --network --asset --rpc --json --strict"},
+		{`soroauth-explain --envelope ""`, 2, ""},
+		{`soroauth-explain --json ""`, 2, "--entry --envelope --network --asset --rpc --json --strict"},
 		{`soroauth-explain completions ""`, 2, "--shell"},
 		{`soroauth-explain completions --shell ""`, 3, "bash zsh fish"},
 	}
@@ -532,7 +536,7 @@ func TestFishCompletionBehaviour(t *testing.T) {
 		want string
 	}{
 		{"soroauth-explain --network ", "public testnet"},
-		{"soroauth-explain --", "--asset --entry --json --network --rpc --strict"},
+		{"soroauth-explain --", "--asset --entry --envelope --json --network --rpc --strict"},
 		{"soroauth-explain completions --shell ", "bash fish zsh"},
 		{"soroauth-explain completions --", "--shell"},
 	}
@@ -734,4 +738,126 @@ func TestCLIRPC(t *testing.T) {
 			}
 		}
 	})
+}
+
+// envelopeWithAuth wraps one invocation and its entries in a v1 envelope.
+func envelopeWithAuth(t testing.TB, fn xdr.InvokeContractArgs, auth ...xdr.SorobanAuthorizationEntry) string {
+	t.Helper()
+	k := xdr.Uint256{9}
+	env := xdr.TransactionEnvelope{Type: xdr.EnvelopeTypeEnvelopeTypeTx, V1: &xdr.TransactionV1Envelope{Tx: xdr.Transaction{
+		SourceAccount: xdr.MuxedAccount{Type: xdr.CryptoKeyTypeKeyTypeEd25519, Ed25519: &k},
+		Fee:           100,
+		SeqNum:        1,
+		Memo:          xdr.Memo{Type: xdr.MemoTypeMemoNone},
+		Cond:          xdr.Preconditions{Type: xdr.PreconditionTypePrecondNone},
+		Operations: []xdr.Operation{{Body: xdr.OperationBody{
+			Type: xdr.OperationTypeInvokeHostFunction,
+			InvokeHostFunctionOp: &xdr.InvokeHostFunctionOp{
+				HostFunction: xdr.HostFunction{Type: xdr.HostFunctionTypeHostFunctionTypeInvokeContract, InvokeContract: &fn},
+				Auth:         auth,
+			},
+		}}},
+	}}}
+	b64, err := xdr.MarshalBase64(env)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b64
+}
+
+// TestCLIEnvelope covers --envelope: exactly one input flag, stdin and the
+// trimming rule, --strict on the envelope's floor, and this tool's decode
+// limits applied to an envelope as to an entry.
+func TestCLIEnvelope(t *testing.T) {
+	withAsset := loadEntry(t, "envelope_testnet_fee_bump_transfer_with_asset")
+	want, err := snapshot.Read(snapshotsDir, withAsset.Name, "txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	asset := withAsset.Assets[0]
+	entry := loadEntry(t, "built_unknown_function")
+
+	t.Run("exactly_one_input", func(t *testing.T) {
+		out, errOut, code := runCLI(t, "", "--entry", entry.EntryXDR, "--envelope", withAsset.EnvelopeXDR)
+		if code != exitUsage || out != "" || !strings.Contains(errOut, "exactly one of --entry and --envelope") {
+			t.Fatalf("code %d, stdout %q, stderr %q", code, out, errOut)
+		}
+	})
+	t.Run("stdin", func(t *testing.T) {
+		out, errOut, code := runCLI(t, withAsset.EnvelopeXDR+"\r\n", "--envelope", "-", "--network", "testnet", "--asset", asset)
+		if code != exitOK || out != string(want) {
+			t.Fatalf("code %d, stderr %q\n%s", code, errOut, out)
+		}
+	})
+	t.Run("strict", func(t *testing.T) {
+		if !strings.HasPrefix(string(want), "Transaction envelope [decoded]") {
+			t.Fatalf("the case is not decoded with its asset:\n%s", want)
+		}
+		if _, _, code := runCLI(t, "", "--envelope", withAsset.EnvelopeXDR, "--network", "testnet", "--asset", asset, "--strict"); code != exitOK {
+			t.Fatalf("decoded envelope under --strict: code %d", code)
+		}
+		out, errOut, code := runCLI(t, "", "--envelope", withAsset.EnvelopeXDR, "--network", "testnet", "--strict")
+		if code != exitNotDecoded || !strings.Contains(errOut, "not decoded") || !strings.Contains(out, "Not determined:") {
+			t.Fatalf("without the asset under --strict: code %d, stderr %q", code, errOut)
+		}
+	})
+	t.Run("an_entry_is_not_an_envelope", func(t *testing.T) {
+		out, errOut, code := runCLI(t, "", "--envelope", entry.EntryXDR)
+		if code != exitError || out != "" || !strings.Contains(errOut, "decode envelope") {
+			t.Fatalf("code %d, stdout %q, stderr %q", code, out, errOut)
+		}
+	})
+	t.Run("length_limit", func(t *testing.T) {
+		_, err := decodeEnvelope(strings.Repeat("!", base64.StdEncoding.EncodedLen(maxDecodeBytes)+1))
+		if !errors.Is(err, errDecodeLimit) {
+			t.Fatalf("err = %v, want errDecodeLimit", err)
+		}
+	})
+	t.Run("depth_limit", func(t *testing.T) {
+		id := xdr.ContractId{1}
+		fn := xdr.InvokeContractArgs{
+			ContractAddress: xdr.ScAddress{Type: xdr.ScAddressTypeScAddressTypeContract, ContractId: &id},
+			FunctionName:    "f",
+			Args:            []xdr.ScVal{nestedVec(maxDecodeDepth)},
+		}
+		b64 := envelopeWithAuth(t, fn)
+		var env xdr.TransactionEnvelope
+		if err := xdr.SafeUnmarshalBase64(b64, &env); err != nil {
+			t.Fatalf("SDK default refused it: %v", err)
+		}
+		_, errOut, code := runCLI(t, "", "--envelope", b64)
+		if code != exitError || !strings.Contains(errOut, "nesting exceeds the 64-level limit") {
+			t.Fatalf("code %d, stderr %q", code, errOut)
+		}
+	})
+}
+
+// TestCLIEnvelopeRPC: --rpc looks up the contracts an envelope invokes
+// directly and through its entries, and stays offline without the flag.
+func TestCLIEnvelopeRPC(t *testing.T) {
+	e := loadEntry(t, "spec_set_price")
+	var entry xdr.SorobanAuthorizationEntry
+	if err := xdr.SafeUnmarshalBase64(e.EntryXDR, &entry); err != nil {
+		t.Fatal(err)
+	}
+	b64 := envelopeWithAuth(t, *entry.RootInvocation.Function.ContractFn, entry)
+
+	f := newFakeRPC(t, e.Specs)
+	srv := httptest.NewServer(f)
+	defer srv.Close()
+	out, _, code := runCLI(t, "", "--envelope", b64, "--network", "testnet")
+	if code != exitOK || f.requests != 0 || strings.Contains(out, "named by the spec") {
+		t.Fatalf("offline: code %d, requests %d", code, f.requests)
+	}
+	out, errOut, code := runCLI(t, "", "--envelope", b64, "--network", "testnet", "--rpc", srv.URL, "--strict")
+	if code != exitNotDecoded || f.requests == 0 || errOut == "" {
+		t.Fatalf("with --rpc: code %d, requests %d, stderr %q", code, f.requests, errOut)
+	}
+	// The invocation and the entry are both named.
+	if n := strings.Count(out, "named by the spec the contract publishes"); n != 2 {
+		t.Fatalf("named %d calls, want 2\n%s", n, out)
+	}
+	if got := envelopeContracts(xdr.TransactionEnvelope{}); len(got) != 0 {
+		t.Fatalf("empty envelope lists %v", got)
+	}
 }

@@ -26,7 +26,9 @@ import (
 // extensions.
 var Formats = []string{"txt", "json"}
 
-// Entry is one input case in testdata/entries.
+// Entry is one input case in testdata/entries. A case is either one
+// authorization entry (EntryXDR) or one transaction envelope (EnvelopeXDR),
+// never both.
 type Entry struct {
 	Name              string   `json:"name"`
 	Source            string   `json:"source"`
@@ -34,9 +36,10 @@ type Entry struct {
 	Assets            []string `json:"assets,omitempty"` // candidates for explain.WithAssets, as CODE:ISSUER
 	// Specs are contract spec sections (spec.Section), base64, keyed by
 	// contract address, for explain.WithSpecs.
-	Specs      map[string]string `json:"specs,omitempty"`
-	SpecSource string            `json:"spec_source,omitempty"`
-	EntryXDR   string            `json:"entry_xdr"`
+	Specs       map[string]string `json:"specs,omitempty"`
+	SpecSource  string            `json:"spec_source,omitempty"`
+	EntryXDR    string            `json:"entry_xdr,omitempty"`
+	EnvelopeXDR string            `json:"envelope_xdr,omitempty"`
 }
 
 // ParseSpecs decodes an entry's recorded spec sections.
@@ -105,9 +108,8 @@ func LoadEntries(dir string) ([]Entry, error) {
 // is said. Only an entry that does not decode is an error here, because that
 // is a broken fixture rather than a behaviour.
 func Render(e Entry) (map[string][]byte, error) {
-	var entry xdr.SorobanAuthorizationEntry
-	if err := xdr.SafeUnmarshalBase64(e.EntryXDR, &entry); err != nil {
-		return nil, fmt.Errorf("%s: decode entry: %w", e.Name, err)
+	if (e.EntryXDR == "") == (e.EnvelopeXDR == "") {
+		return nil, fmt.Errorf("%s: a case needs exactly one of entry_xdr and envelope_xdr", e.Name)
 	}
 	assets, err := ParseAssets(e.Assets)
 	if err != nil {
@@ -117,25 +119,49 @@ func Render(e Entry) (map[string][]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", e.Name, err)
 	}
-	exp, err := explain.Explain(entry, explain.WithNetwork(e.NetworkPassphrase), explain.WithAssets(assets...), explain.WithSpecs(specs))
-	if err != nil {
-		refusal, jerr := json.MarshalIndent(map[string]string{"error": err.Error()}, "", "  ")
+	opts := []explain.Option{explain.WithNetwork(e.NetworkPassphrase), explain.WithAssets(assets...), explain.WithSpecs(specs)}
+
+	var (
+		text   string
+		js     []byte
+		expErr error
+	)
+	if e.EnvelopeXDR != "" {
+		var env xdr.TransactionEnvelope
+		if err := xdr.SafeUnmarshalBase64(e.EnvelopeXDR, &env); err != nil {
+			return nil, fmt.Errorf("%s: decode envelope: %w", e.Name, err)
+		}
+		exp, err := explain.ExplainEnvelope(env, opts...)
+		if expErr = err; err == nil {
+			text = render.EnvelopeText(exp)
+			if js, err = render.EnvelopeJSON(exp); err != nil {
+				return nil, fmt.Errorf("%s: %w", e.Name, err)
+			}
+		}
+	} else {
+		var entry xdr.SorobanAuthorizationEntry
+		if err := xdr.SafeUnmarshalBase64(e.EntryXDR, &entry); err != nil {
+			return nil, fmt.Errorf("%s: decode entry: %w", e.Name, err)
+		}
+		exp, err := explain.Explain(entry, opts...)
+		if expErr = err; err == nil {
+			text = render.Text(exp)
+			if js, err = render.JSON(exp); err != nil {
+				return nil, fmt.Errorf("%s: %w", e.Name, err)
+			}
+		}
+	}
+	if expErr != nil {
+		refusal, jerr := json.MarshalIndent(map[string]string{"error": expErr.Error()}, "", "  ")
 		if jerr != nil {
 			return nil, jerr
 		}
 		return map[string][]byte{
-			"txt":  []byte("error: " + err.Error() + "\n"),
+			"txt":  []byte("error: " + expErr.Error() + "\n"),
 			"json": append(refusal, '\n'),
 		}, nil
 	}
-	js, err := render.JSON(exp)
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", e.Name, err)
-	}
-	return map[string][]byte{
-		"txt":  []byte(render.Text(exp)),
-		"json": js,
-	}, nil
+	return map[string][]byte{"txt": []byte(text), "json": js}, nil
 }
 
 // Path is where a case's snapshot for a format lives.

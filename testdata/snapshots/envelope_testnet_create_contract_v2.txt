@@ -1,0 +1,26 @@
+Transaction envelope [decoded]
+  envelope = transaction [decoded]
+  source   = GANYRTDIMX5UJ6HKK4BANPJICCGLWOUIXQWNJS5MHB545UTHCJPIGTZS [decoded]
+  fee      = 26643 stroops [decoded]
+  sequence = 23671282755174402 [decoded]
+  Shown: the transaction's fields, what each operation invokes, and what each
+  authorization entry authorizes. Not shown: Soroban resource limits and footprint.
+
+Operation 0: InvokeHostFunction [decoded]
+  Invokes:
+    [decoded] Create a contract running wasm 1ac6e850445810f254ea80ed87fb16a7cc5e5621b011b3ea05e77eff08509eb3, deployed by GANYRTDIMX5UJ6HKK4BANPJICCGLWOUIXQWNJS5MHB545UTHCJPIGTZS with salt 4242424242424242424242424242424242424242424242424242424242424242, with 0 constructor arguments
+        executable = wasm 1ac6e850445810f254ea80ed87fb16a7cc5e5621b011b3ea05e77eff08509eb3 [decoded]
+        deployer   = GANYRTDIMX5UJ6HKK4BANPJICCGLWOUIXQWNJS5MHB545UTHCJPIGTZS [decoded]
+        salt       = 4242424242424242424242424242424242424242424242424242424242424242 [decoded]
+        arguments  = 0 [decoded]
+
+  Entry 0:
+    Authorization entry: source_account credentials, authenticated by the transaction's envelope signature [decoded]
+      The entry carries no address, nonce, expiration or signature of its own.
+
+    Authorizes:
+      [decoded] Create a contract running wasm 1ac6e850445810f254ea80ed87fb16a7cc5e5621b011b3ea05e77eff08509eb3, deployed by GANYRTDIMX5UJ6HKK4BANPJICCGLWOUIXQWNJS5MHB545UTHCJPIGTZS with salt 4242424242424242424242424242424242424242424242424242424242424242, with 0 constructor arguments
+          executable = wasm 1ac6e850445810f254ea80ed87fb16a7cc5e5621b011b3ea05e77eff08509eb3 [decoded]
+          deployer   = GANYRTDIMX5UJ6HKK4BANPJICCGLWOUIXQWNJS5MHB545UTHCJPIGTZS [decoded]
+          salt       = 4242424242424242424242424242424242424242424242424242424242424242 [decoded]
+          arguments  = 0 [decoded]

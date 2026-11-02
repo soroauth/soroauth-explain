@@ -23,6 +23,8 @@ var summaryVocabulary = map[string]bool{
 	"spending": true, "Burn": true,
 	// Spec-named calls (explainNamed).
 	"named": true, "spec": true, "publishes": true,
+	// Uploads, a transaction's own host function (explainHostFunction).
+	"Upload": true, "bytes": true, "code": true, "hash": true,
 }
 
 // checkSummaryAgrees asserts that every value in a.Summary appears in some

@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"io"
 	"net/url"
-	"sort"
 	"strings"
 	"time"
 
 	explain "github.com/soroauth/soroauth-explain"
 	"github.com/soroauth/soroauth-explain/render"
 	"github.com/soroauth/soroauth-explain/spec"
+	soroauth "github.com/soroauth/soroauth-go"
 	"github.com/stellar/go-stellar-sdk/network"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
@@ -41,17 +41,8 @@ const (
 	stdinSlack = 4096
 )
 
-// rpcTimeout bounds all of --rpc's requests for one entry together.
+// rpcTimeout bounds all of --rpc's requests for one input together.
 const rpcTimeout = 30 * time.Second
-
-func sortedContracts(m map[string]error) []string {
-	out := make([]string, 0, len(m))
-	for c := range m {
-		out = append(out, c)
-	}
-	sort.Strings(out)
-	return out
-}
 
 // errDecodeLimit marks an input refused by a decode limit, as distinct from
 // input that is malformed.
@@ -59,29 +50,49 @@ var errDecodeLimit = errors.New("input exceeds a decode limit")
 
 // decodeEntry decodes an untrusted base64 authorization entry within this
 // tool's limits.
+func decodeEntry(encoded string) (xdr.SorobanAuthorizationEntry, error) {
+	var entry xdr.SorobanAuthorizationEntry
+	if err := decodeLimited("entry", encoded, &entry); err != nil {
+		return xdr.SorobanAuthorizationEntry{}, err
+	}
+	return entry, nil
+}
+
+// decodeEnvelope decodes an untrusted base64 transaction envelope within the
+// same limits as an entry. An envelope's entries are nested inside it, so a
+// limit that bounds an entry alone bounds them all together here.
+func decodeEnvelope(encoded string) (xdr.TransactionEnvelope, error) {
+	var env xdr.TransactionEnvelope
+	if err := decodeLimited("envelope", encoded, &env); err != nil {
+		return xdr.TransactionEnvelope{}, err
+	}
+	return env, nil
+}
+
+// decodeLimited decodes untrusted base64 XDR into v within this tool's
+// limits.
 //
 // The length is checked first, before any base64 or XDR work, because
 // SafeUnmarshalBase64WithOptions overwrites MaxInputLen with the decoded
 // length of whatever it is handed and so can never refuse long input itself
 // (go-stellar-sdk v0.7.3 xdr/main.go:68-69; the same ordering argument is
 // made in soroauth-go main decode.go:66-68).
-func decodeEntry(encoded string) (xdr.SorobanAuthorizationEntry, error) {
+func decodeLimited(what, encoded string, v any) error {
 	if encoded == "" {
-		return xdr.SorobanAuthorizationEntry{}, errors.New("decode entry: input is empty")
+		return fmt.Errorf("decode %s: input is empty", what)
 	}
 	if len(encoded) > base64.StdEncoding.EncodedLen(maxDecodeBytes) {
-		return xdr.SorobanAuthorizationEntry{}, fmt.Errorf("decode entry: %d base64 bytes exceeds the %d-byte decoded limit: %w",
-			len(encoded), maxDecodeBytes, errDecodeLimit)
+		return fmt.Errorf("decode %s: %d base64 bytes exceeds the %d-byte decoded limit: %w",
+			what, len(encoded), maxDecodeBytes, errDecodeLimit)
 	}
-	var entry xdr.SorobanAuthorizationEntry
-	err := xdr.SafeUnmarshalBase64WithOptions(encoded, &entry, xdr.DecodeOptions{MaxDepth: maxDecodeDepth})
+	err := xdr.SafeUnmarshalBase64WithOptions(encoded, v, xdr.DecodeOptions{MaxDepth: maxDecodeDepth})
 	if errors.Is(err, xdr.ErrMaxDecodingDepthReached) {
-		return xdr.SorobanAuthorizationEntry{}, fmt.Errorf("decode entry: nesting exceeds the %d-level limit: %w", maxDecodeDepth, errDecodeLimit)
+		return fmt.Errorf("decode %s: nesting exceeds the %d-level limit: %w", what, maxDecodeDepth, errDecodeLimit)
 	}
 	if err != nil {
-		return xdr.SorobanAuthorizationEntry{}, fmt.Errorf("decode entry: %w", err)
+		return fmt.Errorf("decode %s: %w", what, err)
 	}
-	return entry, nil
+	return nil
 }
 
 // networkPassphrase resolves --network. The names are the SDK's constants
@@ -98,12 +109,13 @@ func networkPassphrase(name string) string {
 }
 
 type explainFlags struct {
-	entry   string
-	network string
-	rpc     string
-	assets  assetList
-	json    bool
-	strict  bool
+	entry    string
+	envelope string
+	network  string
+	rpc      string
+	assets   assetList
+	json     bool
+	strict   bool
 }
 
 // assetList is the repeatable --asset flag. Each value must parse as
@@ -141,6 +153,7 @@ func newExplainFlagSet(stderr io.Writer) (*flag.FlagSet, *explainFlags) {
 	fs.SetOutput(stderr)
 	fs.Usage = func() { fmt.Fprint(stderr, usageText) }
 	fs.StringVar(&f.entry, "entry", "", "the entry as base64 XDR, or - to read it from stdin")
+	fs.StringVar(&f.envelope, "envelope", "", "a transaction envelope as base64 XDR, or - to read it from stdin")
 	fs.StringVar(&f.network, "network", "", "testnet, public, or a network passphrase")
 	fs.Var(&f.assets, "asset", "a candidate asset as CODE:ISSUER; repeat for several")
 	fs.StringVar(&f.rpc, "rpc", "", "a Soroban RPC URL to fetch contract specs from (makes network requests)")
@@ -169,13 +182,13 @@ func runExplain(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			return exitUsage
 		}
 	}
-	if f.entry == "" {
-		fmt.Fprintln(stderr, "soroauth-explain: --entry is required")
+	if (f.entry == "") == (f.envelope == "") {
+		fmt.Fprintln(stderr, "soroauth-explain: exactly one of --entry and --envelope is required")
 		fs.Usage()
 		return exitUsage
 	}
 
-	encoded := f.entry
+	encoded := f.entry + f.envelope
 	if encoded == "-" {
 		limit := int64(base64.StdEncoding.EncodedLen(maxDecodeBytes) + stdinSlack)
 		raw, err := io.ReadAll(io.LimitReader(stdin, limit+1))
@@ -189,15 +202,9 @@ func runExplain(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		}
 		encoded = string(raw)
 	}
-	// Tools that print an entry end it with a newline, and the XDR decoder
+	// Tools that print XDR end it with a newline, and the XDR decoder
 	// rejects one, so surrounding whitespace is trimmed on both paths.
 	encoded = strings.TrimSpace(encoded)
-
-	entry, err := decodeEntry(encoded)
-	if err != nil {
-		fmt.Fprintf(stderr, "soroauth-explain: %v\n", err)
-		return exitError
-	}
 
 	var opts []explain.Option
 	if pp := networkPassphrase(f.network); pp != "" {
@@ -206,40 +213,131 @@ func runExplain(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(f.assets.assets) > 0 {
 		opts = append(opts, explain.WithAssets(f.assets.assets...))
 	}
-	if f.rpc != "" {
-		// The only network access in this tool, and only when asked for. A
-		// fetch that fails leaves that contract unnamed; it never fails the
-		// command, and it never changes what is decoded.
-		ctx, cancel := context.WithTimeout(context.Background(), rpcTimeout)
-		specs, errs := spec.RPC{URL: f.rpc}.Fetch(ctx, entry)
-		cancel()
-		for _, c := range sortedContracts(errs) {
-			if !errors.Is(errs[c], spec.ErrNotWasm) {
-				fmt.Fprintf(stderr, "soroauth-explain: --rpc: no spec for %s: %v\n", c, errs[c])
-			}
+
+	var (
+		text       string
+		jsonOut    func() ([]byte, error)
+		confidence explain.Confidence
+	)
+	if f.envelope != "" {
+		env, err := decodeEnvelope(encoded)
+		if err != nil {
+			fmt.Fprintf(stderr, "soroauth-explain: %v\n", err)
+			return exitError
 		}
-		opts = append(opts, explain.WithSpecs(specs))
-	}
-	exp, err := explain.Explain(entry, opts...)
-	if err != nil {
-		fmt.Fprintf(stderr, "soroauth-explain: %v\n", err)
-		return exitError
+		if f.rpc != "" {
+			opts = append(opts, fetchSpecs(f.rpc, envelopeContracts(env), stderr))
+		}
+		exp, err := explain.ExplainEnvelope(env, opts...)
+		if err != nil {
+			fmt.Fprintf(stderr, "soroauth-explain: %v\n", err)
+			return exitError
+		}
+		text, confidence = render.EnvelopeText(exp), exp.Confidence
+		jsonOut = func() ([]byte, error) { return render.EnvelopeJSON(exp) }
+	} else {
+		entry, err := decodeEntry(encoded)
+		if err != nil {
+			fmt.Fprintf(stderr, "soroauth-explain: %v\n", err)
+			return exitError
+		}
+		if f.rpc != "" {
+			opts = append(opts, fetchSpecs(f.rpc, spec.Contracts(entry), stderr))
+		}
+		exp, err := explain.Explain(entry, opts...)
+		if err != nil {
+			fmt.Fprintf(stderr, "soroauth-explain: %v\n", err)
+			return exitError
+		}
+		text, confidence = render.Text(exp), exp.Confidence
+		jsonOut = func() ([]byte, error) { return render.JSON(exp) }
 	}
 
 	if f.json {
-		out, err := render.JSON(exp)
+		out, err := jsonOut()
 		if err != nil {
 			fmt.Fprintf(stderr, "soroauth-explain: %v\n", err)
 			return exitError
 		}
 		stdout.Write(out)
 	} else {
-		io.WriteString(stdout, render.Text(exp))
+		io.WriteString(stdout, text)
 	}
 
-	if f.strict && exp.Confidence != explain.ConfidenceDecoded {
-		fmt.Fprintf(stderr, "soroauth-explain: --strict: explanation is %s, not decoded\n", exp.Confidence)
+	if f.strict && confidence != explain.ConfidenceDecoded {
+		fmt.Fprintf(stderr, "soroauth-explain: --strict: explanation is %s, not decoded\n", confidence)
 		return exitNotDecoded
 	}
 	return exitOK
+}
+
+// fetchSpecs is the only network access in this tool, and runs only when
+// --rpc is given. A fetch that fails leaves that contract unnamed; it never
+// fails the command, and it never changes what is decoded.
+func fetchSpecs(rpcURL string, contracts []string, stderr io.Writer) explain.Option {
+	ctx, cancel := context.WithTimeout(context.Background(), rpcTimeout)
+	defer cancel()
+	r := spec.RPC{URL: rpcURL}
+	specs := map[string]spec.Spec{}
+	for _, c := range contracts {
+		s, err := r.Spec(ctx, c)
+		if err != nil {
+			if !errors.Is(err, spec.ErrNotWasm) {
+				fmt.Fprintf(stderr, "soroauth-explain: --rpc: no spec for %s: %v\n", c, err)
+			}
+			continue
+		}
+		specs[c] = s
+	}
+	return explain.WithSpecs(specs)
+}
+
+// maxEnvelopeContracts bounds how many contracts --rpc looks up for one
+// envelope, so a transaction naming many contracts cannot turn into
+// unbounded requests. spec.Contracts bounds each entry the same way.
+const maxEnvelopeContracts = 64
+
+// envelopeContracts lists the distinct contracts an envelope invokes
+// directly and through its entries, in order, up to maxEnvelopeContracts.
+func envelopeContracts(env xdr.TransactionEnvelope) []string {
+	var ops []xdr.Operation
+	switch env.Type {
+	case xdr.EnvelopeTypeEnvelopeTypeTxV0:
+		if env.V0 != nil {
+			ops = env.V0.Tx.Operations
+		}
+	case xdr.EnvelopeTypeEnvelopeTypeTx:
+		if env.V1 != nil {
+			ops = env.V1.Tx.Operations
+		}
+	case xdr.EnvelopeTypeEnvelopeTypeTxFeeBump:
+		if env.FeeBump != nil && env.FeeBump.Tx.InnerTx.V1 != nil {
+			ops = env.FeeBump.Tx.InnerTx.V1.Tx.Operations
+		}
+	}
+	var out []string
+	seen := map[string]bool{}
+	add := func(c string) {
+		if !seen[c] && len(out) < maxEnvelopeContracts {
+			seen[c] = true
+			out = append(out, c)
+		}
+	}
+	for _, op := range ops {
+		ihf, ok := op.Body.GetInvokeHostFunctionOp()
+		if !ok {
+			continue
+		}
+		if args, ok := ihf.HostFunction.GetInvokeContract(); ok {
+			if c, err := soroauth.FormatAddress(args.ContractAddress); err == nil {
+				add(c)
+			}
+		}
+		for _, entry := range ihf.Auth {
+			for _, c := range spec.Contracts(entry) {
+				add(c)
+			}
+		}
+	}
+	return out
 }
