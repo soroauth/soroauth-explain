@@ -12,8 +12,8 @@ a breaking change and is listed here as one.
 
 ## [0.2.0] - 2026-11-02
 
-Unaudited. No breaking changes: every v0.1.0 field, flag and rendering is unchanged, and the 35
-v0.1.0-era snapshots are byte-identical.
+Unaudited. No breaking changes: every v0.1.0 field and flag is unchanged, and all 31 snapshot cases
+v0.1.0 shipped (62 files) are byte-identical.
 
 ### Added
 
