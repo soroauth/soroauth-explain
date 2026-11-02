@@ -5,10 +5,13 @@ package explain_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"testing"
 	"time"
 
+	explain "github.com/soroauth/soroauth-explain"
+	"github.com/soroauth/soroauth-explain/internal/snapshot"
 	"github.com/stellar/go-stellar-sdk/xdr"
 )
 
@@ -72,6 +75,7 @@ func TestLiveEnvelopes(t *testing.T) {
 			if got := file.Records[i]; got.TxHash != c.hash || got.EnvelopeXDR != res.EnvelopeXdr {
 				t.Errorf("%s: recorded envelope differs from the network's", c.hash)
 			}
+			checkEnvelopeDecoded(ctx, t, c.net, fetchTx(ctx, t, c.net, c.hash), file.Records[i].EventAssets)
 			continue
 		}
 		if res.Status == "NOT_FOUND" {
@@ -89,6 +93,7 @@ func TestLiveEnvelopes(t *testing.T) {
 			}
 		}
 		labels, _ := eventAssets(events)
+		checkEnvelopeDecoded(ctx, t, c.net, tx, labels)
 		file.Records = append(file.Records, EnvelopeFixture{
 			Network: c.net.name, Passphrase: c.net.passphrase, RPC: c.net.rpc,
 			TxHash: c.hash, Ledger: res.Ledger, TxStatus: res.Status,
@@ -105,5 +110,53 @@ func TestLiveEnvelopes(t *testing.T) {
 			t.Fatal(err)
 		}
 		t.Logf("recorded %d envelopes to %s", len(file.Records), envelopeFixturesPath)
+	}
+}
+
+// checkEnvelopeDecoded explains a transaction with its own event assets as
+// candidates and checks every decoded action, in the invocation and in each
+// entry, against the host's contract events or ledger state, through the
+// same checkDecoded the entry records use. A check that contradicts a
+// decoded rendering fails the test.
+func checkEnvelopeDecoded(ctx context.Context, t *testing.T, net liveNetwork, tx rpcTx, labels []string) {
+	t.Helper()
+	var env xdr.TransactionEnvelope
+	if err := xdr.SafeUnmarshalBase64(tx.EnvelopeXdr, &env); err != nil {
+		t.Fatal(err)
+	}
+	assets, err := snapshot.ParseAssets(labels)
+	if err != nil {
+		t.Fatal(err)
+	}
+	exp, err := explain.ExplainEnvelope(env, explain.WithNetwork(net.passphrase), explain.WithAssets(assets...))
+	if err != nil {
+		t.Fatalf("%s: %v", tx.TxHash, err)
+	}
+	created := createdInstances(t, tx)
+	for _, op := range exp.Operations {
+		var events []xdr.ContractEvent
+		if op.Index < len(tx.Events.ContractEventsXdr) {
+			for _, e := range tx.Events.ContractEventsXdr[op.Index] {
+				var ev xdr.ContractEvent
+				if err := xdr.SafeUnmarshalBase64(e, &ev); err != nil {
+					t.Fatal(err)
+				}
+				events = append(events, ev)
+			}
+		}
+		var checks []LiveCheck
+		if op.Invocation != nil {
+			checks = append(checks, checkDecoded(ctx, net, []explain.Action{*op.Invocation}, "invocation.", tx.Status, events, created)...)
+		}
+		for i, e := range op.Entries {
+			checks = append(checks, checkDecoded(ctx, net, e.Actions, fmt.Sprintf("entry%d.", i), tx.Status, events, created)...)
+		}
+		for _, c := range checks {
+			t.Logf("%s op %d %s %s: %s (%s)", tx.TxHash[:12], op.Index, c.Path, c.Kind, c.Result, c.Detail)
+			switch c.Result {
+			case "no-matching-event", "asset-mismatch", "ledger-mismatch", "check-error":
+				t.Errorf("%s op %d %s: decoded rendering contradicted: %s", tx.TxHash, op.Index, c.Path, c.Detail)
+			}
+		}
 	}
 }
